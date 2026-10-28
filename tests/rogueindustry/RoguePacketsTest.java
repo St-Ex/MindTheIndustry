@@ -15,10 +15,10 @@ import java.util.function.*;
 import static mindustry.Vars.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests de sérialisation des packets réseau custom (round-trip write → read). */
+/** Tests for custom network packet serialization (round-trip write → read). */
 class RoguePacketsTest extends HeadlessRogueTest{
 
-    /** Sérialise puis désérialise un packet. */
+    /** Serializes then deserializes a packet. */
     private static <T extends Packet> T roundTrip(T packet, Supplier<T> factory){
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         packet.write(new Writes(new DataOutputStream(baos)));
@@ -52,7 +52,7 @@ class RoguePacketsTest extends HeadlessRogueTest{
         assertEquals("alice", back.playerName);
         assertEquals("Salvo", back.rewardName);
         assertEquals("BUILDING", back.rewardType);
-        assertNull(back.targetName, "un targetName null doit survivre (encodé comme chaîne vide)");
+        assertNull(back.targetName, "a null targetName must survive (encoded as empty string)");
     }
 
     @Test
@@ -100,11 +100,11 @@ class RoguePacketsTest extends HeadlessRogueTest{
     @Test
     void commanderChoicesPacketRoundTrip(){
         CommanderChoicesPacket p = new CommanderChoicesPacket();
-        p.commanderIds = new String[]{"guerrier", "mage"};
+        p.commanderIds = new String[]{"warrior", "mage"};
 
         CommanderChoicesPacket back = roundTrip(p, CommanderChoicesPacket::new);
 
-        assertArrayEquals(new String[]{"guerrier", "mage"}, back.commanderIds);
+        assertArrayEquals(new String[]{"warrior", "mage"}, back.commanderIds);
     }
 
     @Test

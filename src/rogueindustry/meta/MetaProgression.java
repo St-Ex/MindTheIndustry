@@ -5,20 +5,20 @@ import arc.struct.*;
 import arc.util.*;
 
 /**
- * Gère la meta-progression entre les runs.
- * Stocke quels commandants sont débloqués (persisté localement via Preferences).
+ * Manages meta-progression between runs.
+ * Stores which commanders are unlocked (persisted locally via Preferences).
  *
- * Les commandants de tier 1 sont toujours débloqués.
- * Les autres se débloquent en atteignant certaines vagues ou en gagnant des runs.
+ * Tier 1 commanders are always unlocked.
+ * The others unlock by reaching certain waves or by winning runs.
  */
 public class MetaProgression{
 
     private static final String PREF_KEY = "rogue-industry-unlocked-commanders";
 
-    /** IDs des commandants débloqués (hors tier 1 qui sont toujours disponibles). */
+    /** IDs of unlocked commanders (excluding tier 1 which are always available). */
     private static final ObjectSet<String> unlocked = new ObjectSet<>();
 
-    /** Charge les commandants débloqués depuis les préférences. */
+    /** Loads unlocked commanders from preferences. */
     public static void load(){
         String saved = Core.settings.getString(PREF_KEY, "");
         unlocked.clear();
@@ -29,10 +29,10 @@ public class MetaProgression{
                 }
             }
         }
-        Log.info("[RogueIndustry] Meta-progression chargée: " + unlocked.size + " commandants débloqués.");
+        Log.info("[RogueIndustry] Meta-progression loaded: " + unlocked.size + " commanders unlocked.");
     }
 
-    /** Sauvegarde les commandants débloqués. */
+    /** Saves unlocked commanders. */
     public static void save(){
         StringBuilder sb = new StringBuilder();
         for(String id : unlocked){
@@ -43,22 +43,22 @@ public class MetaProgression{
         Core.settings.saveValues();
     }
 
-    /** Vérifie si un commandant est débloqué (tier 1 = toujours débloqué). */
+    /** Checks whether a commander is unlocked (tier 1 = always unlocked). */
     public static boolean isUnlocked(Commander commander){
         if(commander.tier <= 1) return true;
         return unlocked.contains(commander.id);
     }
 
-    /** Débloque un commandant. */
+    /** Unlocks a commander. */
     public static void unlock(Commander commander){
-        if(commander.tier <= 1) return; // déjà débloqué
+        if(commander.tier <= 1) return; // already unlocked
         if(unlocked.add(commander.id)){
             save();
-            Log.info("[RogueIndustry] Commandant débloqué: " + commander.displayName);
+            Log.info("[RogueIndustry] Commander unlocked: " + commander.displayName);
         }
     }
 
-    /** Retourne tous les commandants débloqués. */
+    /** Returns all unlocked commanders. */
     public static Seq<Commander> getUnlocked(){
         Seq<Commander> result = new Seq<>();
         for(Commander c : CommanderRegistry.all()){
@@ -70,25 +70,25 @@ public class MetaProgression{
     }
 
     /**
-     * Appelé à la fin d'une run pour débloquer des commandants selon la performance.
+     * Called at the end of a run to unlock commanders based on performance.
      *
-     * @param maxWave atteinte la vague max de la run
-     * @param won     la run a été gagnée (vague 30 atteinte)
+     * @param maxWave the max wave reached in the run
+     * @param won     the run was won (wave 30 reached)
      */
     public static void onRunComplete(int maxWave, boolean won){
-        // Tier 2: vague 10
+        // Tier 2: wave 10
         if(maxWave >= 10){
             for(Commander c : CommanderRegistry.byTier(2)){
                 unlock(c);
             }
         }
-        // Tier 3: vague 20
+        // Tier 3: wave 20
         if(maxWave >= 20){
             for(Commander c : CommanderRegistry.byTier(3)){
                 unlock(c);
             }
         }
-        // Tier 4: victoire (vague 30+)
+        // Tier 4: victory (wave 30+)
         if(won || maxWave >= 30){
             for(Commander c : CommanderRegistry.byTier(4)){
                 unlock(c);
@@ -96,12 +96,12 @@ public class MetaProgression{
         }
     }
 
-    /** Retourne le nombre total de commandants débloqués (pour l'UI). */
+    /** Returns the total number of unlocked commanders (for the UI). */
     public static int unlockedCount(){
         return getUnlocked().size;
     }
 
-    /** Retourne le nombre total de commandants. */
+    /** Returns the total number of commanders. */
     public static int totalCount(){
         return CommanderRegistry.all().size;
     }

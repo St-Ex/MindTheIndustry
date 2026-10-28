@@ -3,8 +3,8 @@ package rogueindustry.modifiers;
 import rogueindustry.rewards.rewards.*;
 
 /**
- * Bonus permanent appliqué aux unités d'un joueur spécifique.
- * Stocké dans RogueSession et appliqué à chaque nouvelle unité du joueur.
+ * Permanent bonus applied to the units of a specific player.
+ * Stored in RogueSession and applied to each new unit of the player.
  */
 public class UnitBonus{
 
@@ -19,11 +19,11 @@ public class UnitBonus{
     public String describe(){
         String sign = value >= 0 ? "+" : "";
         return switch(type){
-            case DAMAGE -> sign + (int)(value * 100) + "% dégâts";
-            case HEALTH -> sign + (int)(value * 100) + "% vie";
-            case SPEED -> sign + (int)(value * 100) + "% vitesse";
-            case RELOAD -> sign + (int)(value * 100) + "% vitesse de tir";
-            case ARMOR -> sign + (int)value + " armure";
+            case DAMAGE -> sign + (int)(value * 100) + "% damage";
+            case HEALTH -> sign + (int)(value * 100) + "% health";
+            case SPEED -> sign + (int)(value * 100) + "% speed";
+            case RELOAD -> sign + (int)(value * 100) + "% fire rate";
+            case ARMOR -> sign + (int)value + " armor";
         };
     }
 }

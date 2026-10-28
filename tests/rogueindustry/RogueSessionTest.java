@@ -12,10 +12,10 @@ import rogueindustry.rewards.rewards.*;
 import static mindustry.Vars.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests de la session serveur (état de la run rogue-like). */
+/** Tests for the server session (state of the rogue-like run). */
 class RogueSessionTest extends HeadlessRogueTest{
 
-    /** Nouvelle session avec des règles de jeu fraîches (état global partagé entre tests). */
+    /** New session with fresh game rules (global state shared between tests). */
     private RogueSession newSession(long seed){
         state.rules = new Rules();
         RogueSession session = new RogueSession();
@@ -34,8 +34,8 @@ class RogueSessionTest extends HeadlessRogueTest{
         Block duo = content.block("duo");
         assertNotNull(duo);
         assertTrue(session.isUnlockedForGroup(duo));
-        assertTrue(state.rules.researched.contains(duo), "les starters doivent être propagés aux règles de jeu");
-        assertTrue(session.getGroupUnlocks().size > 50, "beaucoup de blocs de base doivent être débloqués");
+        assertTrue(state.rules.researched.contains(duo), "starter blocks must be propagated to the game rules");
+        assertTrue(session.getGroupUnlocks().size > 50, "many base blocks must be unlocked");
     }
 
     @Test
@@ -55,10 +55,10 @@ class RogueSessionTest extends HeadlessRogueTest{
     void globalModifierAppliesToRules(){
         RogueSession session = newSession(1);
 
-        session.addGlobalModifier(new GlobalModifier("build_speed", 0.5f, "Vitesse de construction"));
+        session.addGlobalModifier(new GlobalModifier("build_speed", 0.5f, "Build speed"));
         assertEquals(1.5f, state.rules.buildSpeedMultiplier, 0.001f);
 
-        session.addGlobalModifier(new GlobalModifier("unit_damage", 0.2f, "Dégâts unités"));
+        session.addGlobalModifier(new GlobalModifier("unit_damage", 0.2f, "Unit damage"));
         assertEquals(1.2f, state.rules.unitDamageMultiplier, 0.001f);
 
         assertEquals(2, session.getGlobalModifiers().size);
@@ -68,7 +68,7 @@ class RogueSessionTest extends HeadlessRogueTest{
     void unitBonusMultipliersStack(){
         RogueSession session = newSession(1);
         Player player = Player.create();
-        player.name = "testeur";
+        player.name = "tester";
 
         session.addUnitBonus(player, new UnitBonus(UnitBonusReward.BonusType.DAMAGE, 0.5f));
         session.addUnitBonus(player, new UnitBonus(UnitBonusReward.BonusType.DAMAGE, 0.5f));
@@ -83,7 +83,7 @@ class RogueSessionTest extends HeadlessRogueTest{
     void buildingBonusMultipliersAreScopedByBlock(){
         RogueSession session = newSession(1);
         Player player = Player.create();
-        player.name = "testeur";
+        player.name = "tester";
 
         session.addBuildingBonus(player, new BuildingBonus(BuildingBonus.BonusType.DAMAGE, 0.5f, "duo"));
         session.addBuildingBonus(player, new BuildingBonus(BuildingBonus.BonusType.DAMAGE, 0.5f, "hail"));
@@ -106,7 +106,7 @@ class RogueSessionTest extends HeadlessRogueTest{
 
         session.applyBonusToUnit(unit, new UnitBonus(UnitBonusReward.BonusType.HEALTH, 0.5f));
         assertEquals(150f, unit.maxHealth, 0.001f);
-        assertEquals(75f, unit.health, 0.001f, "le ratio de vie doit être conservé");
+        assertEquals(75f, unit.health, 0.001f, "health ratio must be preserved");
 
         session.applyBonusToUnit(unit, new UnitBonus(UnitBonusReward.BonusType.SPEED, 0.5f));
         assertEquals(1.5f, unit.speedMultiplier, 0.001f);

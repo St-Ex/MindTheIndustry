@@ -1,18 +1,18 @@
 package rogueindustry.modifiers;
 
 /**
- * Modificateur global appliqué à toute la partie (tous les joueurs).
- * Exemples: vitesse de production, dégâts des tourelles, etc.
+ * Global modifier applied to the whole game (all players).
+ * Examples: production speed, turret damage, etc.
  */
 public class GlobalModifier{
 
-    /** Identifiant unique (ex: "prod_speed", "turret_damage", "build_speed"). */
+    /** Unique identifier (e.g. "prod_speed", "turret_damage", "build_speed"). */
     public final String id;
 
-    /** Valeur du bonus (ex: 0.10 pour +10%). */
+    /** Bonus value (e.g. 0.10 for +10%). */
     public final float value;
 
-    /** Nom d'affichage. */
+    /** Display name. */
     public final String displayName;
 
     public GlobalModifier(String id, float value, String displayName){

@@ -7,16 +7,16 @@ import rogueindustry.core.*;
 import rogueindustry.rewards.*;
 
 /**
- * Récompense: débloque un bâtiment pour TOUT le groupe.
- * Le bâtiment est ajouté à state.rules.researched, ce qui le rend disponible
- * pour tous les joueurs en partie.
+ * Reward: unlocks a building for the WHOLE group.
+ * The building is added to state.rules.researched, making it available
+ * to all players in the game.
  */
 public class BuildingReward extends Reward{
 
-    /** Nom interne du bloc (ex: "salvo", "laser-drill"). */
+    /** Internal name of the block (e.g. "salvo", "laser-drill"). */
     public final String blockName;
 
-    /** Le bloc débloqué (résolu par nom, car le contenu est chargé au runtime). */
+    /** The unlocked block (resolved by name, since content is loaded at runtime). */
     public transient Block block;
 
     public BuildingReward(String blockName, String displayName, String description){

@@ -3,34 +3,34 @@ package rogueindustry.meta;
 import arc.graphics.*;
 
 /**
- * Représente un commandant déblocable en meta-progression.
- * Chaque commandant a:
- * - Un nom et une description (lore)
- * - Une couleur thématique
- * - Un pouvoir unique (CommanderAbility) actif pour toute la run
- * - Un critère de déblocage (ex: "Atteindre vague 10", "Gagner une run")
+ * Represents a commander unlockable through meta-progression.
+ * Each commander has:
+ * - A name and a description (lore)
+ * - A theme color
+ * - A unique ability (CommanderAbility) active for the whole run
+ * - An unlock requirement (e.g. "Reach wave 10", "Win a run")
  */
 public class Commander{
 
-    /** ID unique (ex: "commander-vanguard"). */
+    /** Unique ID (e.g. "commander-vanguard"). */
     public final String id;
 
-    /** Nom affiché (ex: "Vanguard", "Architecte", "Overmind"). */
+    /** Display name (e.g. "Vanguard", "Architect", "Overmind"). */
     public final String displayName;
 
-    /** Description/lore du commandant. */
+    /** Description/lore of the commander. */
     public final String description;
 
-    /** Couleur thématique pour l'UI. */
+    /** Theme color for the UI. */
     public final Color color;
 
-    /** Le pouvoir unique de ce commandant. */
+    /** The unique ability of this commander. */
     public final CommanderAbility ability;
 
-    /** Critère de déblocage (description pour le joueur). */
+    /** Unlock requirement (description for the player). */
     public final String unlockRequirement;
 
-    /** Ordre d'affichage (plus petit = débloqué plus tôt). */
+    /** Display order (lower = unlocked earlier). */
     public final int tier;
 
     public Commander(String id, String displayName, String description, Color color,

@@ -11,7 +11,7 @@ import rogueindustry.rewards.rewards.*;
 import static mindustry.Vars.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests d'application des récompenses sur une session (effet métier de chaque type). */
+/** Tests for applying rewards to a session (gameplay effect of each type). */
 class RewardApplyTest extends HeadlessRogueTest{
 
     private RogueSession newSession(long seed){
@@ -43,13 +43,13 @@ class RewardApplyTest extends HeadlessRogueTest{
 
         UnitBonusReward reward = new UnitBonusReward(UnitBonusReward.BonusType.DAMAGE, 0.5f, "n", "d");
 
-        // cible explicite
+        // explicit target
         reward.apply(session, chooser, target);
         assertEquals(0, session.getUnitBonuses(chooser).size);
         assertEquals(1, session.getUnitBonuses(target).size);
         assertEquals(1.5f, session.getDamageMultiplier(target), 0.001f);
 
-        // sans cible → s'applique au votant
+        // no target → applies to the voter
         reward.apply(session, chooser, null);
         assertEquals(1, session.getUnitBonuses(chooser).size);
     }
@@ -76,7 +76,7 @@ class RewardApplyTest extends HeadlessRogueTest{
 
         reward.apply(session, null, null);
 
-        // registry: build_speed base 0.15 × multiplicateur 2 = 0.30
+        // registry: build_speed base 0.15 × multiplier 2 = 0.30
         assertEquals(1.3f, state.rules.buildSpeedMultiplier, 0.001f);
         assertEquals(1, session.getGlobalModifiers().size);
         assertEquals("build_speed", session.getGlobalModifiers().get(0).id);
@@ -85,7 +85,7 @@ class RewardApplyTest extends HeadlessRogueTest{
     @Test
     void globalModifierRewardWithUnknownIdIsIgnored(){
         RogueSession session = newSession(1);
-        GlobalModifierReward reward = new GlobalModifierReward("inconnu", 1f, "n", "d");
+        GlobalModifierReward reward = new GlobalModifierReward("unknown", 1f, "n", "d");
 
         reward.apply(session, null, null);
 
@@ -100,18 +100,18 @@ class RewardApplyTest extends HeadlessRogueTest{
         Player bob = Player.create();
         bob.name = "bob";
 
-        SchematicReward reward = new SchematicReward("", "Plan Test", "n", "d");
+        SchematicReward reward = new SchematicReward("", "Test Schematic", "n", "d");
         reward.apply(session, alice, null);
 
-        assertTrue(session.hasSchematic(alice, "Plan Test"));
-        assertFalse(session.hasSchematic(bob, "Plan Test"));
+        assertTrue(session.hasSchematic(alice, "Test Schematic"));
+        assertFalse(session.hasSchematic(bob, "Test Schematic"));
     }
 
     @Test
     void synergyRewardRegistersWithoutCrash(){
         RogueSession session = newSession(1);
-        SynergyReward reward = new SynergyReward("duo", "+10% dégâts duo", "n", "d");
-        // pas de getter public sur les synergies: on vérifie surtout l'absence d'erreur
+        SynergyReward reward = new SynergyReward("duo", "+10% duo damage", "n", "d");
+        // no public getter for synergies: mainly checking for no error
         reward.apply(session, null, null);
     }
 }

@@ -11,7 +11,7 @@ author: "stex"
 main: "rogueindustry.RogueIndustryMod"
 
 #the mod description as seen in the mod dialog
-description: "Mode rogue-like pour Mindustry. A chaque vague reussie, choisissez des bonus aleatoires : batiments, unites, ameliorations. Concu pour le multijoueur coop."
+description: "Rogue-like mode for Mindustry. After each successful wave, choose random bonuses: buildings, units, upgrades. Designed for co-op multiplayer."
 
 #the mod version
 version: 0.1.0

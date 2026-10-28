@@ -11,68 +11,68 @@ import rogueindustry.modifiers.*;
 
 import static mindustry.Vars.*;
 /**
- * État d'une run rogue-like, géré côté SERVEUR.
+ * State of a rogue-like run, managed SERVER-side.
  *
- * Responsabilités:
- * - Tracker les unlocks de groupe (bâtiments débloqués pour tous)
- * - Tracker les unlocks individuels (schematics par joueur)
- * - Tracker les bonus d'unités par joueur
- * - Tracker les modificateurs globaux actifs
- * - Appliquer les récompenses choisies par les joueurs
- * - Gérer la progression des vagues et la difficulté
+ * Responsibilities:
+ * - Track group unlocks (buildings unlocked for everyone)
+ * - Track individual unlocks (schematics per player)
+ * - Track unit bonuses per player
+ * - Track active global modifiers
+ * - Apply the rewards chosen by players
+ * - Manage wave progression and difficulty
  */
 public class RogueSession{
 
-    /** Seed aléatoire de la run (partagé avec tous les clients). */
+    /** Random seed of the run (shared with all clients). */
     public long seed;
 
-    /** Numéro de la vague actuelle. */
+    /** Number of the current wave. */
     public int wave = 0;
 
-    /** Run en cours? */
+    /** Run in progress? */
     public boolean active = false;
 
-    /** Random déterministe basé sur le seed (pour la génération de récompenses). */
+    /** Deterministic random based on the seed (for reward generation). */
     public final Rand rand = new Rand();
 
     // --- Unlocks ---
 
-    /** Bâtiments/unités débloqués pour TOUT le groupe (via BuildingReward). */
+    /** Buildings/units unlocked for the WHOLE group (via BuildingReward). */
     private final ObjectSet<UnlockableContent> groupUnlocks = new ObjectSet<>();
 
-    /** Schematics débloqués par joueur individuel (via SchematicReward). */
+    /** Schematics unlocked per individual player (via SchematicReward). */
     private final ObjectMap<Player, ObjectSet<String>> playerSchematics = new ObjectMap<>();
 
-    // --- Bonus ---
+    // --- Bonuses ---
 
-    /** Bonus d'unités par joueur (via UnitBonusReward). */
+    /** Unit bonuses per player (via UnitBonusReward). */
     private final ObjectMap<Player, Seq<UnitBonus>> playerUnitBonuses = new ObjectMap<>();
 
-    /** Bonus de bâtiments par joueur (via BuildingBonusReward). */
+    /** Building bonuses per player (via BuildingBonusReward). */
     private final ObjectMap<Player, Seq<BuildingBonus>> playerBuildingBonuses = new ObjectMap<>();
 
-    /** Modificateurs globaux actifs (via GlobalModifierReward). */
+    /** Active global modifiers (via GlobalModifierReward). */
     private final Seq<GlobalModifier> globalModifiers = new Seq<>();
 
-    /** Synergies enregistrées (prérequis → bonus). */
+    /** Registered synergies (prerequisite → bonus). */
     private final ObjectMap<String, String> synergies = new ObjectMap<>();
 
-    /** Commandant sélectionné pour cette run (meta-progression). */
+    /** Commander selected for this run (meta-progression). */
     public rogueindustry.meta.Commander selectedCommander;
 
-    // --- Joueur actif par entité ---
-    // Quel joueur est "actif" sur quel bâtiment/unité.
-    // Les bonus/malus de ce joueur s'appliquent à cette entité.
+    // --- Active player per entity ---
+    // Which player is "active" on which building/unit.
+    // This player's bonuses/maluses apply to that entity.
 
-    /** Joueur actif par bâtiment. */
+    /** Active player per building. */
     private final ObjectMap<Building, Player> buildingActivePlayer = new ObjectMap<>();
 
-    /** Joueur actif par unité. */
+    /** Active player per unit. */
     private final ObjectMap<Unit, Player> unitActivePlayer = new ObjectMap<>();
 
-    // --- Configuration de départ ---
+    // --- Starting configuration ---
 
-    /** Bâtiments de base toujours débloqués au démarrage d'une run. */
+    /** Base buildings always unlocked when a run starts. */
     private static final String[] STARTER_BLOCKS = {
         "core-shard", "core-foundation", "core-nucleus",
         "conveyor", "junction", "router", "bridge", "sorter", "overflow-gate",
@@ -112,7 +112,7 @@ public class RogueSession{
         "carbide-crucible", "slag-incinerator",
         "pulse-conduit", "plated-conduit", "surge-conduit", "phase-conduit",
         "liquid-router", "liquid-junction", "liquid-bridge", "liquid-container", "liquid-tank",
-        "arc", "ws", // Erekir turrets de base
+        "arc", "ws", // Erekir base turrets
         "beryllium-wall", "beryllium-wall-large", "tungsten-wall", "tungsten-wall-large",
         "shielded-wall",
         "thruster", "small-thruster",
@@ -142,7 +142,7 @@ public class RogueSession{
     public RogueSession(){
     }
 
-    /** Démarre une nouvelle run avec un seed aléatoire. */
+    /** Starts a new run with a random seed. */
     public void start(){
         this.seed = new Rand().nextLong();
         this.rand.setSeed(seed);
@@ -157,7 +157,7 @@ public class RogueSession{
         synergies.clear();
         clearAllActivePlayers();
 
-        // Débloquer les bâtiments de base pour le groupe
+        // Unlock the base buildings for the group
         for(String blockName : STARTER_BLOCKS){
             Block block = content.block(blockName);
             if(block != null){
@@ -165,16 +165,16 @@ public class RogueSession{
             }
         }
 
-        Log.info("[RogueIndustry] Run démarrée. Seed=" + seed);
+        Log.info("[RogueIndustry] Run started. Seed=" + seed);
 
-        // Appliquer le pouvoir du commandant si sélectionné
+        // Apply the commander's ability if one is selected
         if(selectedCommander != null){
-            Log.info("[RogueIndustry] Application du pouvoir de " + selectedCommander.displayName);
+            Log.info("[RogueIndustry] Applying ability of " + selectedCommander.displayName);
             selectedCommander.ability.apply(this);
         }
     }
 
-    /** Démarre une run avec un seed spécifique (pour rejoindre une partie). */
+    /** Starts a run with a specific seed (to join a game). */
     public void start(long seed){
         this.seed = seed;
         this.rand.setSeed(seed);
@@ -196,68 +196,68 @@ public class RogueSession{
             }
         }
 
-        Log.info("[RogueIndustry] Run rejointe. Seed=" + seed);
+        Log.info("[RogueIndustry] Run joined. Seed=" + seed);
     }
 
-    /** Arrête la run. */
+    /** Stops the run. */
     public void stop(){
         active = false;
-        Log.info("[RogueIndustry] Run terminée à la vague " + wave);
+        Log.info("[RogueIndustry] Run ended at wave " + wave);
     }
 
-    // --- Gestion des unlocks ---
+    // --- Unlock management ---
 
-    /** Débloque un contenu pour TOUT le groupe. */
+    /** Unlocks content for the WHOLE group. */
     public void unlockForGroup(UnlockableContent content){
         if(groupUnlocks.add(content)){
             state.rules.researched.add(content);
-            Log.info("[RogueIndustry] Débloqué pour le groupe: " + content.name);
+            Log.info("[RogueIndustry] Unlocked for the group: " + content.name);
         }
     }
 
-    /** Vérifie si un contenu est débloqué pour le groupe. */
+    /** Checks whether content is unlocked for the group. */
     public boolean isUnlockedForGroup(UnlockableContent content){
         return groupUnlocks.contains(content);
     }
 
-    /** Retourne tous les unlocks de groupe. */
+    /** Returns all group unlocks. */
     public ObjectSet<UnlockableContent> getGroupUnlocks(){
         return groupUnlocks;
     }
 
-    /** Débloque un schematic pour un joueur individuel. */
+    /** Unlocks a schematic for an individual player. */
     public void unlockSchematicForPlayer(Player player, String schematicName){
         playerSchematics.get(player, ObjectSet::new).add(schematicName);
-        Log.info("[RogueIndustry] Schematic '" + schematicName + "' débloqué pour " + player.name);
+        Log.info("[RogueIndustry] Schematic '" + schematicName + "' unlocked for " + player.name);
     }
 
-    /** Vérifie si un joueur a débloqué un schematic. */
+    /** Checks whether a player has unlocked a schematic. */
     public boolean hasSchematic(Player player, String schematicName){
         return playerSchematics.get(player, ObjectSet::new).contains(schematicName);
     }
 
-    // --- Gestion des bonus d'unités ---
+    // --- Unit bonus management ---
 
-    /** Ajoute un bonus d'unité pour un joueur spécifique. */
+    /** Adds a unit bonus for a specific player. */
     public void addUnitBonus(Player player, UnitBonus bonus){
         playerUnitBonuses.get(player, Seq::new).add(bonus);
-        // Appliquer immédiatement sur les unités existantes du joueur
+        // Apply immediately to the player's existing units
         applyBonusToPlayerUnits(player, bonus);
-        Log.info("[RogueIndustry] Bonus " + bonus.describe() + " appliqué à " + player.name);
+        Log.info("[RogueIndustry] Bonus " + bonus.describe() + " applied to " + player.name);
     }
 
-    /** Retourne tous les bonus d'unités d'un joueur. */
+    /** Returns all unit bonuses of a player. */
     public Seq<UnitBonus> getUnitBonuses(Player player){
         return playerUnitBonuses.get(player, Seq::new);
     }
 
-    /** Applique un bonus sur toutes les unités existantes d'un joueur. */
+    /** Applies a bonus to all of a player's existing units. */
     private void applyBonusToPlayerUnits(Player player, UnitBonus bonus){
         if(player.unit() == null || !player.unit().isValid()) return;
         applyBonusToUnit(player.unit(), bonus);
     }
 
-    /** Applique un bonus sur une unité spécifique. */
+    /** Applies a bonus to a specific unit. */
     public void applyBonusToUnit(Unit unit, UnitBonus bonus){
         switch(bonus.type){
             case HEALTH -> {
@@ -271,11 +271,11 @@ public class RogueSession{
             case ARMOR -> {
                 unit.armorOverride = unit.armorOverride >= 0 ? unit.armorOverride + bonus.value : unit.armor + bonus.value;
             }
-            // DAMAGE et RELOAD sont gérés via événements (BulletCreateEvent, etc.)
+            // DAMAGE and RELOAD are handled via events (BulletCreateEvent, etc.)
         }
     }
 
-    /** Applique tous les bonus d'un joueur sur une nouvelle unité. */
+    /** Applies all of a player's bonuses to a new unit. */
     public void applyAllBonusesToUnit(Player player, Unit unit){
         Seq<UnitBonus> bonuses = playerUnitBonuses.get(player);
         if(bonuses != null){
@@ -285,22 +285,22 @@ public class RogueSession{
         }
     }
 
-    // --- Gestion des bonus de bâtiments ---
+    // --- Building bonus management ---
 
-    /** Ajoute un bonus de bâtiment pour un joueur spécifique. */
+    /** Adds a building bonus for a specific player. */
     public void addBuildingBonus(Player player, BuildingBonus bonus){
         playerBuildingBonuses.get(player, Seq::new).add(bonus);
-        Log.info("[RogueIndustry] Bonus bâtiment " + bonus.describe() + " appliqué à " + player.name);
+        Log.info("[RogueIndustry] Building bonus " + bonus.describe() + " applied to " + player.name);
     }
 
-    /** Retourne tous les bonus de bâtiments d'un joueur. */
+    /** Returns all building bonuses of a player. */
     public Seq<BuildingBonus> getBuildingBonuses(Player player){
         return playerBuildingBonuses.get(player, Seq::new);
     }
 
     /**
-     * Retourne le multiplicateur de dégâts pour un bâtiment spécifique d'un joueur.
-     * Prend en compte les bonus ciblés (BuildingBonus) + modificateurs globaux.
+     * Returns the damage multiplier for a specific building of a player.
+     * Takes targeted bonuses (BuildingBonus) + global modifiers into account.
      */
     public float getBuildingDamageMultiplier(Player player, String blockName){
         float mult = 1f;
@@ -317,7 +317,7 @@ public class RogueSession{
     }
 
     /**
-     * Retourne le multiplicateur de vitesse de tir pour un bâtiment spécifique d'un joueur.
+     * Returns the fire rate multiplier for a specific building of a player.
      */
     public float getBuildingReloadMultiplier(Player player, String blockName){
         float mult = 1f;
@@ -334,7 +334,7 @@ public class RogueSession{
     }
 
     /**
-     * Retourne le multiplicateur de portée pour un bâtiment spécifique d'un joueur.
+     * Returns the range multiplier for a specific building of a player.
      */
     public float getBuildingRangeMultiplier(Player player, String blockName){
         float mult = 1f;
@@ -351,7 +351,7 @@ public class RogueSession{
     }
 
     /**
-     * Retourne le multiplicateur de production pour un bâtiment spécifique d'un joueur.
+     * Returns the production multiplier for a specific building of a player.
      */
     public float getBuildingProductionMultiplier(Player player, String blockName){
         float mult = 1f;
@@ -367,32 +367,32 @@ public class RogueSession{
         return mult;
     }
 
-    // --- Gestion des modificateurs globaux ---
+    // --- Global modifier management ---
 
-    /** Ajoute un modificateur global. */
+    /** Adds a global modifier. */
     public void addGlobalModifier(GlobalModifier modifier){
         globalModifiers.add(modifier);
         applyGlobalModifier(modifier);
-        Log.info("[RogueIndustry] Modificateur global: " + modifier.describe());
+        Log.info("[RogueIndustry] Global modifier: " + modifier.describe());
     }
 
-    /** Retourne tous les modificateurs globaux actifs. */
+    /** Returns all active global modifiers. */
     public Seq<GlobalModifier> getGlobalModifiers(){
         return globalModifiers;
     }
 
-    /** Applique un modificateur global aux règles de jeu. */
+    /** Applies a global modifier to the game rules. */
     private void applyGlobalModifier(GlobalModifier mod){
         switch(mod.id){
             case "prod_speed" -> {
-                // Augmente la vitesse de production de tous les bâtiments
-                // (sera implémenté via un multiplier global dans Phase 3)
+                // Increases the production speed of all buildings
+                // (will be implemented via a global multiplier in Phase 3)
             }
             case "build_speed" -> {
                 state.rules.buildSpeedMultiplier *= (1f + mod.value);
             }
             case "turret_damage" -> {
-                // Sera implémenté via événement BulletCreateEvent
+                // Will be implemented via BulletCreateEvent event
             }
             case "unit_damage" -> {
                 state.rules.unitDamageMultiplier *= (1f + mod.value);
@@ -401,38 +401,38 @@ public class RogueSession{
                 state.rules.unitHealthMultiplier *= (1f + mod.value);
             }
             case "core_health" -> {
-                // Multiplicateur de vie des cores
+                // Core health multiplier
             }
         }
     }
 
-    // --- Gestion des synergies ---
+    // --- Synergy management ---
 
     public void addSynergy(String requiredUnlockId, String bonusDescription){
         synergies.put(requiredUnlockId, bonusDescription);
-        Log.info("[RogueIndustry] Synergie enregistrée: " + requiredUnlockId + " → " + bonusDescription);
+        Log.info("[RogueIndustry] Synergy registered: " + requiredUnlockId + " → " + bonusDescription);
     }
 
-    // --- Progression des vagues ---
+    // --- Wave progression ---
 
-    /** Incrémente le numéro de vague et applique la difficulté. */
+    /** Increments the wave number and applies the difficulty. */
     public void nextWave(){
         wave++;
         applyDifficulty();
-        Log.info("[RogueIndustry] Vague " + wave + " - Difficulté appliquée");
+        Log.info("[RogueIndustry] Wave " + wave + " - Difficulty applied");
     }
 
-    /** Applique la courbe de difficulté en fonction de la vague. */
+    /** Applies the difficulty curve based on the wave. */
     private void applyDifficulty(){
-        // Augmente les stats ennemies à chaque vague
-        float healthBonus = wave * 0.05f;  // +5% vie ennemie par vague
-        float damageBonus = wave * 0.03f;  // +3% dégâts ennemis par vague
+        // Increases enemy stats each wave
+        float healthBonus = wave * 0.05f;  // +5% enemy health per wave
+        float damageBonus = wave * 0.03f;  // +3% enemy damage per wave
 
         state.rules.unitHealthMultiplier = 1f + healthBonus;
         state.rules.unitDamageMultiplier = Math.max(state.rules.unitDamageMultiplier, 1f + damageBonus);
     }
 
-    /** Retourne le multiplicateur de dégâts pour les unités d'un joueur (inclut bonus + synergies). */
+    /** Returns the damage multiplier for a player's units (includes bonuses + synergies). */
     public float getDamageMultiplier(Player player){
         float mult = 1f;
         Seq<UnitBonus> bonuses = playerUnitBonuses.get(player);
@@ -446,7 +446,7 @@ public class RogueSession{
         return mult;
     }
 
-    /** Retourne le multiplicateur de vitesse de tir pour les unités d'un joueur. */
+    /** Returns the fire rate multiplier for a player's units. */
     public float getReloadMultiplier(Player player){
         float mult = 1f;
         Seq<UnitBonus> bonuses = playerUnitBonuses.get(player);
@@ -461,31 +461,31 @@ public class RogueSession{
     }
 
     // ============================================================
-    // JOUEUR ACTIF PAR ENTITÉ
+    // ACTIVE PLAYER PER ENTITY
     // ============================================================
-    // Chaque bâtiment/unité peut avoir un "joueur actif" assigné.
-    // Les bonus/malus de ce joueur s'appliquent à cette entité.
-    // 3 bâtiments identiques peuvent avoir 3 joueurs actifs différents.
+    // Each building/unit can have an "active player" assigned.
+    // This player's bonuses/maluses apply to that entity.
+    // 3 identical buildings can have 3 different active players.
 
-    // --- Bâtiments ---
+    // --- Buildings ---
 
-    /** Définit le joueur actif pour un bâtiment. null = aucun joueur actif. */
+    /** Sets the active player for a building. null = no active player. */
     public void setActivePlayer(Building building, Player player){
         if(player == null){
             buildingActivePlayer.remove(building);
         }else{
             buildingActivePlayer.put(building, player);
         }
-        Log.info("[RogueIndustry] Joueur actif sur bâtiment #" + building.tile.pos() + ": " +
-                 (player != null ? player.name : "aucun"));
+        Log.info("[RogueIndustry] Active player on building #" + building.tile.pos() + ": " +
+                 (player != null ? player.name : "none"));
     }
 
-    /** Retourne le joueur actif pour un bâtiment, ou null. */
+    /** Returns the active player for a building, or null. */
     public Player getActivePlayer(Building building){
         return buildingActivePlayer.get(building);
     }
 
-    /** Retourne les bonus de bâtiment d'un joueur applicables à un type de bâtiment. */
+    /** Returns a player's building bonuses applicable to a building type. */
     public Seq<BuildingBonus> getApplicableBuildingBonuses(Player player, String blockName){
         Seq<BuildingBonus> result = new Seq<>();
         Seq<BuildingBonus> bonuses = playerBuildingBonuses.get(player);
@@ -499,86 +499,86 @@ public class RogueSession{
         return result;
     }
 
-    /** Nettoie le joueur actif quand un bâtiment est détruit. */
+    /** Clears the active player when a building is destroyed. */
     public void clearActivePlayer(Building building){
         buildingActivePlayer.remove(building);
     }
 
-    // --- Unités ---
+    // --- Units ---
 
-    /** Définit le joueur actif pour une unité. null = aucun joueur actif. */
+    /** Sets the active player for a unit. null = no active player. */
     public void setActivePlayer(Unit unit, Player player){
         if(player == null){
             unitActivePlayer.remove(unit);
         }else{
             unitActivePlayer.put(unit, player);
-            // Appliquer immédiatement les bonus du joueur sur l'unité
+            // Immediately apply the player's bonuses to the unit
             applyAllBonusesToUnit(player, unit);
         }
-        Log.info("[RogueIndustry] Joueur actif sur unité #" + unit.id + ": " +
-                 (player != null ? player.name : "aucun"));
+        Log.info("[RogueIndustry] Active player on unit #" + unit.id + ": " +
+                 (player != null ? player.name : "none"));
     }
 
-    /** Retourne le joueur actif pour une unité, ou null. */
+    /** Returns the active player for a unit, or null. */
     public Player getActivePlayer(Unit unit){
         return unitActivePlayer.get(unit);
     }
 
-    /** Retourne les bonus d'unités d'un joueur (pour tooltip). */
+    /** Returns a player's unit bonuses (for tooltip). */
     public Seq<UnitBonus> getApplicableUnitBonuses(Player player){
         return playerUnitBonuses.get(player, Seq::new);
     }
 
-    /** Nettoie le joueur actif quand une unité est détruite. */
+    /** Clears the active player when a unit is destroyed. */
     public void clearActivePlayer(Unit unit){
         unitActivePlayer.remove(unit);
     }
 
-    // --- Multiplicateurs basés sur le joueur actif ---
+    // --- Multipliers based on the active player ---
 
-    /** Multiplicateur de dégâts pour un bâtiment, basé sur son joueur actif. */
+    /** Damage multiplier for a building, based on its active player. */
     public float getBuildingDamageMultiplier(Building building){
         Player active = getActivePlayer(building);
         if(active == null) return 1f;
         return getBuildingDamageMultiplier(active, building.block.name);
     }
 
-    /** Multiplicateur de vitesse de tir pour un bâtiment, basé sur son joueur actif. */
+    /** Fire rate multiplier for a building, based on its active player. */
     public float getBuildingReloadMultiplier(Building building){
         Player active = getActivePlayer(building);
         if(active == null) return 1f;
         return getBuildingReloadMultiplier(active, building.block.name);
     }
 
-    /** Multiplicateur de portée pour un bâtiment, basé sur son joueur actif. */
+    /** Range multiplier for a building, based on its active player. */
     public float getBuildingRangeMultiplier(Building building){
         Player active = getActivePlayer(building);
         if(active == null) return 1f;
         return getBuildingRangeMultiplier(active, building.block.name);
     }
 
-    /** Multiplicateur de production pour un bâtiment, basé sur son joueur actif. */
+    /** Production multiplier for a building, based on its active player. */
     public float getBuildingProductionMultiplier(Building building){
         Player active = getActivePlayer(building);
         if(active == null) return 1f;
         return getBuildingProductionMultiplier(active, building.block.name);
     }
 
-    /** Multiplicateur de dégâts pour une unité, basé sur son joueur actif. */
+    /** Damage multiplier for a unit, based on its active player. */
     public float getUnitDamageMultiplier(Unit unit){
         Player active = getActivePlayer(unit);
         if(active == null) return 1f;
         return getDamageMultiplier(active);
     }
 
-    /** Multiplicateur de vitesse de tir pour une unité, basé sur son joueur actif. */
+    /** Fire rate multiplier for a unit, based on its active player. */
     public float getUnitReloadMultiplier(Unit unit){
         Player active = getActivePlayer(unit);
         if(active == null) return 1f;
         return getReloadMultiplier(active);
     }
 
-    /** Nettoie tous les joueurs actifs (fin de run). */
+    /** Clears all active players (end of run). */
     public void clearAllActivePlayers(){
         buildingActivePlayer.clear();
         unitActivePlayer.clear();

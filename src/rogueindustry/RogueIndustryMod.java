@@ -11,95 +11,95 @@ import rogueindustry.meta.*;
 import rogueindustry.net.*;
 
 /**
- * Mod RogueIndustry - Mode rogue-like pour Mindustry en coop.
+ * RogueIndustry mod - Rogue-like mode for Mindustry co-op.
  *
- * À chaque vague réussie, chaque joueur reçoit 3 choix de récompenses aléatoires:
- * - Bâtiments débloqués pour tout le groupe
- * - Plans (schematics) débloqués pour un joueur seul
- * - Bonus d'unités ciblés sur un joueur au choix
- * - Modificateurs globaux pour tous
- * - Synergies conditionnelles
+ * After each completed wave, each player receives 3 random reward choices:
+ * - Buildings unlocked for the whole group
+ * - Schematics unlocked for a single player
+ * - Unit bonuses targeted at a player of your choice
+ * - Global modifiers for everyone
+ * - Conditional synergies
  */
 public class RogueIndustryMod extends Mod{
 
-    /** Contrôleur serveur (null côté client pur). */
+    /** Server controller (null on pure client). */
     public static ServerRogueController serverController;
 
-    /** Contrôleur client. */
+    /** Client controller. */
     public static ClientRogueController clientController;
 
-    /** Session serveur (alias pour accès rapide). */
+    /** Server session (alias for quick access). */
     public static RogueSession serverSession;
 
-    /** Session client (alias pour accès rapide). */
+    /** Client session (alias for quick access). */
     public static RogueSession clientSession;
 
-    /** Si true, le mode rogue démarre automatiquement au lancement d'une partie. */
+    /** If true, rogue mode starts automatically when a game starts. */
     public static boolean autoStartRogue = false;
 
     public RogueIndustryMod(){
-        Log.info("[RogueIndustry] Mod chargé.");
+        Log.info("[RogueIndustry] Mod loaded.");
 
-        // Enregistrer les packets réseau
+        // Register network packets
         RoguePackets.register();
-        Log.info("[RogueIndustry] Packets enregistrés.");
+        Log.info("[RogueIndustry] Packets registered.");
 
-        // Initialiser les contrôleurs
+        // Initialize the controllers
         clientController = new ClientRogueController();
         clientSession = clientController.session;
 
-        // Côté serveur (ou solo), initialiser le contrôleur serveur
+        // Server-side (or solo), initialize the server controller
         Events.on(ServerLoadEvent.class, e -> {
             serverController = new ServerRogueController();
             serverSession = serverController.session;
-            Log.info("[RogueIndustry] Contrôleur serveur initialisé (ServerLoadEvent).");
+            Log.info("[RogueIndustry] Server controller initialized (ServerLoadEvent).");
         });
 
-        // Fallback: créer le contrôleur au PlayEvent si ServerLoadEvent n'a pas eu lieu (solo)
+        // Fallback: create the controller at PlayEvent if ServerLoadEvent didn't fire (solo)
         Events.on(mindustry.game.EventType.PlayEvent.class, e -> {
             if(serverController == null){
                 serverController = new ServerRogueController();
                 serverSession = serverController.session;
-                Log.info("[RogueIndustry] Contrôleur serveur initialisé (PlayEvent fallback).");
+                Log.info("[RogueIndustry] Server controller initialized (PlayEvent fallback).");
             }
         });
 
-        // Côté client, à la connexion
+        // Client-side, on connect
         Events.on(ClientLoadEvent.class, e -> {
-            Log.info("[RogueIndustry] Client chargé - prêt pour le mode rogue-like.");
-            // Charger la meta-progression
+            Log.info("[RogueIndustry] Client loaded - ready for rogue-like mode.");
+            // Load meta-progression
             MetaProgression.load();
-            // Initialiser le sélecteur de joueur actif
+            // Initialize the active player selector
             rogueindustry.ui.EntityPlayerSelector.init();
-            // Initialiser le HUD
+            // Initialize the HUD
             rogueindustry.ui.RogueHUD.init();
         });
 
-        // Commande admin pour démarrer une run (debug)
+        // Admin command to start a run (debug)
         Events.on(ServerLoadEvent.class, e -> {
-            // Sera remplacé par un vrai bouton UI plus tard
-            Log.info("[RogueIndustry] Utilisez la console serveur: 'rogue start' pour démarrer une run");
+            // Will be replaced by a real UI button later
+            Log.info("[RogueIndustry] Use the server console: 'rogue start' to start a run");
         });
     }
 
     @Override
     public void loadContent(){
-        Log.info("[RogueIndustry] Chargement du contenu...");
-        // Le contenu custom (bâtiments, unités) sera ajouté ici en Phase 3
+        Log.info("[RogueIndustry] Loading content...");
+        // Custom content (buildings, units) will be added here in Phase 3
     }
 
     @Override
     public void registerClientCommands(CommandHandler handler){
-        handler.<Player>register("rogue", "[start|stop|skip|status]", "Commande du mode RogueIndustry.", (args, player) -> {
+        handler.<Player>register("rogue", "[start|stop|skip|status]", "Command for RogueIndustry mode.", (args, player) -> {
             if(serverController == null){
-                player.sendMessage("[scarlet]Le contrôleur serveur n'est pas initialisé.");
+                player.sendMessage("[scarlet]Server controller is not initialized.");
                 return;
             }
 
             if(args.length == 0 || args[0].equals("status")){
                 player.sendMessage("[accent]RogueIndustry: " +
-                    (serverController.session.active ? "[green]ACTIF" : "[red]INACTIF") +
-                    "[] | Vague: [yellow]" + serverController.session.wave +
+                    (serverController.session.active ? "[green]ACTIVE" : "[red]INACTIVE") +
+                    "[] | Wave: [yellow]" + serverController.session.wave +
                     "[] | Seed: [gray]" + serverController.session.seed);
                 return;
             }
@@ -107,32 +107,32 @@ public class RogueIndustryMod extends Mod{
             switch(args[0]){
                 case "start" -> {
                     if(serverController.session.active){
-                        player.sendMessage("[scarlet]Une run est déjà en cours.");
+                        player.sendMessage("[scarlet]A run is already in progress.");
                         return;
                     }
-                    // Lancer le flux de sélection de commandant (avec délai pour laisser le joueur se connecter)
-                    player.sendMessage("[accent]Sélection du commandant...");
+                    // Start the commander selection flow (with a delay to let the player connect)
+                    player.sendMessage("[accent]Commander selection...");
                     arc.util.Timer.schedule(() -> serverController.startCommanderSelection(), 0.5f);
                 }
                 case "stop" -> {
                     if(!serverController.session.active){
-                        player.sendMessage("[scarlet]Aucune run en cours.");
+                        player.sendMessage("[scarlet]No run in progress.");
                         return;
                     }
                     serverController.stopRun();
-                    player.sendMessage("[yellow]Run arrêtée.");
+                    player.sendMessage("[yellow]Run stopped.");
                 }
                 case "skip" -> {
                     if(!serverController.session.active){
-                        player.sendMessage("[scarlet]Aucune run en cours.");
+                        player.sendMessage("[scarlet]No run in progress.");
                         return;
                     }
                     serverController.skipToNextWave();
-                    player.sendMessage("[accent]Vague suivante forcée.");
+                    player.sendMessage("[accent]Next wave forced.");
                 }
                 case "commanders" -> {
-                    player.sendMessage("[accent]=== Commandants débloqués ===");
-                    player.sendMessage("[gray]" + MetaProgression.unlockedCount() + "/" + MetaProgression.totalCount() + " débloqués");
+                    player.sendMessage("[accent]=== Unlocked commanders ===");
+                    player.sendMessage("[gray]" + MetaProgression.unlockedCount() + "/" + MetaProgression.totalCount() + " unlocked");
                     for(Commander c : CommanderRegistry.all()){
                         String status = MetaProgression.isUnlocked(c) ? "[green]✓" : "[red]✗";
                         player.sendMessage(status + " " + c.displayName + " [gray]- " + c.ability.name());
@@ -142,7 +142,7 @@ public class RogueIndustryMod extends Mod{
                     for(Commander c : CommanderRegistry.all()){
                         MetaProgression.unlock(c);
                     }
-                    player.sendMessage("[green]Tous les commandants débloqués!");
+                    player.sendMessage("[green]All commanders unlocked!");
                 }
                 case "vote" -> {
                     if(args.length < 2){
@@ -153,7 +153,7 @@ public class RogueIndustryMod extends Mod{
                         int index = Integer.parseInt(args[1]);
                         serverController.handleCommanderVote(player, index);
                     }catch(NumberFormatException e){
-                        player.sendMessage("[scarlet]Index invalide.");
+                        player.sendMessage("[scarlet]Invalid index.");
                     }
                 }
                 case "reward" -> {
@@ -165,7 +165,7 @@ public class RogueIndustryMod extends Mod{
                         int index = Integer.parseInt(args[1]);
                         serverController.handleRewardVote(player, index);
                     }catch(NumberFormatException e){
-                        player.sendMessage("[scarlet]Index invalide.");
+                        player.sendMessage("[scarlet]Invalid index.");
                     }
                 }
                 case "active" -> {
@@ -182,13 +182,13 @@ public class RogueIndustryMod extends Mod{
                         if(!targetName.equalsIgnoreCase("none") && !targetName.equals("-1")){
                             target = Groups.player.find(p -> p.name != null && p.name.toLowerCase().contains(targetName.toLowerCase()));
                             if(target == null){
-                                player.sendMessage("[scarlet]Joueur non trouvé: " + targetName);
+                                player.sendMessage("[scarlet]Player not found: " + targetName);
                                 return;
                             }
                         }
                         serverController.setActivePlayer(entityId, isBuilding, target);
                     }catch(NumberFormatException e){
-                        player.sendMessage("[scarlet]ID invalide.");
+                        player.sendMessage("[scarlet]Invalid ID.");
                     }
                 }
                 default -> player.sendMessage("[scarlet]Usage: /rogue [start|stop|skip|status|commanders|unlock-all|vote|reward|active]");

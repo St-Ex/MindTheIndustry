@@ -4,12 +4,12 @@ import arc.util.io.*;
 import rogueindustry.rewards.rewards.*;
 
 /**
- * Sérialise/désérialise les récompenses complètes sur le réseau.
- * Chaque type de récompense a des champs spécifiques qui sont écrits après les champs de base.
+ * Serializes/deserializes full rewards over the network.
+ * Each reward type has specific fields that are written after the base fields.
  */
 public class RewardSerializer{
 
-    /** Désérialise une récompense complète (champs de base déjà lus). */
+    /** Deserializes a full reward (base fields already read). */
     public static Reward readFull(String id, RewardType type, String name, String desc, Reads read){
         return switch(type){
             case BUILDING -> BuildingReward.readSpecific(id, name, desc, read);
@@ -21,7 +21,7 @@ public class RewardSerializer{
         };
     }
 
-    /** Écrit les champs spécifiques d'une récompense (après les champs de base). */
+    /** Writes the type-specific fields of a reward (after the base fields). */
     public static void writeSpecific(Reward reward, Writes write){
         if(reward instanceof BuildingReward r){
             write.str(r.blockName);

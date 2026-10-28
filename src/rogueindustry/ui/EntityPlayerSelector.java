@@ -19,27 +19,27 @@ import rogueindustry.modifiers.*;
 import static mindustry.Vars.*;
 
 /**
- * Widget affiché quand un bâtiment ou des unités sont sélectionnés.
+ * Widget shown when a building or units are selected.
  *
- * - Bâtiment seul: boutons radio par joueur, un seul actif.
- * - Groupe d'unités: boutons radio + compteurs (ex: "Alice: 5, Bob: 3").
- * - Tooltip au survol: liste des bonus applicables pour ce joueur sur cette entité.
- * - N'importe quel joueur peut changer l'assignation.
+ * - Single building: radio buttons per player, only one active.
+ * - Unit group: radio buttons + counters (e.g. "Alice: 5, Bob: 3").
+ * - Hover tooltip: list of bonuses applicable for this player on this entity.
+ * - Any player can change the assignment.
  *
- * Par défaut, le propriétaire (constructeur/contrôleur) est le joueur actif.
+ * By default, the owner (builder/controller) is the active player.
  */
 public class EntityPlayerSelector extends Table{
 
     private static EntityPlayerSelector instance;
 
-    // Sélection courante
+    // Current selection
     private Building selectedBuilding;
     private final Seq<Unit> selectedUnits = new Seq<>();
 
-    // Cache local du joueur actif (pour l'UI)
+    // Local cache of the active player (for the UI)
     private Player currentActive;
 
-    // Compteurs par joueur actif (pour sélection multiple)
+    // Counts per active player (for multi-selection)
     private final ObjectMap<Player, Integer> activeCounts = new ObjectMap<>();
     private int noneCount = 0;
 
@@ -50,42 +50,42 @@ public class EntityPlayerSelector extends Table{
         background(Tex.button);
     }
 
-    /** Reconstruit le contenu du widget. */
+    /** Rebuilds the widget content. */
     private void rebuild(){
         clear();
 
-        // === Ligne 1: Titre + info sélection ===
+        // === Line 1: Title + selection info ===
         table(header -> {
             header.left();
 
             String title;
             if(selectedBuilding != null){
-                title = "[accent]Joueur actif: [white]" + selectedBuilding.block.localizedName;
+                title = "[accent]Active player: [white]" + selectedBuilding.block.localizedName;
             }else if(!selectedUnits.isEmpty()){
-                title = "[accent]Joueur actif: [white]" + selectedUnits.size + " unité(s)";
+                title = "[accent]Active player: [white]" + selectedUnits.size + " unit(s)";
             }else{
-                title = "[accent]Joueur actif";
+                title = "[accent]Active player";
             }
             header.label(() -> title).fontScale(0.9f).padRight(10f);
 
-            // Compteurs (sélection multiple uniquement)
+            // Counters (multi-selection only)
             if(!selectedUnits.isEmpty() && selectedUnits.size > 1){
                 header.label(() -> buildCountersText()).fontScale(0.8f).color(Color.lightGray);
             }
         }).growX().row();
 
-        // === Ligne 2: Boutons radio par joueur ===
+        // === Line 2: Radio buttons per player ===
         table(buttons -> {
             buttons.left();
 
-            // Bouton "Aucun"
-            TextButton noneBtn = new TextButton("Aucun");
+            // "None" button
+            TextButton noneBtn = new TextButton("None");
             noneBtn.setChecked(currentActive == null);
             noneBtn.clicked(() -> selectPlayer(null));
             noneBtn.update(() -> noneBtn.setChecked(currentActive == null));
             buttons.add(noneBtn).size(70f, 35f).pad(2f);
 
-            // Boutons par joueur
+            // Buttons per player
             for(Player p : Groups.player){
                 if(p.dead()) continue;
 
@@ -94,10 +94,10 @@ public class EntityPlayerSelector extends Table{
                 btn.clicked(() -> selectPlayer(p));
                 btn.update(() -> btn.setChecked(currentActive == p));
 
-                // Tooltip au survol
+                // Hover tooltip
                 addTooltip(btn, p);
 
-                // Badge compteur (sélection multiple)
+                // Counter badge (multi-selection)
                 if(!selectedUnits.isEmpty() && selectedUnits.size > 1){
                     int count = activeCounts.get(p, 0);
                     if(count > 0){
@@ -112,7 +112,7 @@ public class EntityPlayerSelector extends Table{
         }).growX().padTop(5f).row();
     }
 
-    /** Construit le texte des compteurs pour la sélection multiple. */
+    /** Builds the counters text for multi-selection. */
     private String buildCountersText(){
         StringBuilder sb = new StringBuilder();
         sb.append("[gray]");
@@ -128,13 +128,13 @@ public class EntityPlayerSelector extends Table{
         }
         if(noneCount > 0){
             if(!first) sb.append(", ");
-            sb.append("Aucun: [white]").append(noneCount);
+            sb.append("None: [white]").append(noneCount);
         }
         sb.append("[/]");
         return sb.toString();
     }
 
-    /** Ajoute un tooltip de bonus au survol d'un bouton joueur. */
+    /** Adds a bonus tooltip on hover of a player button. */
     private void addTooltip(Element btn, Player p){
         btn.addListener(new InputListener(){
             private Label tooltipLabel;
@@ -148,7 +148,7 @@ public class EntityPlayerSelector extends Table{
                 tooltipLabel.setFontScale(0.75f);
                 tooltipLabel.setColor(Color.white);
                 tooltipLabel.setAlignment(Align.left);
-                // Style avec fond
+                // Style with background
                 Label.LabelStyle style = new Label.LabelStyle(Fonts.def, Color.white);
                 style.background = Tex.button;
                 tooltipLabel.setStyle(style);
@@ -171,7 +171,7 @@ public class EntityPlayerSelector extends Table{
         });
     }
 
-    /** Construit le texte du tooltip pour un joueur. */
+    /** Builds the tooltip text for a player. */
     private String buildTooltip(Player p){
         RogueSession session = RogueIndustryMod.serverController != null
             ? RogueIndustryMod.serverController.session
@@ -185,7 +185,7 @@ public class EntityPlayerSelector extends Table{
             String blockName = selectedBuilding.block.name;
             Seq<BuildingBonus> bonuses = session.getApplicableBuildingBonuses(p, blockName);
             if(bonuses.isEmpty()){
-                sb.append("[gray]Aucun bonus pour ce bâtiment");
+                sb.append("[gray]No bonus for this building");
             }else{
                 for(BuildingBonus b : bonuses){
                     sb.append(b.value >= 0 ? "[green]" : "[red]").append(b.describe()).append("\n");
@@ -194,7 +194,7 @@ public class EntityPlayerSelector extends Table{
         }else if(!selectedUnits.isEmpty()){
             Seq<UnitBonus> bonuses = session.getApplicableUnitBonuses(p);
             if(bonuses.isEmpty()){
-                sb.append("[gray]Aucun bonus pour les unités");
+                sb.append("[gray]No bonus for units");
             }else{
                 for(UnitBonus b : bonuses){
                     sb.append(b.value >= 0 ? "[green]" : "[red]").append(b.describe()).append("\n");
@@ -205,21 +205,21 @@ public class EntityPlayerSelector extends Table{
         return sb.toString().trim();
     }
 
-    /** Sélectionne un joueur comme actif pour la sélection courante. */
+    /** Selects a player as active for the current selection. */
     private void selectPlayer(Player target){
         currentActive = target;
 
-        // Envoyer au serveur
+        // Send to the server
         if(RogueIndustryMod.clientController != null){
             RogueIndustryMod.clientController.requestActivePlayer(selectedBuilding, selectedUnits, target);
         }
 
-        // Mettre à jour les compteurs locaux (optimiste)
+        // Update local counts (optimistic)
         updateLocalCounts(target);
         rebuild();
     }
 
-    /** Met à jour les compteurs locaux après un changement (optimiste). */
+    /** Updates local counts after a change (optimistic). */
     private void updateLocalCounts(Player target){
         activeCounts.clear();
         noneCount = 0;
@@ -241,7 +241,7 @@ public class EntityPlayerSelector extends Table{
         }
     }
 
-    /** Définit le bâtiment sélectionné (appelé par l'événement BuildSelectEvent). */
+    /** Sets the selected building (called by the BuildSelectEvent event). */
     public void setSelectedBuilding(Building building){
         selectedBuilding = building;
         selectedUnits.clear();
@@ -251,7 +251,7 @@ public class EntityPlayerSelector extends Table{
         if(visible) rebuild();
     }
 
-    /** Définit les unités sélectionnées (appelé périodiquement). */
+    /** Sets the selected units (called periodically). */
     public void setSelectedUnits(Seq<Unit> units){
         if(units == null) units = new Seq<>();
 
@@ -268,7 +268,7 @@ public class EntityPlayerSelector extends Table{
         }
     }
 
-    /** Rafraîchit l'état du joueur actif et les compteurs depuis la session. */
+    /** Refreshes the active player state and counts from the session. */
     private void refreshActiveState(){
         RogueSession session = RogueIndustryMod.serverController != null
             ? RogueIndustryMod.serverController.session
@@ -305,26 +305,26 @@ public class EntityPlayerSelector extends Table{
         }
     }
 
-    /** Initialise le sélecteur (ajouté au HUD). */
+    /** Initializes the selector (added to the HUD). */
     public static void init(){
         if(instance != null) return;
         instance = new EntityPlayerSelector();
         instance.setFillParent(true);
 
-        // S'ajouter au HUD quand une partie démarre (ui.hudGroup existe alors)
+        // Add itself to the HUD when a game starts (ui.hudGroup exists then)
         Events.on(WorldLoadEvent.class, e -> {
             if(ui.hudGroup != null && instance != null && !instance.hasParent()){
                 ui.hudGroup.addChild(instance);
-                Log.info("[RogueIndustry] EntityPlayerSelector ajouté au HUD.");
+                Log.info("[RogueIndustry] EntityPlayerSelector added to the HUD.");
             }
         });
 
-        // Nettoyer à la fin de partie
+        // Clean up at end of game
         Events.on(ResetEvent.class, e -> {
             if(instance != null) instance.remove();
         });
 
-        // Écouter la sélection de bâtiment
+        // Listen for building selection
         Events.on(BuildSelectEvent.class, e -> {
             if(e.tile != null && e.tile.build != null){
                 instance.setSelectedBuilding(e.tile.build);
@@ -333,7 +333,7 @@ public class EntityPlayerSelector extends Table{
             }
         });
 
-        // Mise à jour périodique pour les unités (sélection multiple)
+        // Periodic update for units (multi-selection)
         Timer.schedule(() -> {
             if(instance != null){
                 if(!control.input.selectedUnits.isEmpty()){
@@ -342,6 +342,6 @@ public class EntityPlayerSelector extends Table{
             }
         }, 0f, 0.1f);
 
-        Log.info("[RogueIndustry] EntityPlayerSelector initialisé.");
+        Log.info("[RogueIndustry] EntityPlayerSelector initialized.");
     }
 }

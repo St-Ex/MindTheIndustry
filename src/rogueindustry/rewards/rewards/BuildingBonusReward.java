@@ -7,20 +7,20 @@ import rogueindustry.modifiers.*;
 import rogueindustry.rewards.*;
 
 /**
- * Récompense: applique un bonus permanent sur un type de bâtiment pour un joueur CIBLE.
- * Le joueur cible est choisi au moment du vote (soi-même ou un allié).
+ * Reward: applies a permanent bonus on a building type for a TARGET player.
+ * The target player is chosen at vote time (yourself or an ally).
  *
- * Exemples:
- * - "+15% dégâts Salvo" → cible: Alice → seules les Salvo d'Alice ont +15% dégâts
- * - "+20% vitesse Multi-Press" → cible: Bob → seules les Multi-Press de Bob produisent plus vite
- * - "+10% portée toutes tourelles" → cible: soi-même
+ * Examples:
+ * - "+15% Salvo damage" → target: Alice → only Alice's Salvos have +15% damage
+ * - "+20% Multi-Press speed" → target: Bob → only Bob's Multi-Presses produce faster
+ * - "+10% range all turrets" → target: yourself
  */
 public class BuildingBonusReward extends Reward{
 
     public final BuildingBonus.BonusType bonusType;
     public final float value;
 
-    /** Nom du bâtiment concerné (ex: "salvo"). null = tous les bâtiments d'un type. */
+    /** Name of the building concerned (e.g. "salvo"). null = all buildings of a type. */
     public final String blockName;
 
     public BuildingBonusReward(BuildingBonus.BonusType bonusType, float value, String blockName,

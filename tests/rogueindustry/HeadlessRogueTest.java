@@ -14,14 +14,14 @@ import org.junit.jupiter.api.*;
 import static mindustry.Vars.*;
 
 /**
- * Classe de base de tous les tests du mod.
+ * Base class for all mod tests.
  *
- * Boot Mindustry en mode headless (sans UI ni rendu), une seule fois par JVM de test,
- * en suivant le pattern des tests amont du jeu
+ * Boots Mindustry headless (no UI, no rendering), once per test JVM,
+ * following the upstream test pattern
  * (../Mindustry/tests/src/test/java/ApplicationTests.java).
  *
- * Toute la logique métier (core/, rewards/, modifiers/, meta/, sérialisation net/)
- * doit être testable via cette classe — sans lancer le jeu.
+ * All game logic (core/, rewards/, modifiers/, meta/, net/ serialization)
+ * must be testable through this class — without launching the game.
  */
 public abstract class HeadlessRogueTest{
 
@@ -31,10 +31,10 @@ public abstract class HeadlessRogueTest{
     @BeforeAll
     static void bootHeadless(){
         if(initialized){
-            // boot déjà tenté: propager la même erreur plutôt que de retenter
-            // (un deuxième boot corromprait l'état global: content, classes statiques)
+            // boot already attempted: propagate the same error instead of retrying
+            // (a second boot would corrupt global state: content, static classes)
             if(bootError != null){
-                throw new IllegalStateException("Échec du boot headless de Mindustry", bootError);
+                throw new IllegalStateException("Failed to boot headless Mindustry", bootError);
             }
             return;
         }
@@ -54,16 +54,16 @@ public abstract class HeadlessRogueTest{
                     headless = true;
                     net = new Net(null);
                     tree = new FileTree();
-                    // assets absents du JAR de test: skip les lectures de fichiers internes optionnels
+                    // assets missing from the test JAR: skip optional internal file reads
                     loadLocales = false;
                     Version.enabled = false;
                     Vars.init();
-                    // Vars.init() ne crée pas Schematics (c'est le launcher client qui le fait)
+                    // Vars.init() does not create Schematics (the client launcher does)
                     if(schematics == null) schematics = new Schematics();
                     world = new World(){
                         @Override
                         public float getDarkness(int x, int y){
-                            // pas de bords de carte en test
+                            // no dark map borders in tests
                             return 0;
                         }
                     };
@@ -82,16 +82,16 @@ public abstract class HeadlessRogueTest{
 
             new HeadlessApplication(core, t -> bootError = t);
 
-            // attendre la fin du boot sur le thread headless
+            // wait for the boot to finish on the headless thread
             while(!began[0]){
                 if(bootError != null){
-                    throw new IllegalStateException("Échec du boot headless de Mindustry", bootError);
+                    throw new IllegalStateException("Failed to boot headless Mindustry", bootError);
                 }
                 Thread.sleep(10);
             }
         }catch(Throwable t){
             bootError = t;
-            throw new IllegalStateException("Échec du boot headless de Mindustry", t);
+            throw new IllegalStateException("Failed to boot headless Mindustry", t);
         }
     }
 }

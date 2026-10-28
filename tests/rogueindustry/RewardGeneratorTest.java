@@ -11,7 +11,7 @@ import rogueindustry.rewards.rewards.*;
 import static mindustry.Vars.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests du générateur de récompenses (déterminisme, filtrage des unlocks). */
+/** Tests for the reward generator (determinism, unlock filtering). */
 class RewardGeneratorTest extends HeadlessRogueTest{
 
     private RogueSession newSession(long seed){
@@ -51,7 +51,7 @@ class RewardGeneratorTest extends HeadlessRogueTest{
             assertEquals(c1.size, c2.size);
             for(int i = 0; i < c1.size; i++){
                 assertEquals(c1.get(i).id, c2.get(i).id,
-                    "même seed → mêmes choix (vague " + wave + ", choix " + i + ")");
+                    "same seed → same choices (wave " + wave + ", choice " + i + ")");
                 assertEquals(c1.get(i).type, c2.get(i).type);
             }
         }
@@ -75,7 +75,7 @@ class RewardGeneratorTest extends HeadlessRogueTest{
                 }
             }
         }
-        assertTrue(different, "deux seeds différents doivent produire des runs différentes");
+        assertTrue(different, "two different seeds must produce different runs");
     }
 
     @Test
@@ -87,10 +87,10 @@ class RewardGeneratorTest extends HeadlessRogueTest{
             for(Reward r : gen.generateChoices(session, null, 1)){
                 if(r instanceof BuildingReward br){
                     Block block = content.block(br.blockName);
-                    assertNotNull(block, "bloc inconnu: " + br.blockName);
+                    assertNotNull(block, "unknown block: " + br.blockName);
                     assertFalse(session.isUnlockedForGroup(block),
-                        "ne doit pas proposer un bâtiment déjà débloqué: " + br.blockName);
-                    r.apply(session, null, null); // applique → débloque pour le groupe
+                        "must not offer an already unlocked building: " + br.blockName);
+                    r.apply(session, null, null); // apply → unlocks for the group
                 }
             }
         }
@@ -109,7 +109,7 @@ class RewardGeneratorTest extends HeadlessRogueTest{
         }
 
         assertEquals(RewardType.values().length, seen.size,
-            "tous les types de récompense doivent pouvoir apparaître, vus: " + seen);
+            "all reward types must be able to appear, seen: " + seen);
     }
 
     @Test

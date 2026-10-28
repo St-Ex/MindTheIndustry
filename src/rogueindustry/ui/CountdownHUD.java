@@ -10,8 +10,8 @@ import mindustry.ui.*;
 import static mindustry.Vars.*;
 
 /**
- * HUD de compte à rebours affiché avant la première vague.
- * Gros chiffre au centre de l'écran qui décompte.
+ * Countdown HUD displayed before the first wave.
+ * Big number in the center of the screen that counts down.
  */
 public class CountdownHUD{
 
@@ -19,7 +19,7 @@ public class CountdownHUD{
     private static float remaining;
     private static boolean visible = false;
 
-    /** Affiche le compte à rebours. */
+    /** Shows the countdown. */
     public static void show(int seconds){
         remaining = seconds;
         visible = true;
@@ -37,7 +37,7 @@ public class CountdownHUD{
 
         updateLabel();
 
-        // Timer de mise à jour
+        // Update timer
         Timer.schedule(() -> {
             if(!visible) return;
             remaining -= 1f;
@@ -61,7 +61,7 @@ public class CountdownHUD{
                 .fontScale(8f)
                 .color(secs > 3 ? Color.white : Color.orange)
                 .row();
-            overlay.label(() -> "Première vague dans...")
+            overlay.label(() -> "First wave in...")
                 .fontScale(1.5f)
                 .color(Color.lightGray);
         }else{
@@ -71,7 +71,7 @@ public class CountdownHUD{
         }
     }
 
-    /** Cache le HUD. */
+    /** Hides the HUD. */
     public static void hide(){
         visible = false;
         if(overlay != null) overlay.remove();

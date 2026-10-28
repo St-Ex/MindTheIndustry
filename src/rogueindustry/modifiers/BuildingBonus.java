@@ -1,16 +1,16 @@
 package rogueindustry.modifiers;
 
 /**
- * Bonus permanent appliqué aux bâtiments d'un joueur spécifique.
- * Stocké dans RogueSession et appliqué à chaque nouveau bâtiment construit par le joueur.
+ * Permanent bonus applied to the buildings of a specific player.
+ * Stored in RogueSession and applied to each new building built by the player.
  *
- * Types de bonus:
- * - DAMAGE: +X% dégâts des tourelles de ce type
- * - RELOAD: +X% vitesse de tir des tourelles de ce type
- * - RANGE: +X% portée des tourelles de ce type
- * - PRODUCTION: +X% vitesse de production des usines de ce type
- * - POWER: +X% production d'énergie des générateurs de ce type
- * - EFFICIENCY: +X% efficacité (moins de ressources consommées)
+ * Bonus types:
+ * - DAMAGE: +X% damage of this type of turrets
+ * - RELOAD: +X% fire rate of this type of turrets
+ * - RANGE: +X% range of this type of turrets
+ * - PRODUCTION: +X% production speed of this type of factories
+ * - POWER: +X% power production of this type of generators
+ * - EFFICIENCY: +X% efficiency (fewer resources consumed)
  */
 public class BuildingBonus{
 
@@ -18,13 +18,13 @@ public class BuildingBonus{
         DAMAGE, RELOAD, RANGE, PRODUCTION, POWER, EFFICIENCY
     }
 
-    /** Type de bonus. */
+    /** Bonus type. */
     public final BonusType type;
 
-    /** Valeur du bonus (ex: 0.15 pour +15%). */
+    /** Bonus value (e.g. 0.15 for +15%). */
     public final float value;
 
-    /** Nom du bâtiment concerné (ex: "salvo", "multi-press"). null = tous les bâtiments. */
+    /** Name of the building concerned (e.g. "salvo", "multi-press"). null = all buildings. */
     public final String blockName;
 
     public BuildingBonus(BonusType type, float value, String blockName){
@@ -37,12 +37,12 @@ public class BuildingBonus{
         String sign = value >= 0 ? "+" : "";
         String target = blockName != null ? " [" + blockName + "]" : "";
         return switch(type){
-            case DAMAGE -> sign + (int)(value * 100) + "% dégâts" + target;
-            case RELOAD -> sign + (int)(value * 100) + "% vitesse de tir" + target;
-            case RANGE -> sign + (int)(value * 100) + "% portée" + target;
+            case DAMAGE -> sign + (int)(value * 100) + "% damage" + target;
+            case RELOAD -> sign + (int)(value * 100) + "% fire rate" + target;
+            case RANGE -> sign + (int)(value * 100) + "% range" + target;
             case PRODUCTION -> sign + (int)(value * 100) + "% production" + target;
-            case POWER -> sign + (int)(value * 100) + "% énergie" + target;
-            case EFFICIENCY -> sign + (int)(value * 100) + "% efficacité" + target;
+            case POWER -> sign + (int)(value * 100) + "% power" + target;
+            case EFFICIENCY -> sign + (int)(value * 100) + "% efficiency" + target;
         };
     }
 }

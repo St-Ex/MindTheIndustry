@@ -21,15 +21,15 @@ import rogueindustry.rewards.*;
 import static mindustry.Vars.*;
 
 /**
- * Dialogue de choix de récompenses - style Slay the Spire.
+ * Reward choice dialog - Slay the Spire style.
  *
- * Affiche 3 cartes côte à côte avec:
- * - Le type de récompense (couleur)
- * - Le nom
- * - La description
- * - Pour UnitBonus: un sélecteur de joueur cible
+ * Shows 3 cards side by side with:
+ * - The reward type (color)
+ * - The name
+ * - The description
+ * - For UnitBonus: a target player selector
  *
- * Le joueur clique sur une carte pour choisir.
+ * The player clicks a card to choose.
  */
 public class RewardDialog extends BaseDialog{
 
@@ -40,7 +40,7 @@ public class RewardDialog extends BaseDialog{
     private Table targetSelector;
     private int selectedTargetId = -1;
 
-    /** Couleurs par type de récompense. */
+    /** Colors per reward type. */
     private static final Color BUILDING_COLOR = Color.valueOf("4ecdc4");
     private static final Color BUILDING_BONUS_COLOR = Color.valueOf("26de81");
     private static final Color SCHEMATIC_COLOR = Color.valueOf("a55eea");
@@ -49,7 +49,7 @@ public class RewardDialog extends BaseDialog{
     private static final Color SYNERGY_COLOR = Color.valueOf("f7b731");
 
     public RewardDialog(int wave, Seq<Reward> choices){
-        super("[accent]RogueIndustry[] - Vague " + (wave + 1) + " réussie!");
+        super("[accent]RogueIndustry[] - Wave " + (wave + 1) + " complete!");
         this.wave = wave;
         this.choices = choices;
 
@@ -60,11 +60,11 @@ public class RewardDialog extends BaseDialog{
         cont.pane(table -> {
             table.margin(20f);
 
-            // Titre
-            table.label(() -> "[accent]Vague " + (wave + 1) + " terminée![] Choisissez votre récompense:")
+            // Title
+            table.label(() -> "[accent]Wave " + (wave + 1) + " complete![] Choose your reward:")
                 .fontScale(1.2f).padBottom(20f).row();
 
-            // Les 3 cartes
+            // The 3 cards
             table.table(cards -> {
                 cards.defaults().growY().width(220f).pad(10f);
 
@@ -81,7 +81,7 @@ public class RewardDialog extends BaseDialog{
                             }
                         });
 
-                        // Bandeau de couleur par type
+                        // Color banner per type
                         Color typeColor = getColor(reward.type);
                         card.table(header -> {
                             header.background(Tex.whiteui);
@@ -92,7 +92,7 @@ public class RewardDialog extends BaseDialog{
                                 .pad(5f);
                         }).growX().height(30f).row();
 
-                        // Nom de la récompense
+                        // Reward name
                         card.label(() -> reward.displayName)
                             .fontScale(1.1f)
                             .wrap()
@@ -106,12 +106,12 @@ public class RewardDialog extends BaseDialog{
                             .width(200f)
                             .pad(5f).row();
 
-                        // Pour UnitBonus et BuildingBonus: sélecteur de cible
+                        // For UnitBonus and BuildingBonus: target selector
                         if(reward.type == RewardType.UNIT_BONUS || reward.type == RewardType.BUILDING_BONUS){
-                            String cibleLabel = reward.type == RewardType.UNIT_BONUS ? "Cible (unités):" : "Cible (bâtiments):";
+                            String cibleLabel = reward.type == RewardType.UNIT_BONUS ? "Target (units):" : "Target (buildings):";
                             card.table(selector -> {
                                 selector.label(() -> "[white]" + cibleLabel).padRight(5f);
-                                selector.button("Choisir...", () -> showTargetSelector(index))
+                                selector.button("Choose...", () -> showTargetSelector(index))
                                     .width(100f).height(35f);
                             }).padTop(10f).row();
                         }
@@ -120,7 +120,7 @@ public class RewardDialog extends BaseDialog{
             }).row();
 
             // Note
-            table.label(() -> "[gray]Chaque joueur a ses propres choix. Les bâtiments sont partagés, les plans sont personnels.")
+            table.label(() -> "[gray]Each player has their own choices. Buildings are shared, schematics are personal.")
                 .fontScale(0.8f).padTop(15f).row();
         }).grow();
 
@@ -128,7 +128,7 @@ public class RewardDialog extends BaseDialog{
         addListener(new InputListener(){
             @Override
             public boolean keyDown(InputEvent event, KeyCode keycode){
-                // Raccourcis clavier: 1, 2, 3 pour choisir
+                // Keyboard shortcuts: 1, 2, 3 to choose
                 if(keycode == KeyCode.num1 && choices.size > 0){ selectReward(0); return true; }
                 if(keycode == KeyCode.num2 && choices.size > 1){ selectReward(1); return true; }
                 if(keycode == KeyCode.num3 && choices.size > 2){ selectReward(2); return true; }
@@ -138,14 +138,14 @@ public class RewardDialog extends BaseDialog{
     }
 
     private void showTargetSelector(int rewardIndex){
-        // Dialogue pour choisir le joueur cible (pour UnitBonus)
-        BaseDialog targetDialog = new BaseDialog("Choisir la cible");
+        // Dialog to choose the target player (for UnitBonus)
+        BaseDialog targetDialog = new BaseDialog("Choose the target");
         targetDialog.cont.pane(table -> {
-            table.label(() -> "Qui reçoit ce bonus d'unités?").padBottom(10f).row();
+            table.label(() -> "Who receives this unit bonus?").padBottom(10f).row();
 
             for(Player p : Groups.player){
                 if(p.dead()) continue;
-                String label = p == player ? p.name + " (moi)" : p.name;
+                String label = p == player ? p.name + " (me)" : p.name;
                 table.button(label, () -> {
                     selectedTargetId = p.id;
                     targetDialog.hide();
@@ -161,17 +161,17 @@ public class RewardDialog extends BaseDialog{
 
         Reward reward = choices.get(index);
 
-        // Pour UnitBonus et BuildingBonus, récupérer la cible sélectionnée
+        // For UnitBonus and BuildingBonus, get the selected target
         Player target = null;
         if(reward.type == RewardType.UNIT_BONUS || reward.type == RewardType.BUILDING_BONUS){
             if(selectedTargetId >= 0){
                 target = Groups.player.find(p -> p.id == selectedTargetId);
             }
-            // Si pas de cible sélectionnée, appliquer à soi-même par défaut
+            // If no target selected, apply to yourself by default
             if(target == null) target = player;
         }
 
-        // Envoyer le vote au serveur via chat (les packets custom ne passent pas en solo)
+        // Send the vote to the server via chat (custom packets don't work in solo)
         player.sendMessage("/rogue reward " + index);
 
         hide();
@@ -190,23 +190,23 @@ public class RewardDialog extends BaseDialog{
 
     private String getTypeLabel(RewardType type){
         return switch(type){
-            case BUILDING -> "BÂTIMENT - Tous";
-            case BUILDING_BONUS -> "BONUS BÂTIMENT - Ciblé";
-            case SCHEMATIC -> "PLAN - Personnel";
-            case UNIT_BONUS -> "BONUS UNITÉ - Ciblé";
-            case GLOBAL_MOD -> "MODIFICATEUR - Tous";
-            case SYNERGY -> "SYNERGIE - Tous";
+            case BUILDING -> "BUILDING - All";
+            case BUILDING_BONUS -> "BUILDING BONUS - Targeted";
+            case SCHEMATIC -> "SCHEMATIC - Personal";
+            case UNIT_BONUS -> "UNIT BONUS - Targeted";
+            case GLOBAL_MOD -> "MODIFIER - All";
+            case SYNERGY -> "SYNERGY - All";
         };
     }
 
-    /** Affiche le dialogue de choix (appelé quand le serveur envoie les récompenses). */
+    /** Shows the choice dialog (called when the server sends the rewards). */
     public static void showChoices(int wave, Seq<Reward> choices){
-        arc.util.Log.info("[RogueIndustry] RewardDialog.showChoices appelé: vague=" + wave + ", " + choices.size + " choix");
+        arc.util.Log.info("[RogueIndustry] RewardDialog.showChoices called: wave=" + wave + ", " + choices.size + " choices");
         if(instance != null && instance.hasParent()){
             instance.hide();
         }
         instance = new RewardDialog(wave, choices);
         instance.show();
-        arc.util.Log.info("[RogueIndustry] RewardDialog affiché, hasParent=" + instance.hasParent());
+        arc.util.Log.info("[RogueIndustry] RewardDialog shown, hasParent=" + instance.hasParent());
     }
 }

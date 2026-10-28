@@ -10,10 +10,10 @@ import java.io.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests de sérialisation réseau des récompenses (round-trip write → read). */
+/** Tests for reward network serialization (round-trip write → read). */
 class RewardSerializerTest extends HeadlessRogueTest{
 
-    /** Sérialise puis désérialise une récompense. */
+    /** Serializes then deserializes a reward. */
     private static Reward roundTrip(Reward reward){
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         reward.write(new Writes(new DataOutputStream(baos)));
@@ -29,14 +29,14 @@ class RewardSerializerTest extends HeadlessRogueTest{
 
     @Test
     void buildingRewardRoundTrip(){
-        BuildingReward original = new BuildingReward("salvo", "Salvo", "Débloque Salvo pour tous");
+        BuildingReward original = new BuildingReward("salvo", "Salvo", "Unlocks Salvo for everyone");
         Reward back = roundTrip(original);
 
         assertInstanceOf(BuildingReward.class, back);
         assertBaseFields(original, back);
         BuildingReward r = (BuildingReward)back;
         assertEquals("salvo", r.blockName);
-        assertNotNull(r.block, "le bloc doit être résolu depuis le content");
+        assertNotNull(r.block, "the block must be resolved from content");
         assertEquals("salvo", r.block.name);
     }
 
@@ -57,7 +57,7 @@ class RewardSerializerTest extends HeadlessRogueTest{
     void buildingBonusRewardRoundTripNullBlock(){
         BuildingBonusReward original = new BuildingBonusReward(BuildingBonus.BonusType.PRODUCTION, 0.2f, null, "n", "d");
         BuildingBonusReward r = (BuildingBonusReward)roundTrip(original);
-        assertNull(r.blockName, "un blockName null doit survivre à la sérialisation (encodé comme chaîne vide)");
+        assertNull(r.blockName, "a null blockName must survive serialization (encoded as empty string)");
     }
 
     @Test
@@ -86,25 +86,25 @@ class RewardSerializerTest extends HeadlessRogueTest{
 
     @Test
     void schematicRewardRoundTrip(){
-        SchematicReward original = new SchematicReward("data-base64", "Mon Plan", "n", "d");
+        SchematicReward original = new SchematicReward("data-base64", "My Schematic", "n", "d");
         Reward back = roundTrip(original);
 
         assertInstanceOf(SchematicReward.class, back);
         assertBaseFields(original, back);
         SchematicReward r = (SchematicReward)back;
         assertEquals("data-base64", r.schematicData);
-        assertEquals("Mon Plan", r.schematicName);
+        assertEquals("My Schematic", r.schematicName);
     }
 
     @Test
     void synergyRewardRoundTrip(){
-        SynergyReward original = new SynergyReward("duo", "+10% dégâts duo", "n", "d");
+        SynergyReward original = new SynergyReward("duo", "+10% duo damage", "n", "d");
         Reward back = roundTrip(original);
 
         assertInstanceOf(SynergyReward.class, back);
         assertBaseFields(original, back);
         SynergyReward r = (SynergyReward)back;
         assertEquals("duo", r.requiredUnlockId);
-        assertEquals("+10% dégâts duo", r.bonusDescription);
+        assertEquals("+10% duo damage", r.bonusDescription);
     }
 }

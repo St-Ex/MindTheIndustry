@@ -13,9 +13,9 @@ import rogueindustry.RogueIndustryMod;
 import static mindustry.Vars.*;
 
 /**
- * Dialogue de sélection du commandant au début d'une run.
- * Affiche tous les commandants débloqués sous forme de cartes.
- * Le joueur choisit un commandant, son pouvoir sera appliqué au démarrage.
+ * Commander selection dialog at the start of a run.
+ * Displays all unlocked commanders as cards.
+ * The player chooses a commander, their ability will be applied at start.
  */
 public class CommanderSelectionDialog extends BaseDialog{
 
@@ -24,16 +24,16 @@ public class CommanderSelectionDialog extends BaseDialog{
     private final Seq<Commander> commanders;
     private Commander selected;
 
-    /** Constructeur avec tous les commandants débloqués. */
+    /** Constructor with all unlocked commanders. */
     public CommanderSelectionDialog(){
-        super("[accent]RogueIndustry[] - Choisissez votre commandant");
+        super("[accent]RogueIndustry[] - Choose your commander");
         this.commanders = MetaProgression.getUnlocked();
         setup();
     }
 
-    /** Constructeur avec 3 choix spécifiques (reçus du serveur). */
+    /** Constructor with 3 specific choices (received from the server). */
     public CommanderSelectionDialog(Seq<Commander> choices){
-        super("[accent]RogueIndustry[] - Choisissez votre commandant");
+        super("[accent]RogueIndustry[] - Choose your commander");
         this.commanders = choices;
         setup();
     }
@@ -42,18 +42,18 @@ public class CommanderSelectionDialog extends BaseDialog{
         cont.pane(table -> {
             table.margin(20f);
 
-            // Titre
-            table.label(() -> "[accent]RogueIndustry[] - Choisissez votre commandant")
+            // Title
+            table.label(() -> "[accent]RogueIndustry[] - Choose your commander")
                 .fontScale(1.3f).padBottom(5f).row();
-            table.label(() -> "[gray]Le pouvoir de votre commandant sera actif pour toute la run.")
+            table.label(() -> "[gray]Your commander's ability will be active for the whole run.")
                 .fontScale(0.9f).padBottom(20f).row();
 
-            // Progression meta
-            table.label(() -> "[lightgray]Commandants débloqués: [white]" +
+            // Meta progression
+            table.label(() -> "[lightgray]Unlocked commanders: [white]" +
                     MetaProgression.unlockedCount() + "/" + MetaProgression.totalCount())
                 .fontScale(0.85f).padBottom(15f).row();
 
-            // Grille de commandants
+            // Commander grid
             table.table(cards -> {
                 cards.defaults().width(200f).pad(8f);
                 int perRow = 3;
@@ -69,7 +69,7 @@ public class CommanderSelectionDialog extends BaseDialog{
                             }
                         });
 
-                        // Bandeau coloré
+                        // Colored banner
                         card.table(header -> {
                             header.background(Tex.whiteui);
                             header.setColor(cmdr.color);
@@ -86,7 +86,7 @@ public class CommanderSelectionDialog extends BaseDialog{
                             .width(180f)
                             .pad(5f).row();
 
-                        // Pouvoir
+                        // Ability
                         card.table(ability -> {
                             ability.background(Tex.whiteui);
                             ability.setColor(Color.darkGray);
@@ -110,13 +110,13 @@ public class CommanderSelectionDialog extends BaseDialog{
                 }
             }).row();
 
-            // Boutons
+            // Buttons
             table.table(buttons -> {
                 buttons.defaults().width(150f).height(45f).pad(5f);
-                buttons.button("[gray]Aléatoire", () -> {
+                buttons.button("[gray]Random", () -> {
                     selectCommander(commanders.random());
                 });
-                buttons.button("[green]Confirmer", () -> {
+                buttons.button("[green]Confirm", () -> {
                     confirmSelection();
                 });
             }).padTop(15f).row();
@@ -127,27 +127,27 @@ public class CommanderSelectionDialog extends BaseDialog{
 
     private void selectCommander(Commander commander){
         selected = commander;
-        // Mettre à jour le bouton confirmer
-        // (simplifié: on valide directement au clic suivant)
+        // Update the confirm button
+        // (simplified: confirm directly on next click)
     }
 
     private void confirmSelection(){
         if(selected == null){
-            if(player != null) player.sendMessage("[scarlet]Veuillez d'abord sélectionner un commandant.");
+            if(player != null) player.sendMessage("[scarlet]Please select a commander first.");
             return;
         }
 
-        // Trouver l'index du commandant sélectionné dans la liste des choix
+        // Find the index of the selected commander in the choices list
         int index = commanders.indexOf(selected);
         if(index < 0) return;
 
-        // Envoyer le vote au serveur via chat (les packets custom ne passent pas en solo)
+        // Send the vote to the server via chat (custom packets don't work in solo)
         player.sendMessage("/rogue vote " + index);
 
         hide();
     }
 
-    /** Affiche le dialogue de sélection avec tous les commandants débloqués. */
+    /** Shows the selection dialog with all unlocked commanders. */
     public static void showSelection(){
         if(instance != null && instance.hasParent()){
             instance.hide();
@@ -156,15 +156,15 @@ public class CommanderSelectionDialog extends BaseDialog{
         instance.show();
     }
 
-    /** Affiche le dialogue avec 3 choix spécifiques reçus du serveur. */
+    /** Shows the dialog with 3 specific choices received from the server. */
     public static void showChoices(Seq<Commander> choices){
-        arc.util.Log.info("[RogueIndustry] CommanderSelectionDialog.showChoices appelé avec " + choices.size + " choix");
+        arc.util.Log.info("[RogueIndustry] CommanderSelectionDialog.showChoices called with " + choices.size + " choices");
         if(instance != null && instance.hasParent()){
             instance.hide();
         }
         instance = new CommanderSelectionDialog(choices);
-        arc.util.Log.info("[RogueIndustry] Dialogue créé, appel show()... ui=" + (mindustry.Vars.ui != null));
+        arc.util.Log.info("[RogueIndustry] Dialog created, calling show()... ui=" + (mindustry.Vars.ui != null));
         instance.show();
-        arc.util.Log.info("[RogueIndustry] Dialogue affiché, hasParent=" + instance.hasParent());
+        arc.util.Log.info("[RogueIndustry] Dialog shown, hasParent=" + instance.hasParent());
     }
 }

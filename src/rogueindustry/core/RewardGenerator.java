@@ -12,24 +12,24 @@ import rogueindustry.rewards.*;
 import rogueindustry.rewards.rewards.*;
 
 /**
- * Génère les choix de récompenses aléatoires pour un joueur.
+ * Generates random reward choices for a player.
  *
- * Stratégie de génération:
- * - 3 choix aléatoires pondérés selon la vague et l'historique
- * - Éviter les doublons (un bâtiment déjà débloqué pour le groupe n'est plus proposé)
- * - Pondération: plus la vague est haute, plus les bonus sont puissants
- * - Chaque joueur a ses propres choix (asymétrie coop)
+ * Generation strategy:
+ * - 3 random choices weighted by wave and history
+ * - Avoid duplicates (a building already unlocked for the group is no longer offered)
+ * - Weighting: the higher the wave, the stronger the bonuses
+ * - Each player has their own choices (coop asymmetry)
  */
 public class RewardGenerator{
 
-    /** Pool de bâtiments proposables (tourelles, usines, défenses, etc.). */
+    /** Pool of offerable buildings (turrets, factories, defenses, etc.). */
     private static final String[] BUILDING_POOL = {
-        // Tourelles
+        // Turrets
         "duo", "scatter", "scorch", "hail", "wave", "lancer", "arc", "parallax", "segment",
         "tsunami", "swarm", "salvo", "fuse", "ripple", "cyclone", "foreshadow", "spectre", "meltdown",
         // Erekir
         "breach", "sublimate", "disrupt", "afflict", "distraction", "aegis", "navanax",
-        // Défenses
+        // Defenses
         "mender", "mend-projector", "overdrive-projector", "force-projector", "large-shield-projector",
         "repair-point", "repair-tower", "regen-projector", "shockwave-tower",
         // Production
@@ -39,7 +39,7 @@ public class RewardGenerator{
         "phase-weaver", "surge-smelter", "cryofluid-mixer", "neoplasia-centrifuge", "pyratite-mixer",
         "silicon-arc-furnace", "slag-incinerator", "phase-heater", "heat-turbine", "thermal-generator",
         "carbide-crucible", "slag-heater", "neoplasia-heater",
-        // Forage
+        // Drilling
         "laser-drill", "blast-drill", "plasma-bore", "impact-drill", "eruption-drill",
         // Power
         "steam-generator", "solar-panel", "differential-generator", "thorium-reactor",
@@ -50,14 +50,14 @@ public class RewardGenerator{
         "pulse-conduit", "plated-conduit", "surge-conduit", "phase-conduit",
         "liquid-router", "liquid-junction", "liquid-bridge", "liquid-container", "liquid-tank",
         "reinforced-conduit", "reinforced-liquid-junction", "reinforced-liquid-bridge",
-        // Stockage
+        // Storage
         "vault", "container", "unloader",
-        // Murs
+        // Walls
         "titanium-wall", "thorium-wall", "phase-wall", "surge-wall",
         "titanium-wall-large", "thorium-wall-large", "phase-wall-large", "surge-wall-large",
         "beryllium-wall", "beryllium-wall-large", "tungsten-wall", "tungsten-wall-large",
         "shielded-wall", "carbide-wall", "carbide-wall-large",
-        // Unités factories
+        // Unit factories
         "ground-factory", "air-factory", "naval-factory",
         "additive-reconstructor", "multiplicative-reconstructor",
         "exponential-reconstructor", "tetrative-reconstructor",
@@ -95,7 +95,7 @@ public class RewardGenerator{
         "tetrative-reconstructor",
     };
 
-    /** Pool d'unités proposables (pour déblocage dans les factories). */
+    /** Pool of offerable units (for unlocking in factories). */
     private static final String[] UNIT_POOL = {
         // Serpulo ground
         "dagger", "mace", "fortress", "scepter", "reign",
@@ -119,7 +119,7 @@ public class RewardGenerator{
         "retusa", "oxynoe", "cyerce", "aegires", "navanax",
     };
 
-    /** Tourelles avec bonus de dégâts/reload/portée. */
+    /** Turrets with damage/reload/range bonus. */
     private static final String[] TURRET_POOL = {
         "duo", "scatter", "scorch", "hail", "wave", "lancer", "arc", "parallax", "segment",
         "tsunami", "swarm", "salvo", "fuse", "ripple", "cyclone", "foreshadow", "spectre", "meltdown",
@@ -128,7 +128,7 @@ public class RewardGenerator{
         "afflict", "distraction", "aegis", "navanax",
     };
 
-    /** Usines avec bonus de production. */
+    /** Factories with production bonus. */
     private static final String[] FACTORY_POOL = {
         "graphite-press", "silicon-smelter", "coal-centrifuge", "multi-press",
         "pyratite-mixer", "blast-mixer", "spore-press",
@@ -140,7 +140,7 @@ public class RewardGenerator{
         "laser-drill", "blast-drill", "plasma-bore", "impact-drill", "eruption-drill",
     };
 
-    /** Générateurs avec bonus de puissance. */
+    /** Generators with power bonus. */
     private static final String[] POWER_POOL = {
         "combustion-generator", "steam-generator", "solar-panel", "differential-generator",
         "thorium-reactor", "impact-reactor", "thermal-generator", "turbine-condenser",
@@ -155,17 +155,17 @@ public class RewardGenerator{
     }
 
     /**
-     * Génère 3 choix de récompenses pour un joueur.
+     * Generates 3 reward choices for a player.
      *
-     * @param session la session serveur (pour connaître les unlocks existants)
-     * @param player  le joueur pour qui générer les choix
-     * @param wave    le numéro de vague actuel (influence la puissance des récompenses)
-     * @return une séquence de 3 récompenses
+     * @param session the server session (to know existing unlocks)
+     * @param player  the player to generate choices for
+     * @param wave    the current wave number (influences reward strength)
+     * @return a sequence of 3 rewards
      */
     public Seq<Reward> generateChoices(RogueSession session, Player player, int wave){
         Seq<Reward> choices = new Seq<>(3);
 
-        // Pondérations: plus la vague est haute, plus on favorise les bonus puissants
+        // Weights: the higher the wave, the more powerful bonuses are favored
         float buildingChance = 0.25f;
         float buildingBonusChance = 0.20f;
         float unitBonusChance = 0.20f;
@@ -173,7 +173,7 @@ public class RewardGenerator{
         float schematicChance = 0.10f;
         float synergyChance = 0.05f;
 
-        // Ajustement selon la vague
+        // Adjustment based on the wave
         if(wave > 10){
             unitBonusChance += 0.05f;
             buildingBonusChance += 0.05f;
@@ -189,7 +189,7 @@ public class RewardGenerator{
             if(reward != null){
                 choices.add(reward);
             }else{
-                // Fallback: un modificateur global aléatoire
+                // Fallback: a random global modifier
                 choices.add(generateGlobalMod(wave));
             }
         }
@@ -225,9 +225,9 @@ public class RewardGenerator{
         };
     }
 
-    /** Génère une récompense de bâtiment (débloqué pour tout le groupe). */
+    /** Generates a building reward (unlocked for the whole group). */
     private BuildingReward generateBuilding(RogueSession session, int wave){
-        // Filtrer les bâtiments déjà débloqués
+        // Filter out already unlocked buildings
         Seq<String> available = new Seq<>();
         for(String name : BUILDING_POOL){
             Block block = mindustry.Vars.content.block(name);
@@ -237,7 +237,7 @@ public class RewardGenerator{
         }
 
         if(available.isEmpty()){
-            // Tous les bâtiments sont débloqués, proposer un bonus à la place
+            // All buildings are unlocked, offer a bonus instead
             return null;
         }
 
@@ -248,21 +248,21 @@ public class RewardGenerator{
         return new BuildingReward(
             blockName,
             displayName,
-            "Débloque [accent]" + displayName + "[] pour [green]tous les joueurs"
+            "Unlocks [accent]" + displayName + "[] for [green]all players"
         );
     }
 
-    /** Génère un bonus de bâtiment (appliqué au joueur cible choisi au moment du vote). */
+    /** Generates a building bonus (applied to the target player chosen at vote time). */
     private BuildingBonusReward generateBuildingBonus(RogueSession session, int wave){
-        // Choisir le type de bonus et le bâtiment concerné
+        // Choose the bonus type and the building concerned
         BuildingBonus.BonusType bonusType;
         String blockName;
         String blockDisplay;
 
-        // 50% tourelles (dégâts/reload/portée), 30% usines (production), 20% générateurs (power)
+        // 50% turrets (damage/reload/range), 30% factories (production), 20% generators (power)
         float roll = rand.random(1f);
         if(roll < 0.5f){
-            // Tourelle: DAMAGE, RELOAD ou RANGE
+            // Turret: DAMAGE, RELOAD or RANGE
             BuildingBonus.BonusType[] turretTypes = {
                 BuildingBonus.BonusType.DAMAGE,
                 BuildingBonus.BonusType.RELOAD,
@@ -271,11 +271,11 @@ public class RewardGenerator{
             bonusType = turretTypes[rand.random(turretTypes.length - 1)];
             blockName = TURRET_POOL[rand.random(TURRET_POOL.length - 1)];
         }else if(roll < 0.8f){
-            // Usine: PRODUCTION
+            // Factory: PRODUCTION
             bonusType = BuildingBonus.BonusType.PRODUCTION;
             blockName = FACTORY_POOL[rand.random(FACTORY_POOL.length - 1)];
         }else{
-            // Générateur: POWER
+            // Generator: POWER
             bonusType = BuildingBonus.BonusType.POWER;
             blockName = POWER_POOL[rand.random(POWER_POOL.length - 1)];
         }
@@ -283,7 +283,7 @@ public class RewardGenerator{
         Block block = mindustry.Vars.content.block(blockName);
         blockDisplay = block != null && block.localizedName != null ? block.localizedName : blockName;
 
-        // La valeur augmente avec la vague
+        // The value increases with the wave
         float baseValue = switch(bonusType){
             case DAMAGE -> 0.10f;
             case RELOAD -> 0.10f;
@@ -292,16 +292,16 @@ public class RewardGenerator{
             case POWER -> 0.15f;
             case EFFICIENCY -> 0.10f;
         };
-        float waveBonus = wave * 0.01f; // +1% par vague
+        float waveBonus = wave * 0.01f; // +1% per wave
         float value = baseValue + rand.random(baseValue * 0.5f) + waveBonus;
 
         String bonusDesc = switch(bonusType){
-            case DAMAGE -> "[red]+" + (int)(value * 100) + "% dégâts";
-            case RELOAD -> "[cyan]+" + (int)(value * 100) + "% vitesse de tir";
-            case RANGE -> "[yellow]+" + (int)(value * 100) + "% portée";
+            case DAMAGE -> "[red]+" + (int)(value * 100) + "% damage";
+            case RELOAD -> "[cyan]+" + (int)(value * 100) + "% fire rate";
+            case RANGE -> "[yellow]+" + (int)(value * 100) + "% range";
             case PRODUCTION -> "[green]+" + (int)(value * 100) + "% production";
-            case POWER -> "[orange]+" + (int)(value * 100) + "% énergie";
-            case EFFICIENCY -> "[blue]+" + (int)(value * 100) + "% efficacité";
+            case POWER -> "[orange]+" + (int)(value * 100) + "% power";
+            case EFFICIENCY -> "[blue]+" + (int)(value * 100) + "% efficiency";
         };
 
         return new BuildingBonusReward(
@@ -309,14 +309,14 @@ public class RewardGenerator{
             value,
             blockName,
             bonusDesc + " [white]" + blockDisplay,
-            bonusDesc + " sur [accent]" + blockDisplay + "[] d'un joueur [accent]au choix[] (soi ou allié)"
+            bonusDesc + " on [accent]" + blockDisplay + "[] of a player [accent]of your choice[] (self or an ally)"
         );
     }
     private UnitBonusReward generateUnitBonus(int wave){
         UnitBonusReward.BonusType[] types = UnitBonusReward.BonusType.values();
         UnitBonusReward.BonusType type = types[rand.random(types.length - 1)];
 
-        // La valeur augmente avec la vague
+        // The value increases with the wave
         float baseValue = switch(type){
             case DAMAGE -> 0.10f;
             case HEALTH -> 0.15f;
@@ -324,29 +324,29 @@ public class RewardGenerator{
             case RELOAD -> 0.10f;
             case ARMOR -> 1f;
         };
-        float waveBonus = wave * 0.01f; // +1% par vague
+        float waveBonus = wave * 0.01f; // +1% per wave
         float value = baseValue + rand.random(baseValue * 0.5f) + waveBonus;
 
         String bonusDesc = switch(type){
-            case DAMAGE -> "[red]+" + (int)(value * 100) + "% dégâts";
-            case HEALTH -> "[green]+" + (int)(value * 100) + "% vie max";
-            case SPEED -> "[yellow]+" + (int)(value * 100) + "% vitesse";
-            case RELOAD -> "[cyan]+" + (int)(value * 100) + "% vitesse de tir";
-            case ARMOR -> "[orange]+" + (int)value + " armure";
+            case DAMAGE -> "[red]+" + (int)(value * 100) + "% damage";
+            case HEALTH -> "[green]+" + (int)(value * 100) + "% max health";
+            case SPEED -> "[yellow]+" + (int)(value * 100) + "% speed";
+            case RELOAD -> "[cyan]+" + (int)(value * 100) + "% fire rate";
+            case ARMOR -> "[orange]+" + (int)value + " armor";
         };
 
         return new UnitBonusReward(
             type,
             value,
-            bonusDesc + " [white]unités",
-            bonusDesc + " sur les unités d'un joueur [accent]au choix[] (soi ou allié)"
+            bonusDesc + " [white]units",
+            bonusDesc + " on the units of a player [accent]of your choice[] (self or an ally)"
         );
     }
 
-    /** Génère un modificateur global (pour tous les joueurs). */
+    /** Generates a global modifier (for all players). */
     private GlobalModifierReward generateGlobalMod(int wave){
         GlobalModifier mod = GlobalModifierRegistry.random(rand);
-        // Augmenter la valeur avec la vague
+        // Increase the value with the wave
         float scaledValue = mod.value * (1f + wave * 0.03f);
         GlobalModifier scaled = new GlobalModifier(mod.id, scaledValue, mod.displayName);
 
@@ -355,21 +355,21 @@ public class RewardGenerator{
             scaled.id,
             scaledValue,
             "[blue]" + scaled.displayName + " " + sign + (int)(scaledValue * 100) + "%",
-            "[blue]" + scaled.displayName + " " + sign + (int)(scaledValue * 100) + "% pour [green]tous les joueurs"
+            "[blue]" + scaled.displayName + " " + sign + (int)(scaledValue * 100) + "% for [green]all players"
         );
     }
 
-    /** Génère un schematic (plan) débloqué pour un joueur individuel. */
+    /** Generates a schematic unlocked for an individual player. */
     private SchematicReward generateSchematic(int wave){
         mindustry.game.Schematic schematic = rogueindustry.rewards.SchematicGenerator.generateRandom(rand);
         if(schematic == null){
-            // Fallback si la génération échoue
-            String name = "Plan Rogue #" + (wave + 1);
+            // Fallback if generation fails
+            String name = "Rogue Schematic #" + (wave + 1);
             return new SchematicReward(
                 "",
                 name,
-                "[purple]Plan: " + name,
-                "Débloque le plan [accent]" + name + "[] pour [yellow]vous seul[] - les autres joueurs ne l'auront pas"
+                "[purple]Schematic: " + name,
+                "Unlocks the schematic [accent]" + name + "[] for [yellow]you only[] - other players won't have it"
             );
         }
 
@@ -377,14 +377,14 @@ public class RewardGenerator{
         return new SchematicReward(
             base64,
             schematic.name(),
-            "[purple]Plan: " + schematic.name(),
-            "Débloque le plan [accent]" + schematic.name() + "[] pour [yellow]vous seul[] - les autres joueurs ne l'auront pas.\n[gray]" + schematic.description()
+            "[purple]Schematic: " + schematic.name(),
+            "Unlocks the schematic [accent]" + schematic.name() + "[] for [yellow]you only[] - other players won't have it.\n[gray]" + schematic.description()
         );
     }
 
-    /** Génère une synergie (bonus conditionnel). */
+    /** Generates a synergy (conditional bonus). */
     private SynergyReward generateSynergy(RogueSession session, int wave){
-        // Choisir un prérequis parmi les bâtiments déjà débloqués
+        // Choose a prerequisite among the already unlocked buildings
         Seq<String> unlocked = new Seq<>();
         for(var content : session.getGroupUnlocks()){
             if(content instanceof Block){
@@ -399,9 +399,9 @@ public class RewardGenerator{
         float bonusValue = 0.10f + wave * 0.01f;
         return new SynergyReward(
             required,
-            "+" + (int)(bonusValue * 100) + "% dégâts " + reqName,
-            "[orange]Synergie: " + reqName,
-            "Si [accent]" + reqName + "[] est débloqué, +" + (int)(bonusValue * 100) + "% dégâts pour " + reqName + " (tous joueurs)"
+            "+" + (int)(bonusValue * 100) + "% damage " + reqName,
+            "[orange]Synergy: " + reqName,
+            "If [accent]" + reqName + "[] is unlocked, +" + (int)(bonusValue * 100) + "% damage for " + reqName + " (all players)"
         );
     }
 }

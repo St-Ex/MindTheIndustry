@@ -1,53 +1,53 @@
 # AGENTS.md — RogueIndustry
 
-Règles pour tout agent travaillant sur ce dépôt. À lire avant toute modification.
+Rules for any agent working on this repository. Read before making any change.
 
-## Contexte
+## Context
 
-Mod Mindustry (Java 17) : mode rogue-like coopératif. Les mécaniques de jeu sont décrites dans `DEVELOPMENT.md`.
+Mindustry mod (Java 17): a cooperative roguelike mode. Game mechanics are described in `DEVELOPMENT.md`.
 
-## Environnement
+## Environment
 
-- Java 17, géré par [mise](https://mise.jdx.dev) (`mise.toml`).
-- Toutes les commandes passent par `mise exec --`.
-- Ne jamais lancer le jeu, un serveur ou un watcher longue durée depuis un agent.
+- Java 17, managed by [mise](https://mise.jdx.dev) (`mise.toml`).
+- All commands go through `mise exec --`.
+- Never launch the game, a server or a long-running watcher from an agent.
 
-## Commandes
+## Commands
 
 ```bash
-# Compiler
+# Compile
 mise exec -- ./gradlew compileJava
 
-# Build le mod (build/libs/mindtheindustryDesktop.jar)
+# Build the mod (build/libs/mindtheindustryDesktop.jar)
 mise exec -- ./gradlew jar
 
-# Tests — harness headless, à utiliser systématiquement
+# Tests — headless harness, use systematically
 mise exec -- ./gradlew test
 ```
 
-## Harness de test (obligatoire)
+## Test harness (mandatory)
 
-- Les tests vivent dans `tests/` (sourceSet Gradle `test`), JUnit 5.
-- `tests/rogueindustry/HeadlessRogueTest.java` boot Mindustry en **headless** (sans UI ni rendu), une seule fois par JVM de test. Toute classe de test métier étend cette classe.
-- **Ne pas valider une évolution en lançant le jeu à la main** : écrire un test headless.
-- Règles pour les tests :
-  - Déterministes : seed fixe (`new Rand(42)`, `session.start(42)`).
-  - Indépendants : si le test touche à `Vars.state.rules`, faire `state.rules = new Rules()` en début de test (état global partagé entre tests).
-  - Couvrir la logique métier : `core/`, `rewards/`, `modifiers/`, `meta/`, sérialisation `net/`.
+- Tests live in `tests/` (Gradle `test` sourceSet), JUnit 5.
+- `tests/rogueindustry/HeadlessRogueTest.java` boots Mindustry **headless** (no UI, no rendering), once per test JVM. Every game-logic test class extends it.
+- **Do not validate a change by launching the game manually**: write a headless test.
+- Test rules:
+  - Deterministic: fixed seed (`new Rand(42)`, `session.start(42)`).
+  - Independent: if a test touches `Vars.state.rules`, do `state.rules = new Rules()` at the start of the test (global state shared between tests).
+  - Cover game logic: `core/`, `rewards/`, `modifiers/`, `meta/`, `net/` serialization.
 
-## Règles d'architecture
+## Architecture rules
 
-- **La logique métier ne dépend pas de `arc.scene`.** Le dossier `ui/` consomme l'état du jeu (`RogueSession`, contrôleurs) ; elle ne le contient pas. Toute mécanique (reward, modifier, synergie, vague) doit exister et être testable sans UI.
-- Pas de contenu purement visuel sans contrepartie métier (pas de "juste un rendu").
-- L'UI (`ui/`) n'est pas testable headless : on teste ce qu'elle affiche (état, schematics, contenu sérialisé), pas les pixels.
+- **Game logic must not depend on `arc.scene`.** The `ui/` folder consumes game state (`RogueSession`, controllers); it does not contain it. Any mechanic (reward, modifier, synergy, wave) must exist and be testable without a UI.
+- No purely visual content without a gameplay counterpart (no "just a render").
+- The UI (`ui/`) is not testable headless: test what it displays (state, schematics, serialized content), not pixels.
 
-## Références
+## References
 
-- **Sources du jeu** : `../Mindustry` — clone du tag `v160` (lecture seule), à côté de ce projet. Architecture moteur : `NetServer`, `Waves`, `Events`, `arc.scene.ui`.
-- Pattern de boot headless : `../Mindustry/tests/src/test/java/ApplicationTests.java`.
-- Wiki modding : https://mindustrygame.github.io/wiki/modding/1-modding/
+- **Game sources**: `../Mindustry` — clone of tag `v160` (read-only), next to this project. Engine architecture: `NetServer`, `Waves`, `Events`, `arc.scene.ui`.
+- Headless boot pattern: `../Mindustry/tests/src/test/java/ApplicationTests.java`.
+- Modding wiki: https://mindustrygame.github.io/wiki/modding/1-modding/
 
 ## Git
 
-- Commits en français, messages concis, un sujet par commit.
-- Branche principale : `master`. Ne pas push sans validation explicite du propriétaire.
+- Commits in English, concise messages, one topic per commit.
+- Development happens on `dev`; `master` is the main branch. Do not push without explicit approval from the owner.

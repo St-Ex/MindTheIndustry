@@ -8,11 +8,11 @@ import mindustry.gen.*;
 import static mindustry.Vars.*;
 
 /**
- * Applique les bonus de joueur actif aux stats réelles du jeu.
+ * Applies active-player bonuses to the actual game stats.
  *
  * Hooks:
- * - BulletCreateEvent: dégâts des balles (tourelles + unités)
- * - Trigger.update: vitesse de tir et production des bâtiments (via applyBoost)
+ * - BulletCreateEvent: bullet damage (turrets + units)
+ * - Trigger.update: fire rate and building production (via applyBoost)
  */
 public class BonusApplier{
 
@@ -21,7 +21,7 @@ public class BonusApplier{
     public BonusApplier(RogueSession session){
         this.session = session;
 
-        // ===== Dégâts des balles =====
+        // ===== Bullet damage =====
         Events.on(BulletCreateEvent.class, e -> {
             if(!session.active) return;
             Bullet bullet = e.bullet;
@@ -30,17 +30,17 @@ public class BonusApplier{
             float damageMult = 1f;
 
             if(bullet.owner instanceof Building building){
-                // Balle tirée par une tourelle: bonus du joueur actif sur ce bâtiment
+                // Bullet fired by a turret: bonus of the active player on this building
                 damageMult = session.getBuildingDamageMultiplier(building);
 
-                // + modificateurs globaux de dégâts tourelles
+                // + global turret damage modifiers
                 for(var mod : session.getGlobalModifiers()){
                     if(mod.id.equals("turret_damage")){
                         damageMult *= (1f + mod.value);
                     }
                 }
             }else if(bullet.owner instanceof Unit unit){
-                // Balle tirée par une unité: bonus du joueur actif sur cette unité
+                // Bullet fired by a unit: bonus of the active player on this unit
                 damageMult = session.getUnitDamageMultiplier(unit);
             }
 
@@ -49,7 +49,7 @@ public class BonusApplier{
             }
         });
 
-        // ===== Vitesse de tir et production des bâtiments =====
+        // ===== Fire rate and building production =====
         Events.run(Trigger.update, () -> {
             if(!session.active) return;
 
@@ -60,16 +60,16 @@ public class BonusApplier{
                 Player active = session.getActivePlayer(building);
                 if(active == null) continue;
 
-                // Bonus de vitesse de tir (reload)
+                // Fire rate bonus (reload)
                 float reloadMult = session.getBuildingReloadMultiplier(building);
                 if(reloadMult > 1f){
-                    // applyBoost(intensity, duration) accélère le bâtiment
-                    // intensity = multiplicateur de vitesse (ex: 1.3 = +30%)
-                    // On appelle avec une durée de 0.1s pour maintenir le boost
+                    // applyBoost(intensity, duration) speeds up the building
+                    // intensity = speed multiplier (e.g. 1.3 = +30%)
+                    // Called with a duration of 0.1s to maintain the boost
                     building.applyBoost(reloadMult, 0.15f);
                 }
 
-                // Bonus de production
+                // Production bonus
                 float prodMult = session.getBuildingProductionMultiplier(building);
                 if(prodMult > 1f){
                     building.applyBoost(prodMult, 0.15f);

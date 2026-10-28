@@ -5,26 +5,26 @@ import mindustry.gen.*;
 import rogueindustry.core.*;
 
 /**
- * Classe abstraite représentant une récompense proposée à un joueur.
+ * Abstract class representing a reward offered to a player.
  *
- * Chaque récompense a:
- * - un type (détermine la portée: groupe, individuel, ou ciblé)
- * - un identifiant unique (pour la sérialisation réseau)
- * - un nom et une description affichés dans le dialogue de choix
- * - une méthode apply() qui applique la récompense dans la session
+ * Each reward has:
+ * - a type (determines the scope: group, individual, or targeted)
+ * - a unique identifier (for network serialization)
+ * - a name and a description displayed in the choice dialog
+ * - an apply() method that applies the reward in the session
  */
 public abstract class Reward{
 
-    /** Identifiant unique de cette récompense (ex: "building:salvo", "unit_bonus:damage:20"). */
+    /** Unique identifier of this reward (e.g. "building:salvo", "unit_bonus:damage:20"). */
     public final String id;
 
-    /** Type de récompense (détermine la portée d'application). */
+    /** Reward type (determines the application scope). */
     public final RewardType type;
 
-    /** Nom affiché dans le dialogue (ex: "Salvo", "+20% dégâts unités"). */
+    /** Name displayed in the dialog (e.g. "Salvo", "+20% unit damage"). */
     public final String displayName;
 
-    /** Description détaillée (ex: "Débloque la tourelle Salvo pour tous les joueurs"). */
+    /** Detailed description (e.g. "Unlocks the Salvo turret for all players"). */
     public final String description;
 
     protected Reward(String id, RewardType type, String displayName, String description){
@@ -35,15 +35,15 @@ public abstract class Reward{
     }
 
     /**
-     * Applique la récompense dans la session.
+     * Applies the reward in the session.
      *
-     * @param session la session de run en cours
-     * @param chooser le joueur qui a choisi cette récompense
-     * @param target  le joueur cible (pour UNIT_BONUS; null pour les autres types)
+     * @param session the current run session
+     * @param chooser the player who chose this reward
+     * @param target  the target player (for UNIT_BONUS; null for other types)
      */
     public abstract void apply(RogueSession session, Player chooser, Player target);
 
-    /** Sérialise la récompense pour envoi réseau. */
+    /** Serializes the reward for network sending. */
     public void write(Writes write){
         write.str(id);
         write.str(type.name());
@@ -51,14 +51,14 @@ public abstract class Reward{
         write.str(description);
     }
 
-    /** Désérialise la récompense (usine appelée côté client). */
+    /** Deserializes the reward (factory called client-side). */
     public static Reward read(Reads read){
         String id = read.str();
         RewardType type = RewardType.valueOf(read.str());
         String name = read.str();
         String desc = read.str();
-        // La désérialisation complète est faite par RewardSerializer
-        // qui connaît les champs spécifiques à chaque type
+        // Full deserialization is done by RewardSerializer
+        // which knows the type-specific fields
         return RewardSerializer.readFull(id, type, name, desc, read);
     }
 

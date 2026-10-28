@@ -7,7 +7,7 @@ import rogueindustry.rewards.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests du générateur procédural de schematics (récompenses). */
+/** Tests for the procedural schematic generator (rewards). */
 class SchematicGeneratorTest extends HeadlessRogueTest{
 
     @Test

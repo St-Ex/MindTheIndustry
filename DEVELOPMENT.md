@@ -1,114 +1,117 @@
-# RogueIndustry — Mode Rogue-like pour Mindustry
+# RogueIndustry — Rogue-like Mode for Mindustry
 
-Un mod qui transforme Mindustry en roguelike coopératif : à chaque vague réussie,
-chaque joueur choisit des récompenses aléatoires (bâtiments, plans, bonus d'unités).
+A mod that turns Mindustry into a cooperative roguelike: after each successful wave,
+each player picks from random rewards (buildings, schematics, unit bonuses).
 
-## Environnement de développement
+## Development environment
 
-### Prérequis
-- [mise](https://mise.jdx.dev/) installé (`~/.local/bin/mise`)
-- Java 17 (géré automatiquement par mise)
+### Prerequisites
+- [mise](https://mise.jdx.dev/) installed (`~/.local/bin/mise`)
+- Java 17 (managed automatically by mise)
 
-### Commandes
+### Commands
 
 ```bash
-# Se placer dans le projet
+# Go to the project directory
 cd /home/stex/projects/mindtheindustry
 
-# Build le mod (génère build/libs/mindtheindustryDesktop.jar)
+# Build the mod (generates build/libs/mindtheindustryDesktop.jar)
 mise exec -- ./gradlew jar
 
-# Compiler seulement
+# Compile only
 mise exec -- ./gradlew compileJava
 
-# Nettoyer
+# Run the test suite (headless harness)
+mise exec -- ./gradlew test
+
+# Clean
 mise exec -- ./gradlew clean
 ```
 
-### Tester le mod
+### Testing the mod
 
-**Automatisé — harness headless (à privilégier) :**
+**Automated — headless harness (preferred):**
 
 ```bash
 mise exec -- ./gradlew test
 ```
 
-Les tests dans `tests/` bootent Mindustry sans UI (mode headless, voir
-`tests/rogueindustry/HeadlessRogueTest.java`) et couvrent la logique métier :
-session, génération de récompenses (déterminisme par seed), sérialisation
-réseau, schematics. Règles et conventions : voir `AGENTS.md`.
+The tests in `tests/` boot Mindustry without a UI (headless mode, see
+`tests/rogueindustry/HeadlessRogueTest.java`) and cover the game logic:
+session, reward generation (seed determinism), network serialization,
+schematics. Rules and conventions: see `AGENTS.md`.
 
-**Manuel — debug de l'UI :**
+**Manual — UI debugging:**
 
-1. Build le JAR : `mise exec -- ./gradlew jar`
-2. Copier `build/libs/mindtheindustryDesktop.jar` dans le dossier `mods/` de Mindustry
-   - Linux Steam : `~/.local/share/Steam/steamapps/compatdata/451480/pfx/drive/c/users/steamuser/AppData/Roaming/Mindustry/mods/`
-   - Ou lancer Mindustry avec le JAR en argument
-3. Lancer Mindustry, activer le mod dans le menu Mods
-4. Héberger une partie en solo ou multijoueur
-5. Dans le chat, taper `/rogue start` pour démarrer une run
+1. Build the JAR: `mise exec -- ./gradlew jar`
+2. Copy `build/libs/mindtheindustryDesktop.jar` into Mindustry's `mods/` folder
+   - Linux Steam: `~/.local/share/Steam/steamapps/compatdata/451480/pfx/drive/c/users/steamuser/AppData/Roaming/Mindustry/mods/`
+   - Or launch Mindustry with the JAR as an argument
+3. Launch Mindustry, enable the mod in the Mods menu
+4. Host a solo or multiplayer game
+5. In the chat, type `/rogue start` to start a run
 
-### Commandes en jeu
+### In-game commands
 
-| Commande | Description |
+| Command | Description |
 |----------|-------------|
-| `/rogue start` | Démarre une run rogue-like |
-| `/rogue stop` | Arrête la run en cours |
-| `/rogue skip` | Force le passage à la vague suivante (tue tous les ennemis) |
-| `/rogue status` | Affiche l'état de la run (vague, seed, actif/inactif) |
+| `/rogue start` | Starts a rogue-like run |
+| `/rogue stop` | Stops the current run |
+| `/rogue skip` | Forces the next wave (kills all enemies) |
+| `/rogue status` | Shows the run state (wave, seed, active/inactive) |
 
 ## Architecture
 
 ```
 src/rogueindustry/
-├── RogueIndustryMod.java          # Point d'entrée, commandes, init
+├── RogueIndustryMod.java          # Entry point, commands, init
 ├── core/
-│   ├── RogueSession.java          # État serveur: unlocks, bonus, modifiers
-│   ├── ServerRogueController.java # Orchestration serveur (vagues, votes)
-│   ├── ClientRogueController.java # Orchestration client (choix, votes)
-│   └── RewardGenerator.java       # Génération des 3 choix par joueur
+│   ├── RogueSession.java          # Server state: unlocks, bonuses, modifiers
+│   ├── ServerRogueController.java # Server orchestration (waves, votes)
+│   ├── ClientRogueController.java # Client orchestration (choices, votes)
+│   └── RewardGenerator.java       # Generates the 3 choices per player
 ├── rewards/
-│   ├── Reward.java                # Classe abstraite
+│   ├── Reward.java                # Abstract class
 │   ├── RewardType.java            # BUILDING, SCHEMATIC, UNIT_BONUS, GLOBAL_MOD, SYNERGY
-│   ├── RewardSerializer.java      # Sérialisation réseau
+│   ├── RewardSerializer.java      # Network serialization
 │   └── rewards/
-│       ├── BuildingReward.java    # Débloque bâtiment pour TOUS
-│       ├── SchematicReward.java   # Débloque plan pour UN joueur
-│       ├── UnitBonusReward.java   # Bonus unités d'un joueur CIBLE
-│       ├── GlobalModifierReward.java # Bonus pour TOUS
-│       └── SynergyReward.java     # Bonus conditionnel
+│       ├── BuildingReward.java    # Unlocks a building for EVERYONE
+│       ├── SchematicReward.java   # Unlocks a schematic for ONE player
+│       ├── UnitBonusReward.java   # Unit bonus for a TARGET player
+│       ├── GlobalModifierReward.java # Bonus for EVERYONE
+│       └── SynergyReward.java     # Conditional bonus
 ├── modifiers/
-│   ├── UnitBonus.java             # Bonus d'unité (dégâts, vie, vitesse...)
-│   ├── GlobalModifier.java        # Modificateur global
-│   └── GlobalModifierRegistry.java # Registre des modificateurs
+│   ├── UnitBonus.java             # Unit bonus (damage, health, speed...)
+│   ├── GlobalModifier.java        # Global modifier
+│   └── GlobalModifierRegistry.java # Modifier registry
 ├── net/
-│   └── RoguePackets.java          # Tous les packets réseau
+│   └── RoguePackets.java          # All network packets
 └── ui/
-    └── RewardDialog.java          # Dialogue de choix (3 cartes)
+    └── RewardDialog.java          # Choice dialog (3 cards)
 ```
 
-## Mécaniques de récompense
+## Reward mechanics
 
-| Type | Portée | Description |
+| Type | Scope | Description |
 |------|--------|-------------|
-| **Building** | Tout le groupe | Débloque un bâtiment pour tous les joueurs |
-| **Schematic** | Joueur individuel | Débloque un plan utilisable par un seul joueur |
-| **Unit Bonus** | Joueur cible | Bonus permanent sur les unités d'un joueur (au choix) |
-| **Global Mod** | Tout le groupe | Bonus de run (vitesse prod, dégâts, etc.) |
-| **Synergy** | Tout le groupe | Bonus conditionnel si prérequis débloqué |
+| **Building** | Whole group | Unlocks a building for all players |
+| **Schematic** | Individual player | Unlocks a schematic usable by a single player |
+| **Unit Bonus** | Target player | Permanent bonus on a player's units (chosen) |
+| **Global Mod** | Whole group | Run bonus (production speed, damage, etc.) |
+| **Synergy** | Whole group | Conditional bonus if prerequisites are unlocked |
 
-## Prochaines étapes (TODO)
+## Next steps (TODO)
 
-- [ ] Phase 2: Implémenter SchematicReward (génération de plans aléatoires)
-- [ ] Phase 2: Implémenter UnitBonusReward (application sur unités existantes + futures)
-- [ ] Phase 3: RogueHUD (affichage vague, modifiers, bonus)
-- [ ] Phase 3: Meta-progression entre les runs
-- [ ] Phase 3: Équilibrage de la courbe de difficulté
-- [ ] Phase 3: Contenu custom (bâtiments/unités spécifiques au mode)
+- [ ] Phase 2: Implement SchematicReward (random schematic generation)
+- [ ] Phase 2: Implement UnitBonusReward (apply to existing + future units)
+- [ ] Phase 3: RogueHUD (wave display, modifiers, bonuses)
+- [ ] Phase 3: Meta-progression between runs
+- [ ] Phase 3: Difficulty curve balancing
+- [ ] Phase 3: Custom content (mode-specific buildings/units)
 
-## Notes & Ressources
+## Notes & Resources
 
-- **Server UI Builder System** (arc.scene.ui) — riche en possibilités pour construire des interfaces custom (Table, Button, Tex, Styles). À explorer pour améliorer les dialogues du mod (sélection commandant, récompenses, HUD).
-- **Wiki modding** : https://mindustrygame.github.io/wiki/modding/1-modding/
-- **Sources Mindustry v160** — clone à côté du projet : `../Mindustry` (tag `v160`, lecture seule). Pattern de boot headless : `../Mindustry/tests/src/test/java/ApplicationTests.java`.
+- **Server UI Builder System** (arc.scene.ui) — rich possibilities for building custom interfaces (Table, Button, Tex, Styles). To explore for improving the mod's dialogs (commander selection, rewards, HUD).
+- **Modding wiki**: https://mindustrygame.github.io/wiki/modding/1-modding/
+- **Mindustry v160 sources** — clone next to the project: `../Mindustry` (tag `v160`, read-only). Headless boot pattern: `../Mindustry/tests/src/test/java/ApplicationTests.java`.
 - **Mindustry v160.7** — build 160, Java 17
