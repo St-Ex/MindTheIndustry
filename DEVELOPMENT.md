@@ -16,7 +16,7 @@ each player picks from random rewards (buildings, schematics, unit bonuses).
 cd /home/stex/projects/mindtheindustry
 
 # Build the mod (generates build/libs/mindtheindustryDesktop.jar)
-mise exec -- ./gradlew jar
+mise build
 
 # Compile only
 mise exec -- ./gradlew compileJava
@@ -43,7 +43,7 @@ schematics. Rules and conventions: see `AGENTS.md`.
 
 **Manual — UI debugging:**
 
-1. Build the JAR: `mise exec -- ./gradlew jar`
+1. Build the JAR: `mise build`
 2. Copy `build/libs/mindtheindustryDesktop.jar` into Mindustry's `mods/` folder
    - Linux Steam: `~/.local/share/Steam/steamapps/compatdata/451480/pfx/drive/c/users/steamuser/AppData/Roaming/Mindustry/mods/`
    - Or launch Mindustry with the JAR as an argument

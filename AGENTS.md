@@ -9,7 +9,7 @@ Mindustry mod (Java 17): a cooperative roguelike mode. Game mechanics are descri
 ## Environment
 
 - Java 17, managed by [mise](https://mise.jdx.dev) (`mise.toml`).
-- All commands go through `mise exec --`.
+- All commands go through mise: `mise <task>` (tasks defined in `mise.toml`) or `mise exec --`.
 - Never launch the game, a server or a long-running watcher from an agent.
 
 ## Commands
@@ -19,7 +19,7 @@ Mindustry mod (Java 17): a cooperative roguelike mode. Game mechanics are descri
 mise exec -- ./gradlew compileJava
 
 # Build the mod (build/libs/mindtheindustryDesktop.jar)
-mise exec -- ./gradlew jar
+mise build
 
 # Tests — headless harness, use systematically
 mise exec -- ./gradlew test

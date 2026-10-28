@@ -1,2 +1,6 @@
 [tools]
 java = "17"
+
+[tasks.build]
+description = "Build the mod (build/libs/mindtheindustryDesktop.jar)"
+run = "./gradlew jar"

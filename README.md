@@ -47,7 +47,7 @@ Type `/rogue start` in the chat to begin a run. After each wave, a dialog shows 
 Java 17, managed by [mise](https://mise.jdx.dev). See `AGENTS.md` for the rules agents must follow and `DEVELOPMENT.md` for the architecture and roadmap.
 
 ```bash
-mise exec -- ./gradlew jar    # build the mod
+mise build                     # build the mod (build/libs/mindtheindustryDesktop.jar)
 mise exec -- ./gradlew test   # headless test suite (no game launch needed)
 ```
 
