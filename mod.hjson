@@ -1,0 +1,23 @@
+#the mod name as displayed in-game
+displayName: "RogueIndustry"
+
+#the internal name of your mod
+name: "rogue-industry"
+
+#your name
+author: "stex"
+
+#the fully qualified main class of the mod
+main: "rogueindustry.RogueIndustryMod"
+
+#the mod description as seen in the mod dialog
+description: "Mode rogue-like pour Mindustry. A chaque vague reussie, choisissez des bonus aleatoires : batiments, unites, ameliorations. Concu pour le multijoueur coop."
+
+#the mod version
+version: 0.1.0
+
+#the minimum game build required to run this mod
+minGameVersion: 154
+
+#this is a java mod
+java: true
