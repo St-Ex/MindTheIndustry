@@ -50,4 +50,4 @@ mise exec -- ./gradlew test
 ## Git
 
 - Commits in English, concise messages, one topic per commit.
-- Development happens on `dev`; `master` is the main branch. Do not push without explicit approval from the owner.
+- Development happens on `dev`; `main` is the main branch. Merge `dev` into `main` via pull request. Do not push without explicit approval from the owner.
