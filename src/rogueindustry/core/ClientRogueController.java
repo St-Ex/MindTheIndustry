@@ -7,7 +7,7 @@ import rogueindustry.net.*;
 import rogueindustry.rewards.*;import static mindustry.Vars.*;
 
 /**
- * Client controller for RogueIndustry mode.
+ * Client controller for MindTheIndustry mode.
  * Manages local state client-side and communication with the server.
  */
 public class ClientRogueController{

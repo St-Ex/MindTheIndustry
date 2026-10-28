@@ -1,4 +1,4 @@
-# AGENTS.md — RogueIndustry
+# AGENTS.md — MindTheIndustry
 
 Rules for any agent working on this repository. Read before making any change.
 

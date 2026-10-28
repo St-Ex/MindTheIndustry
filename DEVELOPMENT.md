@@ -1,4 +1,4 @@
-# RogueIndustry — Rogue-like Mode for Mindustry
+# MindTheIndustry — Rogue-like Mode for Mindustry
 
 A mod that turns Mindustry into a cooperative roguelike: after each successful wave,
 each player picks from random rewards (buildings, schematics, unit bonuses).

@@ -17,7 +17,7 @@ import rogueindustry.net.*;
 import static mindustry.Vars.*;
 
 /**
- * HUD for RogueIndustry mode.
+ * HUD for MindTheIndustry mode.
  *
  * Two parts:
  * 1. Start/Stop button at the top center (below the wave display)
@@ -53,7 +53,7 @@ public class RogueHUD{
             startBtn[0].addListener(new arc.scene.event.ClickListener(){
                 @Override
                 public void clicked(arc.scene.event.InputEvent event, float x, float y){
-                    arc.util.Log.info("[RogueIndustry] CLICK DETECTED on Start Rogue!");
+                    arc.util.Log.info("[MindTheIndustry] CLICK DETECTED on Start Rogue!");
                     if(player != null){
                         player.sendMessage("/rogue start");
                     }
@@ -64,7 +64,7 @@ public class RogueHUD{
             stopBtn[0].addListener(new arc.scene.event.ClickListener(){
                 @Override
                 public void clicked(arc.scene.event.InputEvent event, float x, float y){
-                    arc.util.Log.info("[RogueIndustry] CLICK DETECTED on Stop Rogue!");
+                    arc.util.Log.info("[MindTheIndustry] CLICK DETECTED on Stop Rogue!");
                     if(player != null){
                         player.sendMessage("/rogue stop");
                     }
@@ -165,7 +165,7 @@ public class RogueHUD{
             if(hud != null && !hud.hasParent()){
                 ui.hudGroup.addChild(hud);
             }
-            Log.info("[RogueIndustry] RogueHUD added to the HUD.");
+            Log.info("[MindTheIndustry] RogueHUD added to the HUD.");
         });
 
         // Clean up at end of game
@@ -174,7 +174,7 @@ public class RogueHUD{
             if(hud != null) hud.remove();
         });
 
-        Log.info("[RogueIndustry] RogueHUD initialized.");
+        Log.info("[MindTheIndustry] RogueHUD initialized.");
     }
 
     /** Removes the HUD. */

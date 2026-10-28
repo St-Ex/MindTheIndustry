@@ -168,7 +168,7 @@ public class SchematicGenerator{
                 String blockName = def.blocks[y][x];
                 Block block = content.block(blockName);
                 if(block == null){
-                    Log.warn("[RogueIndustry] Block '" + blockName + "' not found, skipping.");
+                    Log.warn("[MindTheIndustry] Block '" + blockName + "' not found, skipping.");
                     continue;
                 }
                 // config null: preset blocks have no configuration (serializable, unlike a Byte)

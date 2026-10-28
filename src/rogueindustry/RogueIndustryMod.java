@@ -11,7 +11,7 @@ import rogueindustry.meta.*;
 import rogueindustry.net.*;
 
 /**
- * RogueIndustry mod - Rogue-like mode for Mindustry co-op.
+ * MindTheIndustry mod - Rogue-like mode for Mindustry co-op.
  *
  * After each completed wave, each player receives 3 random reward choices:
  * - Buildings unlocked for the whole group
@@ -38,11 +38,11 @@ public class RogueIndustryMod extends Mod{
     public static boolean autoStartRogue = false;
 
     public RogueIndustryMod(){
-        Log.info("[RogueIndustry] Mod loaded.");
+        Log.info("[MindTheIndustry] Mod loaded.");
 
         // Register network packets
         RoguePackets.register();
-        Log.info("[RogueIndustry] Packets registered.");
+        Log.info("[MindTheIndustry] Packets registered.");
 
         // Initialize the controllers
         clientController = new ClientRogueController();
@@ -52,7 +52,7 @@ public class RogueIndustryMod extends Mod{
         Events.on(ServerLoadEvent.class, e -> {
             serverController = new ServerRogueController();
             serverSession = serverController.session;
-            Log.info("[RogueIndustry] Server controller initialized (ServerLoadEvent).");
+            Log.info("[MindTheIndustry] Server controller initialized (ServerLoadEvent).");
         });
 
         // Fallback: create the controller at PlayEvent if ServerLoadEvent didn't fire (solo)
@@ -60,13 +60,13 @@ public class RogueIndustryMod extends Mod{
             if(serverController == null){
                 serverController = new ServerRogueController();
                 serverSession = serverController.session;
-                Log.info("[RogueIndustry] Server controller initialized (PlayEvent fallback).");
+                Log.info("[MindTheIndustry] Server controller initialized (PlayEvent fallback).");
             }
         });
 
         // Client-side, on connect
         Events.on(ClientLoadEvent.class, e -> {
-            Log.info("[RogueIndustry] Client loaded - ready for rogue-like mode.");
+            Log.info("[MindTheIndustry] Client loaded - ready for rogue-like mode.");
             // Load meta-progression
             MetaProgression.load();
             // Initialize the active player selector
@@ -78,19 +78,19 @@ public class RogueIndustryMod extends Mod{
         // Admin command to start a run (debug)
         Events.on(ServerLoadEvent.class, e -> {
             // Will be replaced by a real UI button later
-            Log.info("[RogueIndustry] Use the server console: 'rogue start' to start a run");
+            Log.info("[MindTheIndustry] Use the server console: 'rogue start' to start a run");
         });
     }
 
     @Override
     public void loadContent(){
-        Log.info("[RogueIndustry] Loading content...");
+        Log.info("[MindTheIndustry] Loading content...");
         // Custom content (buildings, units) will be added here in Phase 3
     }
 
     @Override
     public void registerClientCommands(CommandHandler handler){
-        handler.<Player>register("rogue", "[start|stop|skip|status]", "Command for RogueIndustry mode.", (args, player) -> {
+        handler.<Player>register("rogue", "[start|stop|skip|status]", "Command for MindTheIndustry mode.", (args, player) -> {
             if(serverController == null){
                 player.sendMessage("[scarlet]Server controller is not initialized.");
                 return;

@@ -1,8 +1,8 @@
-# RogueIndustry
+# MindTheIndustry
 
 A Mindustry mod that adds a cooperative roguelike mode. After each successful wave, every player picks one of three random rewards. Designed for co-op multiplayer, playable in solo.
 
-- Mod name: `rogue-industry` (displayed as **RogueIndustry**)
+- Mod name: `mindtheindustry` (displayed as **MindTheIndustry**)
 - Requires Mindustry v154+ (built against v160)
 - Java mod, Java 17
 

@@ -165,11 +165,11 @@ public class RogueSession{
             }
         }
 
-        Log.info("[RogueIndustry] Run started. Seed=" + seed);
+        Log.info("[MindTheIndustry] Run started. Seed=" + seed);
 
         // Apply the commander's ability if one is selected
         if(selectedCommander != null){
-            Log.info("[RogueIndustry] Applying ability of " + selectedCommander.displayName);
+            Log.info("[MindTheIndustry] Applying ability of " + selectedCommander.displayName);
             selectedCommander.ability.apply(this);
         }
     }
@@ -196,13 +196,13 @@ public class RogueSession{
             }
         }
 
-        Log.info("[RogueIndustry] Run joined. Seed=" + seed);
+        Log.info("[MindTheIndustry] Run joined. Seed=" + seed);
     }
 
     /** Stops the run. */
     public void stop(){
         active = false;
-        Log.info("[RogueIndustry] Run ended at wave " + wave);
+        Log.info("[MindTheIndustry] Run ended at wave " + wave);
     }
 
     // --- Unlock management ---
@@ -211,7 +211,7 @@ public class RogueSession{
     public void unlockForGroup(UnlockableContent content){
         if(groupUnlocks.add(content)){
             state.rules.researched.add(content);
-            Log.info("[RogueIndustry] Unlocked for the group: " + content.name);
+            Log.info("[MindTheIndustry] Unlocked for the group: " + content.name);
         }
     }
 
@@ -228,7 +228,7 @@ public class RogueSession{
     /** Unlocks a schematic for an individual player. */
     public void unlockSchematicForPlayer(Player player, String schematicName){
         playerSchematics.get(player, ObjectSet::new).add(schematicName);
-        Log.info("[RogueIndustry] Schematic '" + schematicName + "' unlocked for " + player.name);
+        Log.info("[MindTheIndustry] Schematic '" + schematicName + "' unlocked for " + player.name);
     }
 
     /** Checks whether a player has unlocked a schematic. */
@@ -243,7 +243,7 @@ public class RogueSession{
         playerUnitBonuses.get(player, Seq::new).add(bonus);
         // Apply immediately to the player's existing units
         applyBonusToPlayerUnits(player, bonus);
-        Log.info("[RogueIndustry] Bonus " + bonus.describe() + " applied to " + player.name);
+        Log.info("[MindTheIndustry] Bonus " + bonus.describe() + " applied to " + player.name);
     }
 
     /** Returns all unit bonuses of a player. */
@@ -290,7 +290,7 @@ public class RogueSession{
     /** Adds a building bonus for a specific player. */
     public void addBuildingBonus(Player player, BuildingBonus bonus){
         playerBuildingBonuses.get(player, Seq::new).add(bonus);
-        Log.info("[RogueIndustry] Building bonus " + bonus.describe() + " applied to " + player.name);
+        Log.info("[MindTheIndustry] Building bonus " + bonus.describe() + " applied to " + player.name);
     }
 
     /** Returns all building bonuses of a player. */
@@ -373,7 +373,7 @@ public class RogueSession{
     public void addGlobalModifier(GlobalModifier modifier){
         globalModifiers.add(modifier);
         applyGlobalModifier(modifier);
-        Log.info("[RogueIndustry] Global modifier: " + modifier.describe());
+        Log.info("[MindTheIndustry] Global modifier: " + modifier.describe());
     }
 
     /** Returns all active global modifiers. */
@@ -410,7 +410,7 @@ public class RogueSession{
 
     public void addSynergy(String requiredUnlockId, String bonusDescription){
         synergies.put(requiredUnlockId, bonusDescription);
-        Log.info("[RogueIndustry] Synergy registered: " + requiredUnlockId + " → " + bonusDescription);
+        Log.info("[MindTheIndustry] Synergy registered: " + requiredUnlockId + " → " + bonusDescription);
     }
 
     // --- Wave progression ---
@@ -419,7 +419,7 @@ public class RogueSession{
     public void nextWave(){
         wave++;
         applyDifficulty();
-        Log.info("[RogueIndustry] Wave " + wave + " - Difficulty applied");
+        Log.info("[MindTheIndustry] Wave " + wave + " - Difficulty applied");
     }
 
     /** Applies the difficulty curve based on the wave. */
@@ -476,7 +476,7 @@ public class RogueSession{
         }else{
             buildingActivePlayer.put(building, player);
         }
-        Log.info("[RogueIndustry] Active player on building #" + building.tile.pos() + ": " +
+        Log.info("[MindTheIndustry] Active player on building #" + building.tile.pos() + ": " +
                  (player != null ? player.name : "none"));
     }
 
@@ -515,7 +515,7 @@ public class RogueSession{
             // Immediately apply the player's bonuses to the unit
             applyAllBonusesToUnit(player, unit);
         }
-        Log.info("[RogueIndustry] Active player on unit #" + unit.id + ": " +
+        Log.info("[MindTheIndustry] Active player on unit #" + unit.id + ": " +
                  (player != null ? player.name : "none"));
     }
 

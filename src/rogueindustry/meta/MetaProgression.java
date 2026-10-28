@@ -13,7 +13,7 @@ import arc.util.*;
  */
 public class MetaProgression{
 
-    private static final String PREF_KEY = "rogue-industry-unlocked-commanders";
+    private static final String PREF_KEY = "mindtheindustry-unlocked-commanders";
 
     /** IDs of unlocked commanders (excluding tier 1 which are always available). */
     private static final ObjectSet<String> unlocked = new ObjectSet<>();
@@ -29,7 +29,7 @@ public class MetaProgression{
                 }
             }
         }
-        Log.info("[RogueIndustry] Meta-progression loaded: " + unlocked.size + " commanders unlocked.");
+        Log.info("[MindTheIndustry] Meta-progression loaded: " + unlocked.size + " commanders unlocked.");
     }
 
     /** Saves unlocked commanders. */
@@ -54,7 +54,7 @@ public class MetaProgression{
         if(commander.tier <= 1) return; // already unlocked
         if(unlocked.add(commander.id)){
             save();
-            Log.info("[RogueIndustry] Commander unlocked: " + commander.displayName);
+            Log.info("[MindTheIndustry] Commander unlocked: " + commander.displayName);
         }
     }
 

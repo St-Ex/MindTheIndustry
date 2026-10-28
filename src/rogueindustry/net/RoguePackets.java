@@ -10,7 +10,7 @@ import rogueindustry.core.*;
 import rogueindustry.rewards.*;
 
 /**
- * All custom network packets for RogueIndustry mode.
+ * All custom network packets for MindTheIndustry mode.
  *
  * Direction S→C (server → client):
  * - RogueStartPacket: starts a run with a seed
@@ -61,7 +61,7 @@ public class RoguePackets{
 
         @Override
         public void handleClient(){
-            arc.util.Log.info("[RogueIndustry] RogueStartPacket received client-side: seed=" + seed + ", wave=" + wave);
+            arc.util.Log.info("[MindTheIndustry] RogueStartPacket received client-side: seed=" + seed + ", wave=" + wave);
             RogueIndustryMod.clientSession.start(seed);
             RogueIndustryMod.clientSession.wave = wave;
         }
@@ -94,7 +94,7 @@ public class RoguePackets{
 
         @Override
         public void handleClient(){
-            arc.util.Log.info("[RogueIndustry] RewardChoicesPacket received client-side: wave=" + wave + ", " + choices.size + " choices");
+            arc.util.Log.info("[MindTheIndustry] RewardChoicesPacket received client-side: wave=" + wave + ", " + choices.size + " choices");
             // Show the choice dialog
             rogueindustry.ui.RewardDialog.showChoices(wave, choices);
         }
@@ -126,7 +126,7 @@ public class RoguePackets{
 
         @Override
         public void handleClient(){
-            String msg = "[Rogue] " + playerName + " chose: " + rewardName;
+            String msg = "[MindTheIndustry] " + playerName + " chose: " + rewardName;
             if(targetName != null){
                 msg += " (target: " + targetName + ")";
             }
@@ -203,10 +203,10 @@ public class RoguePackets{
                         mindustry.Vars.player.sendMessage("[purple]Schematic unlocked: [accent]" + schematicName +
                             "[] [gray]- Find it in your schematics!");
                     }
-                    arc.util.Log.info("[RogueIndustry] Schematic added: " + schematicName);
+                    arc.util.Log.info("[MindTheIndustry] Schematic added: " + schematicName);
                 }
             }catch(Throwable t){
-                arc.util.Log.err("[RogueIndustry] Error decoding schematic: " + t.getMessage());
+                arc.util.Log.err("[MindTheIndustry] Error decoding schematic: " + t.getMessage());
             }
         }
     }
@@ -271,14 +271,14 @@ public class RoguePackets{
 
         @Override
         public void handleClient(){
-            arc.util.Log.info("[RogueIndustry] CommanderChoicesPacket received client-side: " + commanderIds.length + " choices");
+            arc.util.Log.info("[MindTheIndustry] CommanderChoicesPacket received client-side: " + commanderIds.length + " choices");
             // Convert the IDs to Commanders and show the dialog
             arc.struct.Seq<rogueindustry.meta.Commander> commanders = new arc.struct.Seq<>();
             for(String id : commanderIds){
                 rogueindustry.meta.Commander c = rogueindustry.meta.CommanderRegistry.get(id);
                 if(c != null) commanders.add(c);
             }
-            arc.util.Log.info("[RogueIndustry] Showing commander selection dialog with " + commanders.size + " commanders");
+            arc.util.Log.info("[MindTheIndustry] Showing commander selection dialog with " + commanders.size + " commanders");
             rogueindustry.meta.CommanderSelectionDialog.showChoices(commanders);
         }
     }
@@ -328,7 +328,7 @@ public class RoguePackets{
 
         @Override
         public void handleClient(){
-            arc.util.Log.info("[RogueIndustry] CountdownPacket received client-side: " + seconds + "s");
+            arc.util.Log.info("[MindTheIndustry] CountdownPacket received client-side: " + seconds + "s");
             rogueindustry.ui.CountdownHUD.show(seconds);
         }
     }
@@ -410,14 +410,14 @@ public class RoguePackets{
 
         @Override
         public void handleServer(NetConnection con){
-            arc.util.Log.info("[RogueIndustry] RogueStartRequestPacket received!");
+            arc.util.Log.info("[MindTheIndustry] RogueStartRequestPacket received!");
             Player player = con.player;
             if(player == null){
-                arc.util.Log.warn("[RogueIndustry] Player null in RogueStartRequestPacket!");
+                arc.util.Log.warn("[MindTheIndustry] Player null in RogueStartRequestPacket!");
                 return;
             }
             if(RogueIndustryMod.serverController == null){
-                arc.util.Log.warn("[RogueIndustry] serverController null! ServerLoadEvent not fired yet?");
+                arc.util.Log.warn("[MindTheIndustry] serverController null! ServerLoadEvent not fired yet?");
                 player.sendMessage("[scarlet]The server is not ready. Try again in a few seconds.");
                 return;
             }
@@ -428,7 +428,7 @@ public class RoguePackets{
             }
 
             player.sendMessage("[accent]Commander selection...");
-            arc.util.Log.info("[RogueIndustry] Starting commander selection for " + player.name);
+            arc.util.Log.info("[MindTheIndustry] Starting commander selection for " + player.name);
             RogueIndustryMod.serverController.startCommanderSelection();
         }
     }

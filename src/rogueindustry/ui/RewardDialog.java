@@ -49,7 +49,7 @@ public class RewardDialog extends BaseDialog{
     private static final Color SYNERGY_COLOR = Color.valueOf("f7b731");
 
     public RewardDialog(int wave, Seq<Reward> choices){
-        super("[accent]RogueIndustry[] - Wave " + (wave + 1) + " complete!");
+        super("[accent]MindTheIndustry[] - Wave " + (wave + 1) + " complete!");
         this.wave = wave;
         this.choices = choices;
 
@@ -201,12 +201,12 @@ public class RewardDialog extends BaseDialog{
 
     /** Shows the choice dialog (called when the server sends the rewards). */
     public static void showChoices(int wave, Seq<Reward> choices){
-        arc.util.Log.info("[RogueIndustry] RewardDialog.showChoices called: wave=" + wave + ", " + choices.size + " choices");
+        arc.util.Log.info("[MindTheIndustry] RewardDialog.showChoices called: wave=" + wave + ", " + choices.size + " choices");
         if(instance != null && instance.hasParent()){
             instance.hide();
         }
         instance = new RewardDialog(wave, choices);
         instance.show();
-        arc.util.Log.info("[RogueIndustry] RewardDialog shown, hasParent=" + instance.hasParent());
+        arc.util.Log.info("[MindTheIndustry] RewardDialog shown, hasParent=" + instance.hasParent());
     }
 }

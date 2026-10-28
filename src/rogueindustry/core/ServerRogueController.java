@@ -13,7 +13,7 @@ import rogueindustry.rewards.*;
 import static mindustry.Vars.*;
 
 /**
- * Server controller for RogueIndustry mode.
+ * Server controller for MindTheIndustry mode.
  *
  * Responsibilities:
  * - Start/stop a run
@@ -82,7 +82,7 @@ public class ServerRogueController{
         Events.on(PlayEvent.class, e -> {
             if(rogueindustry.RogueIndustryMod.autoStartRogue && !session.active){
                 rogueindustry.RogueIndustryMod.autoStartRogue = false;
-                Log.info("[RogueIndustry] Auto-starting rogue mode (menu flag).");
+                Log.info("[MindTheIndustry] Auto-starting rogue mode (menu flag).");
                 // Short delay to let the game initialize
                 Timer.schedule(() -> startCommanderSelection(), 1f);
             }
@@ -149,7 +149,7 @@ public class ServerRogueController{
         pendingCommanderChoices.clear();
         commanderVotes.clear();
 
-        Log.info("[RogueIndustry] startCommanderSelection: players=" + Groups.player.size());
+        Log.info("[MindTheIndustry] startCommanderSelection: players=" + Groups.player.size());
 
         Seq<rogueindustry.meta.Commander> unlocked = rogueindustry.meta.MetaProgression.getUnlocked();
         if(unlocked.isEmpty()){
@@ -177,12 +177,12 @@ public class ServerRogueController{
                 p.con.send(packet, true);
             }else{
                 // In solo, run on the client thread (UI thread)
-                Log.info("[RogueIndustry] Solo: Core.app.post for CommanderChoicesPacket");
+                Log.info("[MindTheIndustry] Solo: Core.app.post for CommanderChoicesPacket");
                 Core.app.post(() -> packet.handleClient());
             }
         }
 
-        Log.info("[RogueIndustry] Commander selection started. " + pendingCommanderChoices.size + " players.");
+        Log.info("[MindTheIndustry] Commander selection started. " + pendingCommanderChoices.size + " players.");
         // Note: no auto-vote in solo, the player chooses via the dialog
     }
 
@@ -198,7 +198,7 @@ public class ServerRogueController{
         commanderVotes.put(player, chosen);
         pendingCommanderChoices.remove(player);
 
-        Log.info("[RogueIndustry] " + player.name + " chose the commander: " + chosen.displayName);
+        Log.info("[MindTheIndustry] " + player.name + " chose the commander: " + chosen.displayName);
         player.sendMessage("[accent]Commander chosen: " + chosen.displayName);
         player.sendMessage("[gray]Ability: " + chosen.ability.name() + " - " + chosen.ability.description());
 
@@ -224,7 +224,7 @@ public class ServerRogueController{
             // Store the commander in the session (for the HUD and effects)
             // Note: in co-op, each player has their own commander
             // We store it in a map or apply it directly
-            Log.info("[RogueIndustry] Commander of " + p.name + ": " + cmdr.displayName);
+            Log.info("[MindTheIndustry] Commander of " + p.name + ": " + cmdr.displayName);
             cmdr.ability.apply(session);
         }
 
@@ -241,7 +241,7 @@ public class ServerRogueController{
         }
         if(!sent){
             // In solo, run on the client thread
-            Log.info("[RogueIndustry] Solo: Core.app.post for RogueStartPacket");
+            Log.info("[MindTheIndustry] Solo: Core.app.post for RogueStartPacket");
             Core.app.post(() -> packet.handleClient());
         }
 
@@ -256,11 +256,11 @@ public class ServerRogueController{
             }
         }
         if(!sent){
-            Log.info("[RogueIndustry] Solo: Core.app.post for CountdownPacket");
+            Log.info("[MindTheIndustry] Solo: Core.app.post for CountdownPacket");
             Core.app.post(() -> countdown.handleClient());
         }
 
-        Log.info("[RogueIndustry] All commanders chosen. 10s countdown before wave 1.");
+        Log.info("[MindTheIndustry] All commanders chosen. 10s countdown before wave 1.");
 
         // Start the first wave after the countdown
         Timer.schedule(() -> {
@@ -269,7 +269,7 @@ public class ServerRogueController{
             state.wave = session.wave;
             state.rules.waveTimer = true;
             state.rules.waves = true;
-            Log.info("[RogueIndustry] Wave 1 started!");
+            Log.info("[MindTheIndustry] Wave 1 started!");
         }, 10f);
     }
 
@@ -292,11 +292,11 @@ public class ServerRogueController{
             }
         }
         if(!sent){
-            Log.info("[RogueIndustry] Solo: Core.app.post for RogueStartPacket (startRun)");
+            Log.info("[MindTheIndustry] Solo: Core.app.post for RogueStartPacket (startRun)");
             Core.app.post(() -> packet.handleClient());
         }
 
-        Log.info("[RogueIndustry] Run started server-side. Seed=" + session.seed);
+        Log.info("[MindTheIndustry] Run started server-side. Seed=" + session.seed);
 
         // Start the first wave
         session.nextWave();
@@ -324,7 +324,7 @@ public class ServerRogueController{
 
     /** Called when a wave is complete (all enemies killed). */
     private void onWaveComplete(){
-        Log.info("[RogueIndustry] Wave " + session.wave + " complete!");
+        Log.info("[MindTheIndustry] Wave " + session.wave + " complete!");
 
         waitingForVotes = true;
         votes.clear();
@@ -347,7 +347,7 @@ public class ServerRogueController{
                 player.con.send(packet, true);
             }else{
                 // In solo, run on the client thread
-                Log.info("[RogueIndustry] Solo: Core.app.post for RewardChoicesPacket");
+                Log.info("[MindTheIndustry] Solo: Core.app.post for RewardChoicesPacket");
                 Core.app.post(() -> packet.handleClient());
             }
         }
@@ -370,14 +370,14 @@ public class ServerRogueController{
             Building building = Groups.build.getByID(entityId);
             if(building != null){
                 session.setActivePlayer(building, target);
-                Log.info("[RogueIndustry] Active player set for building #" + entityId + ": " +
+                Log.info("[MindTheIndustry] Active player set for building #" + entityId + ": " +
                     (target != null ? target.name : "none"));
             }
         }else{
             Unit unit = Groups.unit.getByID(entityId);
             if(unit != null){
                 session.setActivePlayer(unit, target);
-                Log.info("[RogueIndustry] Active player set for unit #" + entityId + ": " +
+                Log.info("[MindTheIndustry] Active player set for unit #" + entityId + ": " +
                     (target != null ? target.name : "none"));
             }
         }
@@ -420,11 +420,11 @@ public class ServerRogueController{
             }
         }
         if(!sent){
-            Log.info("[RogueIndustry] Solo: Core.app.post for RewardAppliedPacket");
+            Log.info("[MindTheIndustry] Solo: Core.app.post for RewardAppliedPacket");
             Core.app.post(() -> packet.handleClient());
         }
 
-        Log.info("[RogueIndustry] " + player.name + " chose: " + reward.displayName +
+        Log.info("[MindTheIndustry] " + player.name + " chose: " + reward.displayName +
                  (target != null ? " (target: " + target.name + ")" : ""));
 
         // If all players have voted, move to the next wave
@@ -454,7 +454,7 @@ public class ServerRogueController{
                 }
             }
 
-            Log.info("[RogueIndustry] All votes received. Wave " + session.wave + " started.");
+            Log.info("[MindTheIndustry] All votes received. Wave " + session.wave + " started.");
         }
     }
 

@@ -31,7 +31,7 @@ public class GlobalModifierRegistry{
     public static GlobalModifier create(String id, float multiplier){
         GlobalModifierDef def = defs.get(id);
         if(def == null){
-            Log.warn("[RogueIndustry] Unknown GlobalModifier: " + id);
+            Log.warn("[MindTheIndustry] Unknown GlobalModifier: " + id);
             return null;
         }
         return new GlobalModifier(id, def.baseValue * multiplier, def.name);

@@ -26,14 +26,14 @@ public class CommanderSelectionDialog extends BaseDialog{
 
     /** Constructor with all unlocked commanders. */
     public CommanderSelectionDialog(){
-        super("[accent]RogueIndustry[] - Choose your commander");
+        super("[accent]MindTheIndustry[] - Choose your commander");
         this.commanders = MetaProgression.getUnlocked();
         setup();
     }
 
     /** Constructor with 3 specific choices (received from the server). */
     public CommanderSelectionDialog(Seq<Commander> choices){
-        super("[accent]RogueIndustry[] - Choose your commander");
+        super("[accent]MindTheIndustry[] - Choose your commander");
         this.commanders = choices;
         setup();
     }
@@ -43,7 +43,7 @@ public class CommanderSelectionDialog extends BaseDialog{
             table.margin(20f);
 
             // Title
-            table.label(() -> "[accent]RogueIndustry[] - Choose your commander")
+            table.label(() -> "[accent]MindTheIndustry[] - Choose your commander")
                 .fontScale(1.3f).padBottom(5f).row();
             table.label(() -> "[gray]Your commander's ability will be active for the whole run.")
                 .fontScale(0.9f).padBottom(20f).row();
@@ -158,13 +158,13 @@ public class CommanderSelectionDialog extends BaseDialog{
 
     /** Shows the dialog with 3 specific choices received from the server. */
     public static void showChoices(Seq<Commander> choices){
-        arc.util.Log.info("[RogueIndustry] CommanderSelectionDialog.showChoices called with " + choices.size + " choices");
+        arc.util.Log.info("[MindTheIndustry] CommanderSelectionDialog.showChoices called with " + choices.size + " choices");
         if(instance != null && instance.hasParent()){
             instance.hide();
         }
         instance = new CommanderSelectionDialog(choices);
-        arc.util.Log.info("[RogueIndustry] Dialog created, calling show()... ui=" + (mindustry.Vars.ui != null));
+        arc.util.Log.info("[MindTheIndustry] Dialog created, calling show()... ui=" + (mindustry.Vars.ui != null));
         instance.show();
-        arc.util.Log.info("[RogueIndustry] Dialog shown, hasParent=" + instance.hasParent());
+        arc.util.Log.info("[MindTheIndustry] Dialog shown, hasParent=" + instance.hasParent());
     }
 }

@@ -315,7 +315,7 @@ public class EntityPlayerSelector extends Table{
         Events.on(WorldLoadEvent.class, e -> {
             if(ui.hudGroup != null && instance != null && !instance.hasParent()){
                 ui.hudGroup.addChild(instance);
-                Log.info("[RogueIndustry] EntityPlayerSelector added to the HUD.");
+                Log.info("[MindTheIndustry] EntityPlayerSelector added to the HUD.");
             }
         });
 
@@ -342,6 +342,6 @@ public class EntityPlayerSelector extends Table{
             }
         }, 0f, 0.1f);
 
-        Log.info("[RogueIndustry] EntityPlayerSelector initialized.");
+        Log.info("[MindTheIndustry] EntityPlayerSelector initialized.");
     }
 }
