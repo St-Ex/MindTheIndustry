@@ -27,6 +27,19 @@ mise exec -- ./gradlew clean
 
 ### Tester le mod
 
+**Automatisé — harness headless (à privilégier) :**
+
+```bash
+mise exec -- ./gradlew test
+```
+
+Les tests dans `tests/` bootent Mindustry sans UI (mode headless, voir
+`tests/rogueindustry/HeadlessRogueTest.java`) et couvrent la logique métier :
+session, génération de récompenses (déterminisme par seed), sérialisation
+réseau, schematics. Règles et conventions : voir `AGENTS.md`.
+
+**Manuel — debug de l'UI :**
+
 1. Build le JAR : `mise exec -- ./gradlew jar`
 2. Copier `build/libs/mindtheindustryDesktop.jar` dans le dossier `mods/` de Mindustry
    - Linux Steam : `~/.local/share/Steam/steamapps/compatdata/451480/pfx/drive/c/users/steamuser/AppData/Roaming/Mindustry/mods/`
@@ -97,4 +110,5 @@ src/rogueindustry/
 
 - **Server UI Builder System** (arc.scene.ui) — riche en possibilités pour construire des interfaces custom (Table, Button, Tex, Styles). À explorer pour améliorer les dialogues du mod (sélection commandant, récompenses, HUD).
 - **Wiki modding** : https://mindustrygame.github.io/wiki/modding/1-modding/
+- **Sources Mindustry v160** — clone à côté du projet : `../Mindustry` (tag `v160`, lecture seule). Pattern de boot headless : `../Mindustry/tests/src/test/java/ApplicationTests.java`.
 - **Mindustry v160.7** — build 160, Java 17

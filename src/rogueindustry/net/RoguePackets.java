@@ -77,8 +77,8 @@ public class RoguePackets{
             write.i(wave);
             write.i(choices.size);
             for(Reward r : choices){
+                // r.write() inclut déjà les champs spécifiques (chaque sous-classe les sérialise)
                 r.write(write);
-                RewardSerializer.writeSpecific(r, write);
             }
         }
 

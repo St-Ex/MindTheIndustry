@@ -171,7 +171,8 @@ public class SchematicGenerator{
                     Log.warn("[RogueIndustry] Block '" + blockName + "' not found, skipping.");
                     continue;
                 }
-                tiles.add(new Schematic.Stile(block, x, y, (byte)0, (byte)0));
+                // config null: les blocs des presets n'ont pas de configuration (sérialisable, contrairement à un Byte)
+                tiles.add(new Schematic.Stile(block, x, y, null, (byte)0));
             }
         }
 
