@@ -3,6 +3,7 @@ package mindtheindustry;
 import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.gen.*;
+import mindustry.type.*;
 import mindustry.world.*;
 import org.junit.jupiter.api.*;
 import mindtheindustry.core.*;
@@ -35,6 +36,18 @@ class MindTheIndustrySessionTest extends HeadlessMindTheIndustryTest{
         assertTrue(session.isUnlockedForGroup(duo));
         assertTrue(state.rules.researched.contains(duo), "starter blocks must be propagated to the game rules");
         assertTrue(session.getGroupUnlocks().size > 50, "many base blocks must be unlocked");
+    }
+
+    @Test
+    void startUnlocksBasicUnitPlans(){
+        MindTheIndustrySession session = newSession(42);
+
+        for(String name : new String[]{"dagger", "nova", "flare", "crawler", "risso", "alpha"}){
+            UnitType unit = content.unit(name);
+            assertNotNull(unit, "unknown starter unit: " + name);
+            assertTrue(session.isUnlockedForGroup(unit), "basic unit must be unlocked at start: " + name);
+            assertTrue(state.rules.researched.contains(unit), "starter units must be propagated to the game rules: " + name);
+        }
     }
 
     @Test

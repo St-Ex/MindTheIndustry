@@ -146,6 +146,28 @@ class RewardGeneratorTest extends HeadlessMindTheIndustryTest{
     }
 
     @Test
+    void plansNeverOfferStarterPlans(){
+        MindTheIndustrySession session = newSession(11);
+        RewardGenerator gen = new RewardGenerator(session.rand);
+
+        // basic plans are unlocked at run start → must never be offered as a reward
+        ObjectSet<String> starters = ObjectSet.with(
+            "unit:dagger", "unit:mace", "unit:nova", "unit:flare", "unit:horizon", "unit:crawler",
+            "unit:risso", "unit:minke", "unit:alpha", "unit:beta", "unit:gamma", "unit:stell",
+            "unit:locus", "unit:elude", "block:duo", "block:conveyor", "block:drill", "block:core-shard");
+
+        for(int i = 0; i < 200; i++){
+            for(Reward r : gen.generateChoices(session, null, 1)){
+                if(r instanceof PlanReward p){
+                    for(String name : p.contentNames){
+                        assertFalse(starters.contains(name), "starter plan must not be offered: " + name);
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     void planCountScalesWithRarity(){
         MindTheIndustrySession session = newSession(99);
         RewardGenerator gen = new RewardGenerator(session.rand);

@@ -6,6 +6,7 @@ import arc.util.*;
 import mindustry.ctype.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
+import mindustry.type.*;
 import mindustry.world.*;
 import mindtheindustry.modifiers.*;
 
@@ -135,7 +136,31 @@ public class MindTheIndustrySession{
         "force-projector",
     };
 
+    /** Basic unit plans available from the start of a run. */
+    private static final String[] STARTER_UNITS = {
+        // Serpulo ground/air/naval basics
+        "dagger", "mace", "nova", "flare", "horizon", "crawler", "risso", "minke",
+        // Erekir basics (small mechs/fliers)
+        "alpha", "beta", "gamma", "stell", "locus", "elude",
+    };
+
     public MindTheIndustrySession(){
+    }
+
+    /** Unlocks the basic plans (starter blocks + units) for the whole group. */
+    private void unlockStarterPlans(){
+        for(String blockName : STARTER_BLOCKS){
+            Block block = content.block(blockName);
+            if(block != null){
+                unlockForGroup(block);
+            }
+        }
+        for(String unitName : STARTER_UNITS){
+            UnitType unit = content.unit(unitName);
+            if(unit != null){
+                unlockForGroup(unit);
+            }
+        }
     }
 
     /** Starts a new run with a random seed. */
@@ -152,13 +177,8 @@ public class MindTheIndustrySession{
         synergies.clear();
         clearAllActivePlayers();
 
-        // Unlock the base buildings for the group
-        for(String blockName : STARTER_BLOCKS){
-            Block block = content.block(blockName);
-            if(block != null){
-                unlockForGroup(block);
-            }
-        }
+        // Unlock the basic plans (blocks + units) for the group
+        unlockStarterPlans();
 
         Log.info("[MindTheIndustry] Run started. Seed=" + seed);
 
@@ -183,12 +203,8 @@ public class MindTheIndustrySession{
         synergies.clear();
         clearAllActivePlayers();
 
-        for(String blockName : STARTER_BLOCKS){
-            Block block = content.block(blockName);
-            if(block != null){
-                unlockForGroup(block);
-            }
-        }
+        // Unlock the basic plans (blocks + units) for the group
+        unlockStarterPlans();
 
         Log.info("[MindTheIndustry] Run joined. Seed=" + seed);
     }

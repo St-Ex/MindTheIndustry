@@ -142,14 +142,16 @@ public class RewardGenerator{
      */
     public Seq<Reward> generateChoices(MindTheIndustrySession session, Player player, int wave){
         Seq<Reward> choices = new Seq<>(3);
+        // content already offered in this round must not appear twice
+        ObjectSet<String> offered = new ObjectSet<>();
         for(int i = 0; i < 3; i++){
-            choices.add(generateChoice(session));
+            choices.add(generateChoice(session, offered));
         }
         return choices;
     }
 
     /** Generates one reward: random category x rolled rarity. */
-    private Reward generateChoice(MindTheIndustrySession session){
+    private Reward generateChoice(MindTheIndustrySession session, ObjectSet<String> offered){
         RewardType[] types = RewardType.values();
         RewardType type = types[rand.random(types.length - 1)];
         Rarity rarity = Rarity.roll(rand);
@@ -157,7 +159,7 @@ public class RewardGenerator{
         return switch(type){
             case TRADEOFF -> generateTradeoff(rarity);
             case PLAN -> {
-                Reward plan = generatePlan(session, rarity);
+                Reward plan = generatePlan(session, rarity, offered);
                 // Pool exhausted → fall back to a resource gift of the same rarity
                 yield plan != null ? plan : generateResource(rarity);
             }
@@ -189,17 +191,17 @@ public class RewardGenerator{
     }
 
     /** Plan: unlocks rarity.multiplier (1/2/4) distinct not-yet-unlocked plans for the group. */
-    private PlanReward generatePlan(MindTheIndustrySession session, Rarity rarity){
+    private PlanReward generatePlan(MindTheIndustrySession session, Rarity rarity, ObjectSet<String> offered){
         Seq<String> available = new Seq<>();
         for(String name : BUILDING_POOL){
             Block block = content.block(name);
-            if(block != null && !session.isUnlockedForGroup(block)){
+            if(block != null && !session.isUnlockedForGroup(block) && !offered.contains("block:" + name)){
                 available.add("block:" + name);
             }
         }
         for(String name : UNIT_POOL){
             UnitType unit = content.unit(name);
-            if(unit != null && !session.isUnlockedForGroup(unit)){
+            if(unit != null && !session.isUnlockedForGroup(unit) && !offered.contains("unit:" + name)){
                 available.add("unit:" + name);
             }
         }
@@ -213,6 +215,9 @@ public class RewardGenerator{
             if(!picked.contains(candidate)){
                 picked.add(candidate);
             }
+        }
+        for(String name : picked){
+            offered.add(name);
         }
 
         StringBuilder names = new StringBuilder();
