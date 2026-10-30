@@ -30,6 +30,8 @@ class PlanetPlayEventTest extends mindtheindustry.HeadlessMindTheIndustryTest{
         //register the mod's event handlers + content, like the game does at startup
         MindTheIndustryMod mod = new MindTheIndustryMod();
         mod.loadContent();
+        //ContentLoader normally calls init() on all content after loadContent
+        MindTheIndustryPlanet.instance.init();
     }
 
     @Test
@@ -43,6 +45,8 @@ class PlanetPlayEventTest extends mindtheindustry.HeadlessMindTheIndustryTest{
         //simulate a campaign launch of the MTI sector: rules carry the sector
         state.rules = new Rules();
         state.rules.sector = sector;
+        state.rules.planet = planet;
+        state.rules.env = planet.defaultEnv; //as World.setSectorRules does
 
         Events.fire(new WorldLoadEvent());
         Events.fire(new PlayEvent());
@@ -50,16 +54,20 @@ class PlanetPlayEventTest extends mindtheindustry.HeadlessMindTheIndustryTest{
         assertNotNull(MindTheIndustryMod.serverController, "controller must be created by the fallbacks");
         assertTrue(MindTheIndustryMod.serverSession.active, "run must auto-start on an MTI map");
 
-        //the exact gate used by the construction menu (PlacementFragment.unlocked)
+        //the exact gate used by the construction menu (PlacementFragment.unlocked):
+        //unlockedNowHost() && placeablePlayer && environmentBuildable() && supportsEnv(env)
         Block duo = content.block("duo");
         assertNotNull(duo);
         assertTrue(state.rules.sector != null, "campaign context for the menu gate");
         assertTrue(duo.unlockedNowHost(), "build menu gate (unlockedNowHost) must pass on the host");
         assertTrue(duo.unlocked(), "host-side unlocked flag must be set");
         assertTrue(state.rules.researched.contains(duo), "rules.researched must carry the unlock (client sync)");
+        assertTrue(duo.shownPlanets.contains(planet), "planet.init() must add MTI to shownPlanets via the tech tree");
+        assertTrue(duo.environmentBuildable(), "environmentBuildable() gates the menu on the current planet");
+        assertTrue(duo.placeablePlayer && duo.supportsEnv(state.rules.env), "placeable + env must pass");
 
         Block duct = content.block("duct");
-        assertTrue(duct.unlockedNowHost(), "category starter must pass the build menu gate: duct");
+        assertTrue(duct.unlockedNowHost() && duct.environmentBuildable(), "category starter must pass the build menu gate: duct");
 
         Block battery = content.block("battery");
         assertFalse(battery.unlockedNowHost(), "batteries must stay locked: battery");

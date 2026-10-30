@@ -1,6 +1,7 @@
 package mindtheindustry.content;
 
 import mindustry.content.*;
+import mindustry.content.TechTree.*;
 import mindustry.type.*;
 
 /**
@@ -44,11 +45,20 @@ public class MindTheIndustryPlanet extends Planet{
 
     @Override
     public void init(){
+        //reuse Serpulo's technology tree — assigned BEFORE super.init() so that
+        //Planet.init() runs techTree.addPlanet(this): it adds this planet to the
+        //shownPlanets of every block in the tree, which is what makes them
+        //environmentBuildable() (i.e. shown in the construction HUD) on this planet
+        techTree = Planets.serpulo.techTree;
         super.init();
         //display name shown in the menu
         localizedName = "MTI";
-        //reuse Serpulo's technology tree
-        techTree = Planets.serpulo.techTree;
+        //also register on every other tech tree (e.g. Erekir): PLAN rewards and the
+        //starter set include Erekir blocks (ducts, reinforced conduits, ...), and a
+        //block is only buildable on a planet present in its shownPlanets
+        for(TechTree.TechNode root : TechTree.roots){
+            root.addPlanet(this);
+        }
     }
 
     /** Whether the currently loaded game is a MindTheIndustry run map. */
