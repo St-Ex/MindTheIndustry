@@ -7,15 +7,15 @@ import rogueindustry.modifiers.*;
 import rogueindustry.rewards.*;
 
 /**
- * Récompense: applique un modificateur global à TOUT le groupe.
- * Exemples: +10% vitesse de production, +15% dégâts des tourelles, etc.
+ * Reward: applies a global modifier to the WHOLE group.
+ * Examples: +10% production speed, +15% turret damage, etc.
  */
 public class GlobalModifierReward extends Reward{
 
-    /** Identifiant du modificateur (ex: "prod_speed", "turret_damage"). */
+    /** Identifier of the modifier (e.g. "prod_speed", "turret_damage"). */
     public final String modifierId;
 
-    /** Valeur du bonus (ex: 0.10 pour +10%). */
+    /** Bonus value (e.g. 0.10 for +10%). */
     public final float value;
 
     public GlobalModifierReward(String modifierId, float value, String displayName, String description){

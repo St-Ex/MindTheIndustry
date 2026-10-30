@@ -3,23 +3,23 @@ package rogueindustry.meta;
 import rogueindustry.core.*;
 
 /**
- * Interface pour un pouvoir de commandant.
- * Chaque commandant a un pouvoir unique qui s'applique au démarrage d'une run
- * et reste actif pendant toute la durée de la run.
+ * Interface for a commander ability.
+ * Each commander has a unique ability that applies when a run starts
+ * and stays active for the whole run.
  */
 public interface CommanderAbility{
 
-    /** Nom court du pouvoir (ex: "Démarrage Salvo", "Boost unités"). */
+    /** Short name of the ability (e.g. "Salvo Start", "Unit Boost"). */
     String name();
 
-    /** Description complète du pouvoir. */
+    /** Full description of the ability. */
     String description();
 
     /**
-     * Applique le pouvoir au démarrage de la run.
-     * Appelé côté serveur quand la run démarre.
+     * Applies the ability when the run starts.
+     * Called server-side when the run starts.
      *
-     * @param session la session de run
+     * @param session the run session
      */
     void apply(RogueSession session);
 }

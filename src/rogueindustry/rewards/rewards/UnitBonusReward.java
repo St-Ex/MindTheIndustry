@@ -7,15 +7,15 @@ import rogueindustry.modifiers.*;
 import rogueindustry.rewards.*;
 
 /**
- * Récompense: applique un bonus permanent aux unités d'un joueur CIBLE.
- * Le joueur cible est choisi au moment du vote (soi-même ou un allié).
+ * Reward: applies a permanent bonus to a TARGET player's units.
+ * The target player is chosen at vote time (yourself or an ally).
  *
- * Types de bonus:
- * - DAMAGE: +X% dégâts infligés par les unités du joueur
- * - HEALTH: +X% vie max des unités du joueur
- * - SPEED: +X% vitesse des unités du joueur
- * - RELOAD: +X% vitesse de tir des unités du joueur
- * - ARMOR: +X armure des unités du joueur
+ * Bonus types:
+ * - DAMAGE: +X% damage dealt by the player's units
+ * - HEALTH: +X% max health of the player's units
+ * - SPEED: +X% speed of the player's units
+ * - RELOAD: +X% fire rate of the player's units
+ * - ARMOR: +X armor of the player's units
  */
 public class UnitBonusReward extends Reward{
 

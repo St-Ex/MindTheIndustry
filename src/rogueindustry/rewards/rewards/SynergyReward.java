@@ -6,15 +6,15 @@ import rogueindustry.core.*;
 import rogueindustry.rewards.*;
 
 /**
- * Récompense: bonus conditionnel pour tout le groupe.
- * S'active uniquement si un prérequis est débloqué (ex: "Si Salvo débloqué, +15% dégâts Salvo").
+ * Reward: conditional bonus for the whole group.
+ * Activates only if a prerequisite is unlocked (e.g. "If Salvo unlocked, +15% Salvo damage").
  */
 public class SynergyReward extends Reward{
 
-    /** ID du contenu requis (ex: "salvo"). Si débloqué dans le groupe, le bonus s'applique. */
+    /** ID of the required content (e.g. "salvo"). If unlocked in the group, the bonus applies. */
     public final String requiredUnlockId;
 
-    /** Description du bonus (ex: "+15% dégâts Salvo pour tous"). */
+    /** Description of the bonus (e.g. "+15% Salvo damage for all"). */
     public final String bonusDescription;
 
     public SynergyReward(String requiredUnlockId, String bonusDescription, String displayName, String description){

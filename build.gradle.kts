@@ -2,8 +2,16 @@ plugins{
     java
 }
 
-sourceSets.main{
-    java.setSrcDirs(listOf("src"))
+sourceSets{
+    main{
+        java.setSrcDirs(listOf("src"))
+    }
+    // Harness de test headless (voir tests/ et AGENTS.md)
+    test{
+        java.setSrcDirs(listOf("tests"))
+        // assets internes du jeu nécessaires au boot headless (maps par défaut)
+        resources.setSrcDirs(listOf("tests/resources"))
+    }
 }
 
 // Mindustry version to depend on.
@@ -53,6 +61,16 @@ java{
 
 dependencies{
     compileOnly(if(mindustryVersion == "be") "Anuken:MindustryBuilds:latest" else "Anuken:Mindustry:$mindustryVersion")
+
+    // Harness de test headless : le JAR Mindustry embarque arc + mindustry
+    testImplementation(if(mindustryVersion == "be") "Anuken:MindustryBuilds:latest" else "Anuken:Mindustry:$mindustryVersion")
+    testImplementation(platform("org.junit:junit-bom:5.11.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.11.4")
+}
+
+tasks.test{
+    useJUnitPlatform()
 }
 
 tasks.jar{

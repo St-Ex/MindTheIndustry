@@ -4,8 +4,8 @@
 
 ### Features
 
-- Mode rogue-like co-op fonctionnel en multijoueur
-- Mode solo en debug
-- Système de récompenses (bâtiments, unités, modificateurs)
-- Progression méta avec commandants
-- Génération de schémas aléatoires
+- Functional rogue-like co-op mode in multiplayer
+- Solo mode in debug
+- Reward system (buildings, units, modifiers)
+- Meta-progression with commanders
+- Random schematic generation

@@ -10,21 +10,21 @@ import rogueindustry.core.*;
 import rogueindustry.rewards.*;
 
 /**
- * Tous les packets réseau custom du mode RogueIndustry.
+ * All custom network packets for MindTheIndustry mode.
  *
- * Direction S→C (serveur → client):
- * - RogueStartPacket: démarre une run avec un seed
- * - RewardChoicesPacket: envoie les 3 choix de récompense d'un joueur
- * - RewardAppliedPacket: informe qu'une récompense a été appliquée (log/HUD)
- * - RogueStatePacket: synchro complète de l'état (pour rejoindre en cours)
- * - SchematicUnlockPacket: envoie un schematic à débloquer pour un joueur
+ * Direction S→C (server → client):
+ * - RogueStartPacket: starts a run with a seed
+ * - RewardChoicesPacket: sends a player's 3 reward choices
+ * - RewardAppliedPacket: informs that a reward was applied (log/HUD)
+ * - RogueStatePacket: full state sync (for joining mid-game)
+ * - SchematicUnlockPacket: sends a schematic to unlock for a player
  *
- * Direction C→S (client → serveur):
- * - RewardVotePacket: le joueur envoie son choix (+ cible pour UnitBonus)
+ * Direction C→S (client → server):
+ * - RewardVotePacket: the player sends their choice (+ target for UnitBonus)
  */
 public class RoguePackets{
 
-    /** Enregistre tous les packets du mod. À appeler au chargement du mod. */
+    /** Registers all the mod's packets. Call at mod load. */
     public static void register(){
         Net.registerPacket(RogueStartPacket::new);
         Net.registerPacket(RewardChoicesPacket::new);
@@ -42,7 +42,7 @@ public class RoguePackets{
 
     // ==================== S→C ====================
 
-    /** Informe le client qu'une run rogue démarre avec un seed donné. */
+    /** Informs the client that a rogue run starts with a given seed. */
     public static class RogueStartPacket extends Packet{
         public long seed;
         public int wave;
@@ -61,13 +61,13 @@ public class RoguePackets{
 
         @Override
         public void handleClient(){
-            arc.util.Log.info("[RogueIndustry] RogueStartPacket reçu côté client: seed=" + seed + ", wave=" + wave);
+            arc.util.Log.info("[MindTheIndustry] RogueStartPacket received client-side: seed=" + seed + ", wave=" + wave);
             RogueIndustryMod.clientSession.start(seed);
             RogueIndustryMod.clientSession.wave = wave;
         }
     }
 
-    /** Envoie les 3 choix de récompense pour le joueur local. */
+    /** Sends the 3 reward choices for the local player. */
     public static class RewardChoicesPacket extends Packet{
         public int wave;
         public Seq<Reward> choices = new Seq<>(3);
@@ -77,8 +77,8 @@ public class RoguePackets{
             write.i(wave);
             write.i(choices.size);
             for(Reward r : choices){
+                // r.write() already includes the specific fields (each subclass serializes them)
                 r.write(write);
-                RewardSerializer.writeSpecific(r, write);
             }
         }
 
@@ -94,18 +94,18 @@ public class RoguePackets{
 
         @Override
         public void handleClient(){
-            arc.util.Log.info("[RogueIndustry] RewardChoicesPacket reçu côté client: vague=" + wave + ", " + choices.size + " choix");
-            // Afficher le dialogue de choix
+            arc.util.Log.info("[MindTheIndustry] RewardChoicesPacket received client-side: wave=" + wave + ", " + choices.size + " choices");
+            // Show the choice dialog
             rogueindustry.ui.RewardDialog.showChoices(wave, choices);
         }
     }
 
-    /** Informe le client qu'une récompense a été appliquée (pour le HUD/log). */
+    /** Informs the client that a reward was applied (for the HUD/log). */
     public static class RewardAppliedPacket extends Packet{
         public String playerName;
         public String rewardName;
         public String rewardType;
-        public String targetName; // pour UnitBonus, null sinon
+        public String targetName; // for UnitBonus, null otherwise
 
         @Override
         public void write(Writes write){
@@ -126,9 +126,9 @@ public class RoguePackets{
 
         @Override
         public void handleClient(){
-            String msg = "[Rogue] " + playerName + " a choisi: " + rewardName;
+            String msg = "[MindTheIndustry] " + playerName + " chose: " + rewardName;
             if(targetName != null){
-                msg += " (cible: " + targetName + ")";
+                msg += " (target: " + targetName + ")";
             }
             if(mindustry.Vars.player != null){
                 mindustry.Vars.player.sendMessage(msg);
@@ -136,7 +136,7 @@ public class RoguePackets{
         }
     }
 
-    /** Synchronise l'état complet de la run (pour un joueur qui rejoint en cours). */
+    /** Synchronizes the full run state (for a player joining mid-game). */
     public static class RogueStatePacket extends Packet{
         public long seed;
         public int wave;
@@ -167,12 +167,12 @@ public class RoguePackets{
 
         @Override
         public void handleClient(){
-            // Reconstruire l'état côté client
-            // (simplifié pour la Phase 1)
+            // Rebuild the state client-side
+            // (simplified for Phase 1)
         }
     }
 
-    /** Envoie un schematic à débloquer pour le joueur local. */
+    /** Sends a schematic to unlock for the local player. */
     public static class SchematicUnlockPacket extends Packet{
         public String schematicName;
         public String schematicData;
@@ -191,32 +191,32 @@ public class RoguePackets{
 
         @Override
         public void handleClient(){
-            // Décoder le schematic et l'ajouter à la collection du joueur
+            // Decode the schematic and add it to the player's collection
             try{
                 mindustry.game.Schematic schematic = rogueindustry.rewards.SchematicGenerator.fromBase64(schematicData);
                 if(schematic != null){
-                    // Ajouter à la collection locale et sauvegarder
+                    // Add to the local collection and save
                     mindustry.Vars.schematics.all().add(schematic);
                     mindustry.Vars.schematics.saveChanges(schematic);
 
                     if(mindustry.Vars.player != null){
-                        mindustry.Vars.player.sendMessage("[purple]Plan débloqué: [accent]" + schematicName +
-                            "[] [gray]- Retrouvez-le dans vos plans!");
+                        mindustry.Vars.player.sendMessage("[purple]Schematic unlocked: [accent]" + schematicName +
+                            "[] [gray]- Find it in your schematics!");
                     }
-                    arc.util.Log.info("[RogueIndustry] Schematic ajouté: " + schematicName);
+                    arc.util.Log.info("[MindTheIndustry] Schematic added: " + schematicName);
                 }
             }catch(Throwable t){
-                arc.util.Log.err("[RogueIndustry] Erreur lors du décodage du schematic: " + t.getMessage());
+                arc.util.Log.err("[MindTheIndustry] Error decoding schematic: " + t.getMessage());
             }
         }
     }
 
     // ==================== C→S ====================
 
-    /** Le joueur envoie son choix de récompense. */
+    /** The player sends their reward choice. */
     public static class RewardVotePacket extends Packet{
         public int choiceIndex;
-        public int targetPlayerId; // -1 = pas de cible (pour UnitBonus: ID du joueur cible)
+        public int targetPlayerId; // -1 = no target (for UnitBonus: target player ID)
 
         @Override
         public void write(Writes write){
@@ -245,11 +245,11 @@ public class RoguePackets{
         }
     }
 
-    // ==================== S→C: Sélection commandant ====================
+    // ==================== S→C: Commander selection ====================
 
-    /** Envoie les 3 choix de commandant pour le joueur local. */
+    /** Sends the 3 commander choices for the local player. */
     public static class CommanderChoicesPacket extends Packet{
-        /** IDs des 3 commandants proposés (séparés par virgule ou tableau). */
+        /** IDs of the 3 proposed commanders (comma-separated or array). */
         public String[] commanderIds;
 
         @Override
@@ -271,21 +271,21 @@ public class RoguePackets{
 
         @Override
         public void handleClient(){
-            arc.util.Log.info("[RogueIndustry] CommanderChoicesPacket reçu côté client: " + commanderIds.length + " choix");
-            // Convertir les IDs en Commanders et afficher le dialogue
+            arc.util.Log.info("[MindTheIndustry] CommanderChoicesPacket received client-side: " + commanderIds.length + " choices");
+            // Convert the IDs to Commanders and show the dialog
             arc.struct.Seq<rogueindustry.meta.Commander> commanders = new arc.struct.Seq<>();
             for(String id : commanderIds){
                 rogueindustry.meta.Commander c = rogueindustry.meta.CommanderRegistry.get(id);
                 if(c != null) commanders.add(c);
             }
-            arc.util.Log.info("[RogueIndustry] Affichage dialogue sélection commandant avec " + commanders.size + " commandants");
+            arc.util.Log.info("[MindTheIndustry] Showing commander selection dialog with " + commanders.size + " commanders");
             rogueindustry.meta.CommanderSelectionDialog.showChoices(commanders);
         }
     }
 
-    // ==================== C→S: Vote commandant ====================
+    // ==================== C→S: Commander vote ====================
 
-    /** Le joueur envoie son choix de commandant. */
+    /** The player sends their commander choice. */
     public static class CommanderVotePacket extends Packet{
         public int choiceIndex;
 
@@ -309,11 +309,11 @@ public class RoguePackets{
         }
     }
 
-    // ==================== S→C: Compte à rebours ====================
+    // ==================== S→C: Countdown ====================
 
-    /** Envoie le temps de compte à rebours avant la première vague. */
+    /** Sends the countdown time before the first wave. */
     public static class CountdownPacket extends Packet{
-        /** Secondes restantes. */
+        /** Seconds remaining. */
         public int seconds;
 
         @Override
@@ -328,29 +328,29 @@ public class RoguePackets{
 
         @Override
         public void handleClient(){
-            arc.util.Log.info("[RogueIndustry] CountdownPacket reçu côté client: " + seconds + "s");
+            arc.util.Log.info("[MindTheIndustry] CountdownPacket received client-side: " + seconds + "s");
             rogueindustry.ui.CountdownHUD.show(seconds);
         }
     }
 
-    // ==================== Joueur actif par entité (bidirectionnel) ====================
+    // ==================== Active player per entity (bidirectional) ====================
 
     /**
-     * Définit le joueur actif pour un bâtiment ou une unité (ou un groupe).
+     * Sets the active player for a building or a unit (or a group).
      *
-     * C→S: un client demande à changer le joueur actif.
-     * S→C: le serveur broadcast le changement à tous les clients.
+     * C→S: a client requests to change the active player.
+     * S→C: the server broadcasts the change to all clients.
      *
-     * Supporte les groupes: plusieurs entités peuvent être modifiées en une fois.
+     * Supports groups: several entities can be changed at once.
      */
     public static class SetActivePlayerPacket extends Packet{
-        /** IDs des entités (bâtiments ou unités). */
+        /** Entity IDs (buildings or units). */
         public int[] entityIds;
 
-        /** true = bâtiments, false = unités. */
+        /** true = buildings, false = units. */
         public boolean isBuilding;
 
-        /** ID du joueur actif (-1 = aucun). */
+        /** Active player ID (-1 = none). */
         public int playerId;
 
         @Override
@@ -376,12 +376,12 @@ public class RoguePackets{
 
         @Override
         public void handleServer(NetConnection con){
-            // Le serveur applique le changement et broadcast à tous
+            // The server applies the change and broadcasts to everyone
             if(RogueIndustryMod.serverController != null){
                 RogueIndustryMod.serverController.handleSetActivePlayer(entityIds, isBuilding, playerId);
             }
 
-            // Broadcast à tous les clients (y compris l'expéditeur pour confirmation)
+            // Broadcast to all clients (including the sender for confirmation)
             for(Player p : mindustry.gen.Groups.player){
                 if(p.con != null){
                     p.con.send(this, true);
@@ -391,16 +391,16 @@ public class RoguePackets{
 
         @Override
         public void handleClient(){
-            // Appliquer le changement côté client (pour l'UI et les stats visuelles)
+            // Apply the change client-side (for the UI and visual stats)
             if(RogueIndustryMod.clientController != null){
                 RogueIndustryMod.clientController.onActivePlayerChanged(entityIds, isBuilding, playerId);
             }
         }
     }
 
-    // ==================== C→S: Demande de démarrage/arrêt ====================
+    // ==================== C→S: Start/stop request ====================
 
-    /** Le client demande au serveur de démarrer une run rogue. */
+    /** The client asks the server to start a rogue run. */
     public static class RogueStartRequestPacket extends Packet{
         @Override
         public void write(Writes write){}
@@ -410,30 +410,30 @@ public class RoguePackets{
 
         @Override
         public void handleServer(NetConnection con){
-            arc.util.Log.info("[RogueIndustry] RogueStartRequestPacket reçu!");
+            arc.util.Log.info("[MindTheIndustry] RogueStartRequestPacket received!");
             Player player = con.player;
             if(player == null){
-                arc.util.Log.warn("[RogueIndustry] Player null dans RogueStartRequestPacket!");
+                arc.util.Log.warn("[MindTheIndustry] Player null in RogueStartRequestPacket!");
                 return;
             }
             if(RogueIndustryMod.serverController == null){
-                arc.util.Log.warn("[RogueIndustry] serverController null! ServerLoadEvent pas encore déclenché?");
-                player.sendMessage("[scarlet]Le serveur n'est pas prêt. Réessayez dans quelques secondes.");
+                arc.util.Log.warn("[MindTheIndustry] serverController null! ServerLoadEvent not fired yet?");
+                player.sendMessage("[scarlet]The server is not ready. Try again in a few seconds.");
                 return;
             }
 
             if(RogueIndustryMod.serverController.session.active){
-                player.sendMessage("[scarlet]Une run est déjà en cours.");
+                player.sendMessage("[scarlet]A run is already in progress.");
                 return;
             }
 
-            player.sendMessage("[accent]Sélection du commandant...");
-            arc.util.Log.info("[RogueIndustry] Démarrage de la sélection de commandant pour " + player.name);
+            player.sendMessage("[accent]Commander selection...");
+            arc.util.Log.info("[MindTheIndustry] Starting commander selection for " + player.name);
             RogueIndustryMod.serverController.startCommanderSelection();
         }
     }
 
-    /** Le client demande au serveur d'arrêter la run rogue. */
+    /** The client asks the server to stop the rogue run. */
     public static class RogueStopRequestPacket extends Packet{
         @Override
         public void write(Writes write){}
@@ -448,12 +448,12 @@ public class RoguePackets{
             if(RogueIndustryMod.serverController == null) return;
 
             if(!RogueIndustryMod.serverController.session.active){
-                player.sendMessage("[scarlet]Aucune run en cours.");
+                player.sendMessage("[scarlet]No run in progress.");
                 return;
             }
 
             RogueIndustryMod.serverController.stopRun();
-            player.sendMessage("[yellow]Run arrêtée.");
+            player.sendMessage("[yellow]Run stopped.");
         }
     }
 }

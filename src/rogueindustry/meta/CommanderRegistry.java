@@ -7,81 +7,81 @@ import mindustry.world.*;
 import rogueindustry.core.*;
 
 /**
- * Registre de tous les commandants disponibles.
- * Contient les définitions de chaque commandant avec son pouvoir unique.
+ * Registry of all available commanders.
+ * Contains the definitions of each commander with their unique ability.
  *
- * Les commandants sont débloqués progressivement en meta-progression.
- * Au début de chaque run, le joueur choisit un commandant parmi ceux débloqués.
+ * Commanders are unlocked progressively through meta-progression.
+ * At the start of each run, the player chooses a commander among the unlocked ones.
  */
 public class CommanderRegistry{
 
     private static final Seq<Commander> all = new Seq<>();
 
     static{
-        // ===== TIER 1: Commandants de départ (débloqués par défaut) =====
+        // ===== TIER 1: Starter commanders (unlocked by default) =====
 
         register(new Commander(
             "commander-vanguard",
             "[red]Vanguard",
-            "Un vétéran des guerres de Serpulo. Ses unités frappent plus fort dès le départ.",
+            "A veteran of the Serpulo wars. Their units hit harder from the start.",
             Color.valueOf("ff6b6b"),
             new CommanderAbility(){
-                public String name(){ return "Frappe d vanguard"; }
-                public String description(){ return "+10% dégâts pour toutes les unités (tous joueurs)"; }
+                public String name(){ return "Vanguard Strike"; }
+                public String description(){ return "+10% damage for all units (all players)"; }
                 public void apply(RogueSession session){
                     session.getGlobalModifiers().add(new rogueindustry.modifiers.GlobalModifier(
-                        "unit_damage", 0.10f, "Dégâts unités (Vanguard)"));
+                        "unit_damage", 0.10f, "Unit damage (Vanguard)"));
                     mindustry.Vars.state.rules.unitDamageMultiplier *= 1.10f;
                 }
             },
-            "Débloqué par défaut",
+            "Unlocked by default",
             1
         ));
 
         register(new Commander(
             "commander-architect",
-            "[green]Architecte",
-            "Maître bâtisseur. Ses constructions sont plus rapides et solides.",
+            "[green]Architect",
+            "Master builder. Their constructions are faster and sturdier.",
             Color.valueOf("26de81"),
             new CommanderAbility(){
-                public String name(){ return "Génie civil"; }
-                public String description(){ return "+20% vitesse de construction et +15% vie des bâtiments (tous joueurs)"; }
+                public String name(){ return "Civil Engineering"; }
+                public String description(){ return "+20% build speed and +15% building health (all players)"; }
                 public void apply(RogueSession session){
                     mindustry.Vars.state.rules.buildSpeedMultiplier *= 1.20f;
-                    // +15% vie bâtiments sera géré via hook sur BlockBuildEndEvent (Phase 3)
+                    // +15% building health will be handled via a hook on BlockBuildEndEvent (Phase 3)
                 }
             },
-            "Débloqué par défaut",
+            "Unlocked by default",
             1
         ));
 
         register(new Commander(
             "commander-industrialist",
-            "[yellow]Industriel",
-            "Magnat de l'industrie. Ses usines produisent plus vite.",
+            "[yellow]Industrialist",
+            "Industry magnate. Their factories produce faster.",
             Color.valueOf("f7b731"),
             new CommanderAbility(){
-                public String name(){ return "Chaîne optimisée"; }
-                public String description(){ return "+15% vitesse de production pour tous les joueurs"; }
+                public String name(){ return "Optimized Chain"; }
+                public String description(){ return "+15% production speed for all players"; }
                 public void apply(RogueSession session){
                     session.getGlobalModifiers().add(new rogueindustry.modifiers.GlobalModifier(
-                        "prod_speed", 0.15f, "Vitesse production (Industriel)"));
+                        "prod_speed", 0.15f, "Production speed (Industrialist)"));
                 }
             },
-            "Débloqué par défaut",
+            "Unlocked by default",
             1
         ));
 
-        // ===== TIER 2: Débloqués en atteignant la vague 10 =====
+        // ===== TIER 2: Unlocked by reaching wave 10 =====
 
         register(new Commander(
             "commander-overmind",
-            "[purple]Overmind IA",
-            "Une intelligence artificielle stratégique. Débloque des options avancées dès le départ.",
+            "[purple]Overmind AI",
+            "A strategic artificial intelligence. Unlocks advanced options from the start.",
             Color.valueOf("a55eea"),
             new CommanderAbility(){
-                public String name(){ return "Protocole avancé"; }
-                public String description(){ return "Commence avec [accent]Salvo[] et [accent]Multi-Press[] débloqués pour tous"; }
+                public String name(){ return "Advanced Protocol"; }
+                public String description(){ return "Starts with [accent]Salvo[] and [accent]Multi-Press[] unlocked for everyone"; }
                 public void apply(RogueSession session){
                     Block salvo = mindustry.Vars.content.block("salvo");
                     Block multiPress = mindustry.Vars.content.block("multi-press");
@@ -89,106 +89,106 @@ public class CommanderRegistry{
                     if(multiPress != null) session.unlockForGroup(multiPress);
                 }
             },
-            "Atteindre la vague 10",
+            "Reach wave 10",
             2
         ));
 
         register(new Commander(
             "commander-fortress",
-            "[blue]Forteresse",
-            "Spécialiste défensif. Ses défenses sont surpuissantes.",
+            "[blue]Fortress",
+            "Defensive specialist. Their defenses are overpowered.",
             Color.valueOf("4a90d9"),
             new CommanderAbility(){
-                public String name(){ return "Muraille imprenable"; }
-                public String description(){ return "+25% dégâts et +25% vie pour toutes les tourelles (tous joueurs)"; }
+                public String name(){ return "Impenetrable Wall"; }
+                public String description(){ return "+25% damage and +25% health for all turrets (all players)"; }
                 public void apply(RogueSession session){
                     session.getGlobalModifiers().add(new rogueindustry.modifiers.GlobalModifier(
-                        "turret_damage", 0.25f, "Dégâts tourelles (Forteresse)"));
+                        "turret_damage", 0.25f, "Turret damage (Fortress)"));
                 }
             },
-            "Atteindre la vague 10",
+            "Reach wave 10",
             2
         ));
 
         register(new Commander(
             "commander-merchant",
-            "[orange]Marchand",
-            "Homme d'affaires interplanétaire. Les ressources arrivent plus vite.",
+            "[orange]Merchant",
+            "Interplanetary businessman. Resources arrive faster.",
             Color.valueOf("ff9f43"),
             new CommanderAbility(){
-                public String name(){ return "Logistique express"; }
-                public String description(){ return "+20% rendement des foreuses et +100 ressources bonus au départ"; }
+                public String name(){ return "Express Logistics"; }
+                public String description(){ return "+20% drill yield and +100 bonus resources at start"; }
                 public void apply(RogueSession session){
                     session.getGlobalModifiers().add(new rogueindustry.modifiers.GlobalModifier(
-                        "resource_yield", 0.20f, "Rendement foreuses (Marchand)"));
-                    // Les 100 ressources bonus seront gérées dans le démarrage de la run (Phase 3)
+                        "resource_yield", 0.20f, "Drill yield (Merchant)"));
+                    // The 100 bonus resources will be handled at run start (Phase 3)
                 }
             },
-            "Atteindre la vague 10",
+            "Reach wave 10",
             2
         ));
 
-        // ===== TIER 3: Débloqués en atteignant la vague 20 =====
+        // ===== TIER 3: Unlocked by reaching wave 20 =====
 
         register(new Commander(
             "commander-warlord",
-            "[scarlet]Seigneur de guerre",
-            "Général légendaire. Ses armées sont redoutables.",
+            "[scarlet]Warlord",
+            "Legendary general. Their armies are fearsome.",
             Color.valueOf("c0392b"),
             new CommanderAbility(){
-                public String name(){ return "Armée de fer"; }
-                public String description(){ return "+20% vie, +15% dégâts, +10% vitesse pour toutes les unités (tous joueurs)"; }
+                public String name(){ return "Iron Army"; }
+                public String description(){ return "+20% health, +15% damage, +10% speed for all units (all players)"; }
                 public void apply(RogueSession session){
                     mindustry.Vars.state.rules.unitHealthMultiplier *= 1.20f;
                     mindustry.Vars.state.rules.unitDamageMultiplier *= 1.15f;
                     session.getGlobalModifiers().add(new rogueindustry.modifiers.GlobalModifier(
-                        "unit_damage", 0.15f, "Dégâts unités (Warlord)"));
+                        "unit_damage", 0.15f, "Unit damage (Warlord)"));
                 }
             },
-            "Atteindre la vague 20",
+            "Reach wave 20",
             3
         ));
 
         register(new Commander(
             "commander-overclocker",
             "[cyan]Overclocker",
-            "Ingénieur fou. Ses machines dépassent leurs limites.",
+            "Mad engineer. Their machines exceed their limits.",
             Color.valueOf("00d2d3"),
             new CommanderAbility(){
                 public String name(){ return "Overclocking"; }
-                public String description(){ return "+30% vitesse de tir des tourelles, +20% vitesse de production (tous joueurs)"; }
+                public String description(){ return "+30% turret fire rate, +20% production speed (all players)"; }
                 public void apply(RogueSession session){
                     session.getGlobalModifiers().add(new rogueindustry.modifiers.GlobalModifier(
-                        "turret_reload", 0.30f, "Vitesse tir (Overclocker)"));
+                        "turret_reload", 0.30f, "Fire rate (Overclocker)"));
                     session.getGlobalModifiers().add(new rogueindustry.modifiers.GlobalModifier(
-                        "prod_speed", 0.20f, "Vitesse production (Overclocker)"));
+                        "prod_speed", 0.20f, "Production speed (Overclocker)"));
                 }
             },
-            "Atteindre la vague 20",
+            "Reach wave 20",
             3
         ));
 
-        // ===== TIER 4: Débloqués en gagnant une run (vague 30+) =====
+        // ===== TIER 4: Unlocked by winning a run (wave 30+) =====
 
         register(new Commander(
             "commander-immortal",
-            "[gold]Immortel",
-            "Être d'une autre époque. Son pouvoir dépasse l'entendement.",
+            "[gold]Immortal",
+            "A being from another era. Their power defies understanding.",
             Color.valueOf("f9ca24"),
             new CommanderAbility(){
-                public String name(){ return "Immortalité"; }
-                public String description(){ return "+50% à TOUTES les stats (dégâts, vie, vitesse, production, construction)"; }
+                public String name(){ return "Immortality"; }
+                public String description(){ return "+50% to ALL stats (damage, health, speed, production, construction)"; }
                 public void apply(RogueSession session){
                     mindustry.Vars.state.rules.unitDamageMultiplier *= 1.50f;
                     mindustry.Vars.state.rules.unitHealthMultiplier *= 1.50f;
                     mindustry.Vars.state.rules.buildSpeedMultiplier *= 1.50f;
                     session.getGlobalModifiers().add(new rogueindustry.modifiers.GlobalModifier(
-                        "prod_speed", 0.50f, "Vitesse production (Immortel)"));
+                        "prod_speed", 0.50f, "Production speed (Immortal)"));
                     session.getGlobalModifiers().add(new rogueindustry.modifiers.GlobalModifier(
-                        "turret_damage", 0.50f, "Dégâts tourelles (Immortel)"));
+                        "turret_damage", 0.50f, "Turret damage (Immortal)"));
                 }
             },
-            "Gagner une run (vague 30+)",
+            "Win a run (wave 30+)",
             4
         ));
     }
@@ -197,22 +197,22 @@ public class CommanderRegistry{
         all.add(commander);
     }
 
-    /** Retourne tous les commandants. */
+    /** Returns all commanders. */
     public static Seq<Commander> all(){
         return all;
     }
 
-    /** Retourne un commandant par son ID. */
+    /** Returns a commander by ID. */
     public static Commander get(String id){
         return all.find(c -> c.id.equals(id));
     }
 
-    /** Retourne les commandants d'un tier spécifique. */
+    /** Returns the commanders of a specific tier. */
     public static Seq<Commander> byTier(int tier){
         return all.select(c -> c.tier == tier);
     }
 
-    /** Retourne les commandants de départ (tier 1, toujours débloqués). */
+    /** Returns the starter commanders (tier 1, always unlocked). */
     public static Seq<Commander> starters(){
         return byTier(1);
     }

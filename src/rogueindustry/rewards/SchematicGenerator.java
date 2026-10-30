@@ -10,19 +10,19 @@ import mindustry.world.blocks.*;
 import static mindustry.Vars.*;
 
 /**
- * Génère des schematics procéduraux pour les récompenses.
- * Crée des patterns de bâtiments intéressants (tourelles, usines, défenses).
+ * Generates procedural schematics for rewards.
+ * Creates interesting building patterns (turrets, factories, defenses).
  */
 public class SchematicGenerator{
 
-    /** Liste des schematics prédéfinis (nom + taille + contenu). */
+    /** List of predefined schematics (name + size + content). */
     private static final Seq<SchematicDef> presets = new Seq<>();
 
     static{
-        // Pattern: 2x2 de tourelles Duo
+        // Pattern: 2x2 Duo turrets
         presets.add(new SchematicDef(
             "Duo Battery",
-            "Une batterie de 4 Duo pour défendre un point chaud.",
+            "A battery of 4 Duos to defend a hot spot.",
             2, 2,
             new String[][]{
                 {"duo", "duo"},
@@ -30,20 +30,20 @@ public class SchematicGenerator{
             }
         ));
 
-        // Pattern: Ligne de Scorch
+        // Pattern: Scorch line
         presets.add(new SchematicDef(
             "Scorch Line",
-            "3 Scorch en ligne pour brûler les ennemis.",
+            "3 Scorches in a row to burn enemies.",
             3, 1,
             new String[][]{
                 {"scorch", "scorch", "scorch"}
             }
         ));
 
-        // Pattern: 2x2 de Hail
+        // Pattern: 2x2 Hail
         presets.add(new SchematicDef(
             "Hail Barrage",
-            "4 Hail pour un barrage d'artillerie.",
+            "4 Hails for an artillery barrage.",
             2, 2,
             new String[][]{
                 {"hail", "hail"},
@@ -51,10 +51,10 @@ public class SchematicGenerator{
             }
         ));
 
-        // Pattern: Usine de graphite
+        // Pattern: Graphite factory
         presets.add(new SchematicDef(
             "Graphite Press",
-            "2 Graphite Press avec convoyeurs.",
+            "2 Graphite Presses with conveyors.",
             3, 2,
             new String[][]{
                 {"conveyor", "graphite-press", "conveyor"},
@@ -62,20 +62,20 @@ public class SchematicGenerator{
             }
         ));
 
-        // Pattern: Mur de cuivre
+        // Pattern: Copper wall
         presets.add(new SchematicDef(
             "Copper Wall Pack",
-            "Ligne de murs en cuivre pour se protéger rapidement.",
+            "A line of copper walls to get protected quickly.",
             5, 1,
             new String[][]{
                 {"copper-wall", "copper-wall", "copper-wall", "copper-wall", "copper-wall"}
             }
         ));
 
-        // Pattern: Node de power
+        // Pattern: Power node
         presets.add(new SchematicDef(
             "Power Node Cluster",
-            "3 Power Nodes connectés pour alimenter une zone.",
+            "3 Power Nodes connected to power an area.",
             3, 1,
             new String[][]{
                 {"power-node", "power-node", "power-node"}
@@ -85,7 +85,7 @@ public class SchematicGenerator{
         // Pattern: Drill row
         presets.add(new SchematicDef(
             "Drill Row",
-            "3 foreuses mécaniques en ligne.",
+            "3 Mechanical Drills in a row.",
             3, 1,
             new String[][]{
                 {"mechanical-drill", "mechanical-drill", "mechanical-drill"}
@@ -95,7 +95,7 @@ public class SchematicGenerator{
         // Pattern: Salvo pair
         presets.add(new SchematicDef(
             "Salvo Pair",
-            "2 Salvo pour des dégâts sérieux.",
+            "2 Salvos for serious damage.",
             2, 1,
             new String[][]{
                 {"salvo", "salvo"}
@@ -105,7 +105,7 @@ public class SchematicGenerator{
         // Pattern: Mender + Projector
         presets.add(new SchematicDef(
             "Repair Station",
-            "Mend Projector + Overdrive Projector pour soigner et booster.",
+            "Mend Projector + Overdrive Projector to heal and boost.",
             2, 1,
             new String[][]{
                 {"mend-projector", "overdrive-projector"}
@@ -115,7 +115,7 @@ public class SchematicGenerator{
         // Pattern: 3x3 Scatter
         presets.add(new SchematicDef(
             "Scatter AA",
-            "4 Scatter pour la défense aérienne.",
+            "4 Scatters for anti-air defense.",
             2, 2,
             new String[][]{
                 {"scatter", "scatter"},
@@ -137,7 +137,7 @@ public class SchematicGenerator{
         // Pattern: Mass driver pair
         presets.add(new SchematicDef(
             "Mass Driver Link",
-            "2 Mass Drivers pour transférer des ressources.",
+            "2 Mass Drivers to transfer resources.",
             2, 1,
             new String[][]{
                 {"mass-driver", "mass-driver"}
@@ -145,19 +145,19 @@ public class SchematicGenerator{
         ));
     }
 
-    /** Génère un schematic aléatoire parmi les presets. Retourne null si aucun preset disponible. */
+    /** Generates a random schematic among the presets. Returns null if no preset is available. */
     public static Schematic generateRandom(Rand rand){
         if(presets.isEmpty()) return null;
         SchematicDef def = presets.get(rand.random(presets.size - 1));
         return buildSchematic(def);
     }
 
-    /** Génère un schematic aléatoire avec un nom unique. */
+    /** Generates a random schematic with a unique name. */
     public static Schematic generateRandom(){
         return generateRandom(new Rand());
     }
 
-    /** Construit un Schematic à partir d'une définition. */
+    /** Builds a Schematic from a definition. */
     private static Schematic buildSchematic(SchematicDef def){
         int width = def.width;
         int height = def.height;
@@ -168,10 +168,11 @@ public class SchematicGenerator{
                 String blockName = def.blocks[y][x];
                 Block block = content.block(blockName);
                 if(block == null){
-                    Log.warn("[RogueIndustry] Block '" + blockName + "' not found, skipping.");
+                    Log.warn("[MindTheIndustry] Block '" + blockName + "' not found, skipping.");
                     continue;
                 }
-                tiles.add(new Schematic.Stile(block, x, y, (byte)0, (byte)0));
+                // config null: preset blocks have no configuration (serializable, unlike a Byte)
+                tiles.add(new Schematic.Stile(block, x, y, null, (byte)0));
             }
         }
 
@@ -182,17 +183,17 @@ public class SchematicGenerator{
         return new Schematic(tiles, tags, width, height);
     }
 
-    /** Sérialise un schematic en base64 pour l'envoyer via packet. */
+    /** Serializes a schematic to base64 to send it via packet. */
     public static String toBase64(Schematic schematic){
         return schematics.writeBase64(schematic);
     }
 
-    /** Désérialise un schematic depuis base64 (côté client). */
+    /** Deserializes a schematic from base64 (client-side). */
     public static Schematic fromBase64(String base64){
         return Schematics.readBase64(base64);
     }
 
-    /** Définition d'un schematic prédéfini. */
+    /** Definition of a predefined schematic. */
     private static class SchematicDef{
         final String name;
         final String description;

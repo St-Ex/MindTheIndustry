@@ -13,82 +13,82 @@ import rogueindustry.rewards.*;
 import static mindustry.Vars.*;
 
 /**
- * Contrôleur serveur du mode RogueIndustry.
+ * Server controller for MindTheIndustry mode.
  *
- * Responsabilités:
- * - Démarrer/arrêter une run
- * - Détecter la fin d'une vague (tous les ennemis tués)
- * - Générer et envoyer les choix de récompenses à chaque joueur
- * - Recevoir les votes des joueurs et appliquer les récompenses
- * - Gérer la progression des vagues
+ * Responsibilities:
+ * - Start/stop a run
+ * - Detect the end of a wave (all enemies killed)
+ * - Generate and send reward choices to each player
+ * - Receive player votes and apply the rewards
+ * - Manage wave progression
  *
- * Ce contrôleur n'existe que côté serveur (ou en solo, où le joueur local fait aussi serveur).
+ * This controller only exists server-side (or in solo, where the local player is also the server).
  */
 public class ServerRogueController{
 
-    /** Session serveur (état de la run). */
+    /** Server session (run state). */
     public final RogueSession session = new RogueSession();
 
-    /** Générateur de récompenses. */
+    /** Reward generator. */
     private RewardGenerator generator;
 
-    /** Les choix actuels par joueur (en attente de vote). */
+    /** Current choices per player (awaiting vote). */
     private final ObjectMap<Player, Seq<Reward>> pendingChoices = new ObjectMap<>();
 
-    /** Les votes reçus pour la vague en cours. */
+    /** Votes received for the current wave. */
     private final ObjectMap<Player, Integer> votes = new ObjectMap<>();
 
-    /** Vrai si on attend que les joueurs votent. */
+    /** True if waiting for players to vote. */
     private boolean waitingForVotes = false;
 
-    /** Vague en cours de traitement (pour éviter les doubles déclenchements). */
+    /** Wave being processed (to avoid double triggers). */
     private int lastProcessedWave = 0;
 
-    /** Timer pour vérifier régulièrement s'il reste des ennemis. */
+    /** Timer to regularly check whether enemies remain. */
     private float checkTimer = 0f;
-    private static final float CHECK_INTERVAL = 1f; // secondes
+    private static final float CHECK_INTERVAL = 1f; // seconds
 
-    // --- Sélection commandant (début de run) ---
+    // --- Commander selection (run start) ---
 
-    /** Les 3 choix de commandant par joueur (en attente de vote). */
+    /** The 3 commander choices per player (awaiting vote). */
     private final ObjectMap<Player, Seq<rogueindustry.meta.Commander>> pendingCommanderChoices = new ObjectMap<>();
 
-    /** Les commandants choisis par joueur. */
+    /** The commanders chosen per player. */
     private final ObjectMap<Player, rogueindustry.meta.Commander> commanderVotes = new ObjectMap<>();
 
-    /** Vrai si on attend les votes de commandant. */
+    /** True if waiting for commander votes. */
     private boolean waitingForCommanderVotes = false;
 
-    /** Applique les bonus de joueur actif aux stats du jeu. */
+    /** Applies active-player bonuses to game stats. */
     private BonusApplier bonusApplier;
 
     public ServerRogueController(){
-        // Écouter le début de partie
+        // Listen for game start
         Events.on(PlayEvent.class, e -> {
             if(!state.rules.waves) return;
-            // Le mode rogue est activé manuellement via une commande ou un bouton
+            // Rogue mode is activated manually via a command or a button
         });
 
-        // Nettoyer les joueurs actifs quand une entité est détruite
+        // Clear active players when an entity is destroyed
         setupEntityCleanup();
 
-        // Assigner le propriétaire par défaut à la création
+        // Assign the default owner on creation
         setupDefaultOwner();
 
-        // Appliquer les bonus de joueur actif aux stats du jeu
+        // Apply active-player bonuses to game stats
         bonusApplier = new BonusApplier(session);
 
-        // Démarrer automatiquement le mode rogue si demandé (bouton menu principal)
+        // Auto-start rogue mode if requested (main menu button)
         Events.on(PlayEvent.class, e -> {
             if(rogueindustry.RogueIndustryMod.autoStartRogue && !session.active){
                 rogueindustry.RogueIndustryMod.autoStartRogue = false;
-                Log.info("[RogueIndustry] Démarrage automatique du mode rogue (flag menu).");
-                // Délai court pour laisser la partie s'initialiser
+                Log.info("[MindTheIndustry] Auto-starting rogue mode (menu flag).");
+                // Short delay to let the game initialize
                 Timer.schedule(() -> startCommanderSelection(), 1f);
             }
         });
 
-        // Vérifier régulièrement s'il reste des ennemis
+        // Regularly check whether enemies remain
         Events.run(Trigger.update, () -> {
             if(!session.active || waitingForVotes || waitingForCommanderVotes) return;
 
@@ -99,7 +99,7 @@ public class ServerRogueController{
             checkWaveComplete();
         });
 
-        // Pendant la phase de vote: désactiver tous les bâtiments (arrêt production)
+        // During the voting phase: disable all buildings (stop production)
         Events.run(Trigger.update, () -> {
             if(!session.active || !waitingForVotes) return;
             for(Building b : Groups.build){
@@ -109,14 +109,14 @@ public class ServerRogueController{
             }
         });
 
-        // Quand une nouvelle vague démarre, incrémenter le compteur
+        // When a new wave starts, increment the counter
         Events.on(WaveEvent.class, e -> {
             if(!session.active) return;
-            // La vague vient de commencer, ne rien faire ici
-            // La détection de fin se fait via checkWaveComplete
+            // The wave just started, nothing to do here
+            // End detection is done via checkWaveComplete
         });
 
-        // Réinitialiser à la fin de partie
+        // Reset at end of game
         Events.on(ResetEvent.class, e -> {
             if(session.active){
                 session.stop();
@@ -128,7 +128,7 @@ public class ServerRogueController{
             pendingCommanderChoices.clear();
             commanderVotes.clear();
             lastProcessedWave = 0;
-            // Réactiver tous les bâtiments
+            // Re-enable all buildings
             for(Building b : Groups.build){
                 if(b.team == state.rules.defaultTeam){
                     b.enabled = true;
@@ -138,27 +138,27 @@ public class ServerRogueController{
     }
 
     /**
-     * Démarre le flux de sélection de commandant.
-     * Envoie 3 choix aléatoires par joueur parmi les commandants débloqués.
-     * Une fois tous les joueurs ayant voté, envoie le compte à rebours puis démarre la run.
+     * Starts the commander selection flow.
+     * Sends 3 random choices per player among the unlocked commanders.
+     * Once all players have voted, sends the countdown then starts the run.
      */
     public void startCommanderSelection(){
-        session.start(); // initialise l'état de base (active=true, seed, etc.)
-        generator = new RewardGenerator(session.rand); // créer le générateur de récompenses
+        session.start(); // initializes the base state (active=true, seed, etc.)
+        generator = new RewardGenerator(session.rand); // create the reward generator
         waitingForCommanderVotes = true;
         pendingCommanderChoices.clear();
         commanderVotes.clear();
 
-        Log.info("[RogueIndustry] startCommanderSelection: joueurs=" + Groups.player.size());
+        Log.info("[MindTheIndustry] startCommanderSelection: players=" + Groups.player.size());
 
         Seq<rogueindustry.meta.Commander> unlocked = rogueindustry.meta.MetaProgression.getUnlocked();
         if(unlocked.isEmpty()){
-            // Fallback: utiliser les starters
+            // Fallback: use the starters
             unlocked = rogueindustry.meta.CommanderRegistry.starters();
         }
 
         for(Player p : Groups.player){
-            // Générer 3 choix aléatoires distincts pour ce joueur
+            // Generate 3 distinct random choices for this player
             Seq<rogueindustry.meta.Commander> choices = new Seq<>(3);
             Seq<rogueindustry.meta.Commander> pool = unlocked.copy();
             pool.shuffle();
@@ -167,7 +167,7 @@ public class ServerRogueController{
             }
             pendingCommanderChoices.put(p, choices);
 
-            // Envoyer les choix au client
+            // Send the choices to the client
             RoguePackets.CommanderChoicesPacket packet = new RoguePackets.CommanderChoicesPacket();
             packet.commanderIds = new String[choices.size];
             for(int i = 0; i < choices.size; i++){
@@ -176,17 +176,17 @@ public class ServerRogueController{
             if(p.con != null){
                 p.con.send(packet, true);
             }else{
-                // En solo, exécuter sur le thread client (UI thread)
-                Log.info("[RogueIndustry] Solo: Core.app.post pour CommanderChoicesPacket");
+                // In solo, run on the client thread (UI thread)
+                Log.info("[MindTheIndustry] Solo: Core.app.post for CommanderChoicesPacket");
                 Core.app.post(() -> packet.handleClient());
             }
         }
 
-        Log.info("[RogueIndustry] Sélection de commandant lancée. " + pendingCommanderChoices.size + " joueurs.");
-        // Note: pas d'auto-vote en solo, le joueur choisit via le dialogue
+        Log.info("[MindTheIndustry] Commander selection started. " + pendingCommanderChoices.size + " players.");
+        // Note: no auto-vote in solo, the player chooses via the dialog
     }
 
-    /** Gère le vote d'un joueur pour son commandant. */
+    /** Handles a player's vote for their commander. */
     public void handleCommanderVote(Player player, int choiceIndex){
         if(!waitingForCommanderVotes) return;
         if(!pendingCommanderChoices.containsKey(player)) return;
@@ -198,14 +198,14 @@ public class ServerRogueController{
         commanderVotes.put(player, chosen);
         pendingCommanderChoices.remove(player);
 
-        Log.info("[RogueIndustry] " + player.name + " a choisi le commandant: " + chosen.displayName);
-        player.sendMessage("[accent]Commandant choisi: " + chosen.displayName);
-        player.sendMessage("[gray]Pouvoir: " + chosen.ability.name() + " - " + chosen.ability.description());
+        Log.info("[MindTheIndustry] " + player.name + " chose the commander: " + chosen.displayName);
+        player.sendMessage("[accent]Commander chosen: " + chosen.displayName);
+        player.sendMessage("[gray]Ability: " + chosen.ability.name() + " - " + chosen.ability.description());
 
         checkAllCommanderVotesReceived();
     }
 
-    /** Vérifie si tous les joueurs ont voté pour leur commandant. */
+    /** Checks whether all players have voted for their commander. */
     private void checkAllCommanderVotesReceived(){
         int totalPlayers = Groups.player.size();
 
@@ -215,20 +215,20 @@ public class ServerRogueController{
         }
     }
 
-    /** Applique les commandants choisis et démarre le compte à rebours. */
+    /** Applies the chosen commanders and starts the countdown. */
     private void finalizeCommanderSelection(){
-        // Appliquer le commandant de chaque joueur
+        // Apply each player's commander
         for(var entry : commanderVotes.entries()){
             Player p = entry.key;
             rogueindustry.meta.Commander cmdr = entry.value;
-            // Stocker le commandant dans la session (pour le HUD et les effets)
-            // Note: en co-op, chaque joueur a son propre commandant
-            // On stocke dans une map ou on applique directement
-            Log.info("[RogueIndustry] Commandant de " + p.name + ": " + cmdr.displayName);
+            // Store the commander in the session (for the HUD and effects)
+            // Note: in co-op, each player has their own commander
+            // We store it in a map or apply it directly
+            Log.info("[MindTheIndustry] Commander of " + p.name + ": " + cmdr.displayName);
             cmdr.ability.apply(session);
         }
 
-        // Notifier tous les clients que la run démarre
+        // Notify all clients that the run starts
         RoguePackets.RogueStartPacket packet = new RoguePackets.RogueStartPacket();
         packet.seed = session.seed;
         packet.wave = session.wave;
@@ -240,12 +240,12 @@ public class ServerRogueController{
             }
         }
         if(!sent){
-            // En solo, exécuter sur le thread client
-            Log.info("[RogueIndustry] Solo: Core.app.post pour RogueStartPacket");
+            // In solo, run on the client thread
+            Log.info("[MindTheIndustry] Solo: Core.app.post for RogueStartPacket");
             Core.app.post(() -> packet.handleClient());
         }
 
-        // Envoyer le compte à rebours (10 secondes)
+        // Send the countdown (10 seconds)
         RoguePackets.CountdownPacket countdown = new RoguePackets.CountdownPacket();
         countdown.seconds = 10;
         sent = false;
@@ -256,31 +256,31 @@ public class ServerRogueController{
             }
         }
         if(!sent){
-            Log.info("[RogueIndustry] Solo: Core.app.post pour CountdownPacket");
+            Log.info("[MindTheIndustry] Solo: Core.app.post for CountdownPacket");
             Core.app.post(() -> countdown.handleClient());
         }
 
-        Log.info("[RogueIndustry] Tous les commandants choisis. Compte à rebours de 10s avant la vague 1.");
+        Log.info("[MindTheIndustry] All commanders chosen. 10s countdown before wave 1.");
 
-        // Démarrer la première vague après le compte à rebours
+        // Start the first wave after the countdown
         Timer.schedule(() -> {
             if(!session.active) return;
             session.nextWave();
             state.wave = session.wave;
             state.rules.waveTimer = true;
             state.rules.waves = true;
-            Log.info("[RogueIndustry] Vague 1 lancée!");
+            Log.info("[MindTheIndustry] Wave 1 started!");
         }, 10f);
     }
 
-    /** Démarre une nouvelle run rogue (après sélection commandant). */
+    /** Starts a new rogue run (after commander selection). */
     public void startRun(){
         session.start();
         generator = new RewardGenerator(session.rand);
         lastProcessedWave = 0;
         waitingForVotes = false;
 
-        // Notifier tous les clients
+        // Notify all clients
         RoguePackets.RogueStartPacket packet = new RoguePackets.RogueStartPacket();
         packet.seed = session.seed;
         packet.wave = session.wave;
@@ -292,28 +292,28 @@ public class ServerRogueController{
             }
         }
         if(!sent){
-            Log.info("[RogueIndustry] Solo: Core.app.post pour RogueStartPacket (startRun)");
+            Log.info("[MindTheIndustry] Solo: Core.app.post for RogueStartPacket (startRun)");
             Core.app.post(() -> packet.handleClient());
         }
 
-        Log.info("[RogueIndustry] Run démarrée côté serveur. Seed=" + session.seed);
+        Log.info("[MindTheIndustry] Run started server-side. Seed=" + session.seed);
 
-        // Démarrer la première vague
+        // Start the first wave
         session.nextWave();
         state.wave = session.wave;
         state.rules.waveTimer = true;
         state.rules.waves = true;
     }
 
-    /** Vérifie si la vague actuelle est terminée (plus d'ennemis). */
+    /** Checks whether the current wave is complete (no enemies left). */
     private void checkWaveComplete(){
-        // Ne pas déclencher si on a déjà traité cette vague
+        // Do not trigger if this wave was already processed
         if(session.wave <= lastProcessedWave) return;
 
-        // Compter les ennemis vivants
+        // Count living enemies
         int enemies = Groups.unit.count(u -> u.team == state.rules.waveTeam && u.isValid());
 
-        // Compter aussi les bâtiments ennemis (cores ennemies)
+        // Also count enemy buildings (enemy cores)
         int enemyCores = Groups.build.count(b -> b.team == state.rules.waveTeam && b instanceof mindustry.world.blocks.storage.CoreBlock.CoreBuild);
 
         if(enemies == 0 && enemyCores == 0){
@@ -322,73 +322,73 @@ public class ServerRogueController{
         }
     }
 
-    /** Appelé quand une vague est terminée (tous les ennemis tués). */
+    /** Called when a wave is complete (all enemies killed). */
     private void onWaveComplete(){
-        Log.info("[RogueIndustry] Vague " + session.wave + " terminée!");
+        Log.info("[MindTheIndustry] Wave " + session.wave + " complete!");
 
         waitingForVotes = true;
         votes.clear();
         pendingChoices.clear();
 
-        // Phase de stratégie: pas de nouvelle vague, les joueurs votent à leur rythme
+        // Strategy phase: no new wave, players vote at their own pace
         state.rules.waveTimer = false;
-        // Générer et envoyer les choix à chaque joueur
+        // Generate and send the choices to each player
         for(Player player : Groups.player){
             if(player.dead()) continue;
 
             Seq<Reward> choices = generator.generateChoices(session, player, session.wave);
             pendingChoices.put(player, choices);
 
-            // Envoyer les choix au client
+            // Send the choices to the client
             RoguePackets.RewardChoicesPacket packet = new RoguePackets.RewardChoicesPacket();
             packet.wave = session.wave;
             packet.choices = choices;
             if(player.con != null){
                 player.con.send(packet, true);
             }else{
-                // En solo, exécuter sur le thread client
-                Log.info("[RogueIndustry] Solo: Core.app.post pour RewardChoicesPacket");
+                // In solo, run on the client thread
+                Log.info("[MindTheIndustry] Solo: Core.app.post for RewardChoicesPacket");
                 Core.app.post(() -> packet.handleClient());
             }
         }
     }
 
     /**
-     * Traite le vote récompense d'un joueur (appelé via /rogue reward <index>).
-     * En solo, la cible est le joueur lui-même par défaut.
+     * Processes a player's reward vote (called via /rogue reward <index>).
+     * In solo, the target defaults to the player themselves.
      */
     public void handleRewardVote(Player player, int choiceIndex){
-        // En solo, la cible est le joueur lui-même
+        // In solo, the target is the player themselves
         handleVote(player, choiceIndex, player);
     }
 
     /**
-     * Définit le joueur actif pour une entité (appelé via /rogue active).
+     * Sets the active player for an entity (called via /rogue active).
      */
     public void setActivePlayer(int entityId, boolean isBuilding, Player target){
         if(isBuilding){
             Building building = Groups.build.getByID(entityId);
             if(building != null){
                 session.setActivePlayer(building, target);
-                Log.info("[RogueIndustry] Joueur actif défini pour bâtiment #" + entityId + ": " +
-                    (target != null ? target.name : "aucun"));
+                Log.info("[MindTheIndustry] Active player set for building #" + entityId + ": " +
+                    (target != null ? target.name : "none"));
             }
         }else{
             Unit unit = Groups.unit.getByID(entityId);
             if(unit != null){
                 session.setActivePlayer(unit, target);
-                Log.info("[RogueIndustry] Joueur actif défini pour unité #" + entityId + ": " +
-                    (target != null ? target.name : "aucun"));
+                Log.info("[MindTheIndustry] Active player set for unit #" + entityId + ": " +
+                    (target != null ? target.name : "none"));
             }
         }
     }
 
     /**
-     * Traite le vote d'un joueur.
+     * Processes a player's vote.
      *
-     * @param player      le joueur qui vote
-     * @param choiceIndex l'index du choix (0-2)
-     * @param target      le joueur cible (pour UnitBonus; null sinon)
+     * @param player      the voting player
+     * @param choiceIndex the choice index (0-2)
+     * @param target      the target player (for UnitBonus; null otherwise)
      */
     public void handleVote(Player player, int choiceIndex, Player target){
         if(!waitingForVotes) return;
@@ -399,14 +399,14 @@ public class ServerRogueController{
 
         Reward reward = choices.get(choiceIndex);
 
-        // Retirer les choix en attente pour ce joueur
+        // Remove the pending choices for this player
         pendingChoices.remove(player);
         votes.put(player, choiceIndex);
 
-        // Appliquer la récompense
+        // Apply the reward
         reward.apply(session, player, target);
 
-        // Notifier tous les clients
+        // Notify all clients
         RoguePackets.RewardAppliedPacket packet = new RoguePackets.RewardAppliedPacket();
         packet.playerName = player.name;
         packet.rewardName = reward.displayName;
@@ -420,18 +420,18 @@ public class ServerRogueController{
             }
         }
         if(!sent){
-            Log.info("[RogueIndustry] Solo: Core.app.post pour RewardAppliedPacket");
+            Log.info("[MindTheIndustry] Solo: Core.app.post for RewardAppliedPacket");
             Core.app.post(() -> packet.handleClient());
         }
 
-        Log.info("[RogueIndustry] " + player.name + " a choisi: " + reward.displayName +
-                 (target != null ? " (cible: " + target.name + ")" : ""));
+        Log.info("[MindTheIndustry] " + player.name + " chose: " + reward.displayName +
+                 (target != null ? " (target: " + target.name + ")" : ""));
 
-        // Si tous les joueurs ont voté, passer à la vague suivante
+        // If all players have voted, move to the next wave
         checkAllVotesReceived();
     }
 
-    /** Vérifie si tous les joueurs ont voté. Si oui, passe à la vague suivante. */
+    /** Checks whether all players have voted. If so, moves to the next wave. */
     private void checkAllVotesReceived(){
         int alivePlayers = 0;
         for(Player p : Groups.player){
@@ -439,30 +439,30 @@ public class ServerRogueController{
         }
 
         if(votes.size >= alivePlayers){
-            // Tous ont voté, reprendre le jeu et lancer la vague suivante
+            // Everyone voted, resume the game and start the next wave
             waitingForVotes = false;
             session.nextWave();
             state.wave = session.wave;
 
-            // Réactiver le timer de vague
+            // Re-enable the wave timer
             state.rules.waveTimer = true;
 
-            // Réactiver tous les bâtiments
+            // Re-enable all buildings
             for(Building b : Groups.build){
                 if(b.team == state.rules.defaultTeam){
                     b.enabled = true;
                 }
             }
 
-            Log.info("[RogueIndustry] Tous les votes reçus. Vague " + session.wave + " lancée.");
+            Log.info("[MindTheIndustry] All votes received. Wave " + session.wave + " started.");
         }
     }
 
-    /** Force le passage à la vague suivante (commande admin / debug). */
+    /** Forces the next wave (admin command / debug). */
     public void skipToNextWave(){
         if(!session.active) return;
 
-        // Tuer tous les ennemis restants
+        // Kill all remaining enemies
         Groups.unit.each(u -> {
             if(u.team == state.rules.waveTeam){
                 u.kill();
@@ -473,7 +473,7 @@ public class ServerRogueController{
         onWaveComplete();
     }
 
-    /** Arrête la run en cours. */
+    /** Stops the current run. */
     public void stopRun(){
         session.stop();
         waitingForVotes = false;
@@ -483,7 +483,7 @@ public class ServerRogueController{
         pendingCommanderChoices.clear();
         commanderVotes.clear();
         state.rules.waveTimer = true;
-        // Réactiver tous les bâtiments
+        // Re-enable all buildings
         for(Building b : Groups.build){
             if(b.team == state.rules.defaultTeam){
                 b.enabled = true;
@@ -491,9 +491,9 @@ public class ServerRogueController{
         }
     }
 
-    // --- Joueur actif par entité ---
+    // --- Active player per entity ---
 
-    /** Applique un changement de joueur actif sur une ou plusieurs entités. */
+    /** Applies an active-player change on one or more entities. */
     public void handleSetActivePlayer(int[] entityIds, boolean isBuilding, int playerId){
         Player player = playerId >= 0 ? Groups.player.find(p -> p.id == playerId) : null;
 
@@ -512,15 +512,15 @@ public class ServerRogueController{
         }
     }
 
-    /** Assigne le propriétaire par défaut quand une entité est créée. */
+    /** Assigns the default owner when an entity is created. */
     public void setupDefaultOwner(){
-        // Bâtiment construit → propriétaire = constructeur
+        // Building built → owner = builder
         Events.on(BlockBuildEndEvent.class, e -> {
             if(!session.active) return;
             if(e.unit != null && e.unit.isPlayer()){
                 Player builder = e.unit.getPlayer();
                 if(builder != null && e.tile.build != null){
-                    // Ne pas écraser si un joueur actif est déjà assigné
+                    // Do not overwrite if an active player is already assigned
                     if(session.getActivePlayer(e.tile.build) == null){
                         session.setActivePlayer(e.tile.build, builder);
                     }
@@ -528,7 +528,7 @@ public class ServerRogueController{
             }
         });
 
-        // Unité créée → propriétaire = joueur qui la contrôle
+        // Unit created → owner = the player controlling it
         Events.on(UnitSpawnEvent.class, e -> {
             if(!session.active) return;
             if(e.unit.isPlayer()){
@@ -540,10 +540,10 @@ public class ServerRogueController{
         });
     }
 
-    // --- Sélection commandant (début de run) ---
-    // Les méthodes handleCommanderVote, startCommanderSelection, etc. sont définies plus haut.
+    // --- Commander selection (run start) ---
+    // The handleCommanderVote, startCommanderSelection, etc. methods are defined above.
 
-    /** Nettoie les joueurs actifs quand une entité est détruite. */
+    /** Clears active players when an entity is destroyed. */
     public void setupEntityCleanup(){
         Events.on(mindustry.game.EventType.BlockDestroyEvent.class, e -> {
             if(session.active && e.tile.build != null){
