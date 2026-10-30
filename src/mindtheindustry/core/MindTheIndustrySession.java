@@ -219,6 +219,9 @@ public class MindTheIndustrySession{
     /** Unlocks content for the WHOLE group. */
     public void unlockForGroup(UnlockableContent content){
         if(groupUnlocks.add(content)){
+            //unlock() sets the host-side flag the build menu reads in campaign, and its
+            //UnlockEvent is broadcast to clients (Call.researched) by the engine
+            content.unlock();
             state.rules.researched.add(content);
             Log.info("[MindTheIndustry] Unlocked for the group: " + content.name);
         }

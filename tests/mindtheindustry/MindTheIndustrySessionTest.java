@@ -34,6 +34,7 @@ class MindTheIndustrySessionTest extends HeadlessMindTheIndustryTest{
         Block duo = content.block("duo");
         assertNotNull(duo);
         assertTrue(session.isUnlockedForGroup(duo));
+        assertTrue(duo.unlocked(), "host-side flag must be set for the build menu");
         assertTrue(state.rules.researched.contains(duo), "starter blocks must be propagated to the game rules");
         assertTrue(session.getGroupUnlocks().size > 50, "many base blocks must be unlocked");
     }
@@ -54,6 +55,7 @@ class MindTheIndustrySessionTest extends HeadlessMindTheIndustryTest{
             assertNotNull(block, "unknown block: " + name);
             assertTrue(session.isUnlockedForGroup(block), "basic category block must be unlocked at start: " + name);
             assertTrue(state.rules.researched.contains(block), "starter block must be in game rules: " + name);
+            assertTrue(block.unlocked(), "host-side flag must be set, the build menu reads it in campaign: " + name);
         }
     }
 
@@ -66,6 +68,7 @@ class MindTheIndustrySessionTest extends HeadlessMindTheIndustryTest{
             assertNotNull(block, "unknown block: " + name);
             assertFalse(session.isUnlockedForGroup(block), "must NOT be unlocked at start: " + name);
             assertFalse(state.rules.researched.contains(block), "must NOT be in game rules: " + name);
+            assertFalse(block.unlocked(), "host-side flag must NOT be set: " + name);
         }
     }
 
