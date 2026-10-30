@@ -1,8 +1,8 @@
 package mindtheindustry;
 
+import arc.struct.*;
 import arc.util.io.*;
 import org.junit.jupiter.api.*;
-import mindtheindustry.modifiers.*;
 import mindtheindustry.rewards.*;
 import mindtheindustry.rewards.rewards.*;
 
@@ -23,88 +23,56 @@ class RewardSerializerTest extends HeadlessMindTheIndustryTest{
     private static void assertBaseFields(Reward original, Reward back){
         assertEquals(original.id, back.id);
         assertEquals(original.type, back.type);
+        assertEquals(original.rarity, back.rarity);
         assertEquals(original.displayName, back.displayName);
         assertEquals(original.description, back.description);
     }
 
     @Test
-    void buildingRewardRoundTrip(){
-        BuildingReward original = new BuildingReward("salvo", "Salvo", "Unlocks Salvo for everyone");
+    void tradeoffRewardRoundTrip(){
+        TradeoffReward original = new TradeoffReward("unit_damage", 0.4f, "build_speed", -0.4f,
+            Rarity.EPIC, "n", "d");
         Reward back = roundTrip(original);
 
-        assertInstanceOf(BuildingReward.class, back);
+        assertInstanceOf(TradeoffReward.class, back);
         assertBaseFields(original, back);
-        BuildingReward r = (BuildingReward)back;
-        assertEquals("salvo", r.blockName);
-        assertNotNull(r.block, "the block must be resolved from content");
-        assertEquals("salvo", r.block.name);
+        TradeoffReward r = (TradeoffReward)back;
+        assertEquals("unit_damage", r.bonusId);
+        assertEquals(0.4f, r.bonusValue, 0.0001f);
+        assertEquals("build_speed", r.malusId);
+        assertEquals(-0.4f, r.malusValue, 0.0001f);
+        assertEquals(Rarity.EPIC, r.rarity);
     }
 
     @Test
-    void buildingBonusRewardRoundTrip(){
-        BuildingBonusReward original = new BuildingBonusReward(BuildingBonus.BonusType.DAMAGE, 0.42f, "duo", "n", "d");
+    void planRewardRoundTrip(){
+        Seq<String> names = Seq.with("block:spectre", "unit:flare", "block:salvo", "unit:eclipse");
+        PlanReward original = new PlanReward(names, Rarity.EPIC, "n", "d");
         Reward back = roundTrip(original);
 
-        assertInstanceOf(BuildingBonusReward.class, back);
+        assertInstanceOf(PlanReward.class, back);
         assertBaseFields(original, back);
-        BuildingBonusReward r = (BuildingBonusReward)back;
-        assertEquals(BuildingBonus.BonusType.DAMAGE, r.bonusType);
-        assertEquals(0.42f, r.value, 0.0001f);
-        assertEquals("duo", r.blockName);
+        PlanReward r = (PlanReward)back;
+        assertEquals(names, r.contentNames);
+        assertEquals(Rarity.EPIC, r.rarity);
+        // names must resolve to real content
+        for(String name : r.contentNames){
+            assertNotNull(PlanReward.resolve(name), "unresolvable content: " + name);
+        }
     }
 
     @Test
-    void buildingBonusRewardRoundTripNullBlock(){
-        BuildingBonusReward original = new BuildingBonusReward(BuildingBonus.BonusType.PRODUCTION, 0.2f, null, "n", "d");
-        BuildingBonusReward r = (BuildingBonusReward)roundTrip(original);
-        assertNull(r.blockName, "a null blockName must survive serialization (encoded as empty string)");
-    }
-
-    @Test
-    void unitBonusRewardRoundTrip(){
-        UnitBonusReward original = new UnitBonusReward(UnitBonusReward.BonusType.SPEED, 0.33f, "n", "d");
+    void resourceRewardRoundTrip(){
+        Seq<String> items = Seq.with("copper", "titanium");
+        Seq<Integer> amounts = Seq.with(400, 400);
+        ResourceReward original = new ResourceReward(items, amounts, Rarity.RARE, "n", "d");
         Reward back = roundTrip(original);
 
-        assertInstanceOf(UnitBonusReward.class, back);
+        assertInstanceOf(ResourceReward.class, back);
         assertBaseFields(original, back);
-        UnitBonusReward r = (UnitBonusReward)back;
-        assertEquals(UnitBonusReward.BonusType.SPEED, r.bonusType);
-        assertEquals(0.33f, r.value, 0.0001f);
-    }
-
-    @Test
-    void globalModifierRewardRoundTrip(){
-        GlobalModifierReward original = new GlobalModifierReward("turret_damage", 0.15f, "n", "d");
-        Reward back = roundTrip(original);
-
-        assertInstanceOf(GlobalModifierReward.class, back);
-        assertBaseFields(original, back);
-        GlobalModifierReward r = (GlobalModifierReward)back;
-        assertEquals("turret_damage", r.modifierId);
-        assertEquals(0.15f, r.value, 0.0001f);
-    }
-
-    @Test
-    void schematicRewardRoundTrip(){
-        SchematicReward original = new SchematicReward("data-base64", "My Schematic", "n", "d");
-        Reward back = roundTrip(original);
-
-        assertInstanceOf(SchematicReward.class, back);
-        assertBaseFields(original, back);
-        SchematicReward r = (SchematicReward)back;
-        assertEquals("data-base64", r.schematicData);
-        assertEquals("My Schematic", r.schematicName);
-    }
-
-    @Test
-    void synergyRewardRoundTrip(){
-        SynergyReward original = new SynergyReward("duo", "+10% duo damage", "n", "d");
-        Reward back = roundTrip(original);
-
-        assertInstanceOf(SynergyReward.class, back);
-        assertBaseFields(original, back);
-        SynergyReward r = (SynergyReward)back;
-        assertEquals("duo", r.requiredUnlockId);
-        assertEquals("+10% duo damage", r.bonusDescription);
+        ResourceReward r = (ResourceReward)back;
+        assertEquals(items, r.itemNames);
+        assertEquals(amounts, r.amounts);
+        assertEquals(Rarity.RARE, r.rarity);
     }
 }

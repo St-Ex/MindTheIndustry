@@ -33,13 +33,13 @@ mise exec -- ./gradlew test
 - Test rules:
   - Deterministic: fixed seed (`new Rand(42)`, `session.start(42)`).
   - Independent: if a test touches `Vars.state.rules`, do `state.rules = new Rules()` at the start of the test (global state shared between tests).
-  - Cover game logic: `core/`, `rewards/`, `modifiers/`, `meta/`, `net/` serialization.
+  - Cover game logic: `core/`, `rewards/`, `modifiers/`, `meta/`.
 
 ## Architecture rules
 
-- **Game logic must not depend on `arc.scene`.** The `ui/` folder consumes game state (`MindTheIndustrySession`, controllers); it does not contain it. Any mechanic (reward, modifier, synergy, wave) must exist and be testable without a UI.
+- **Game logic must not depend on `arc.scene`.** All interaction is chat + server commands; any mechanic (reward, modifier, wave) must exist and be testable without a UI.
 - No purely visual content without a gameplay counterpart (no "just a render").
-- The UI (`ui/`) is not testable headless: test what it displays (state, schematics, serialized content), not pixels.
+- There is no `ui/` layer: rewards and choices are announced in chat and serialized via `rewards/Reward.write`/`read`.
 
 ## Intent tracking (openspec)
 

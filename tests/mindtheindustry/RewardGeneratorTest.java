@@ -1,8 +1,8 @@
 package mindtheindustry;
 
 import arc.struct.*;
+import mindustry.ctype.*;
 import mindustry.game.*;
-import mindustry.world.*;
 import org.junit.jupiter.api.*;
 import mindtheindustry.core.*;
 import mindtheindustry.rewards.*;
@@ -11,7 +11,7 @@ import mindtheindustry.rewards.rewards.*;
 import static mindustry.Vars.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests for the reward generator (determinism, unlock filtering). */
+/** Tests for the reward generator (categories, rarity scaling, determinism). */
 class RewardGeneratorTest extends HeadlessMindTheIndustryTest{
 
     private MindTheIndustrySession newSession(long seed){
@@ -33,6 +33,7 @@ class RewardGeneratorTest extends HeadlessMindTheIndustryTest{
             assertNotNull(r);
             assertNotNull(r.id);
             assertNotNull(r.type);
+            assertNotNull(r.rarity);
             assertNotNull(r.displayName);
             assertFalse(r.description.isEmpty());
         }
@@ -53,6 +54,7 @@ class RewardGeneratorTest extends HeadlessMindTheIndustryTest{
                 assertEquals(c1.get(i).id, c2.get(i).id,
                     "same seed → same choices (wave " + wave + ", choice " + i + ")");
                 assertEquals(c1.get(i).type, c2.get(i).type);
+                assertEquals(c1.get(i).rarity, c2.get(i).rarity);
             }
         }
     }
@@ -79,37 +81,116 @@ class RewardGeneratorTest extends HeadlessMindTheIndustryTest{
     }
 
     @Test
-    void neverProposesAlreadyUnlockedBuilding(){
+    void allCategoriesAndRaritiesEventuallyAppear(){
+        MindTheIndustrySession session = newSession(42);
+        RewardGenerator gen = new RewardGenerator(session.rand);
+
+        ObjectSet<RewardType> types = new ObjectSet<>();
+        ObjectSet<Rarity> rarities = new ObjectSet<>();
+        for(int i = 0; i < 300; i++){
+            for(Reward r : gen.generateChoices(session, null, 1)){
+                types.add(r.type);
+                rarities.add(r.rarity);
+            }
+        }
+
+        assertEquals(RewardType.values().length, types.size,
+            "all categories must be able to appear, seen: " + types);
+        assertEquals(Rarity.values().length, rarities.size,
+            "all rarities must be able to appear, seen: " + rarities);
+    }
+
+    @Test
+    void tradeoffsHaveDistinctOppositeStatsScaledByRarity(){
+        MindTheIndustrySession session = newSession(7);
+        RewardGenerator gen = new RewardGenerator(session.rand);
+
+        int seen = 0;
+        for(int i = 0; i < 300; i++){
+            for(Reward r : gen.generateChoices(session, null, 1)){
+                if(r instanceof TradeoffReward t){
+                    seen++;
+                    assertNotEquals(t.bonusId, t.malusId, "the two stats must be distinct");
+                    assertTrue(t.bonusValue > 0, "bonus must be positive");
+                    assertEquals(t.bonusValue, -t.malusValue, 0.0001f, "malus must mirror the bonus");
+                    assertEquals(RewardGenerator.tradeoffBase * t.rarity.multiplier, t.bonusValue, 0.0001f,
+                        "magnitude must be base x rarity multiplier");
+                }
+            }
+        }
+        assertTrue(seen > 0, "trade-offs must appear over 300 generations");
+    }
+
+    @Test
+    void plansNeverOfferAlreadyUnlockedContent(){
         MindTheIndustrySession session = newSession(7);
         RewardGenerator gen = new RewardGenerator(session.rand);
 
         for(int i = 0; i < 50; i++){
             for(Reward r : gen.generateChoices(session, null, 1)){
-                if(r instanceof BuildingReward br){
-                    Block block = content.block(br.blockName);
-                    assertNotNull(block, "unknown block: " + br.blockName);
-                    assertFalse(session.isUnlockedForGroup(block),
-                        "must not offer an already unlocked building: " + br.blockName);
+                if(r instanceof PlanReward p){
+                    assertFalse(p.contentNames.isEmpty());
+                    for(String name : p.contentNames){
+                        UnlockableContent content = PlanReward.resolve(name);
+                        assertNotNull(content, "unknown content: " + name);
+                        assertFalse(session.isUnlockedForGroup(content),
+                            "must not offer an already unlocked plan: " + name);
+                    }
                     r.apply(session, null, null); // apply → unlocks for the group
+                    for(String name : p.contentNames){
+                        assertTrue(session.isUnlockedForGroup(PlanReward.resolve(name)));
+                    }
                 }
             }
         }
     }
 
     @Test
-    void allRewardTypesEventuallyAppear(){
-        MindTheIndustrySession session = newSession(42);
+    void planCountScalesWithRarity(){
+        MindTheIndustrySession session = newSession(99);
         RewardGenerator gen = new RewardGenerator(session.rand);
 
-        ObjectSet<RewardType> seen = new ObjectSet<>();
+        int seen = 0;
         for(int i = 0; i < 300; i++){
             for(Reward r : gen.generateChoices(session, null, 1)){
-                seen.add(r.type);
+                if(r instanceof PlanReward p){
+                    seen++;
+                    // fresh session: the pool is far larger than 4, so count == multiplier
+                    assertEquals(p.rarity.multiplier, p.contentNames.size,
+                        "plan count must equal the rarity multiplier");
+                    // all picked plans must be distinct
+                    ObjectSet<String> distinctPlans = new ObjectSet<>();
+                    for(String n : p.contentNames) distinctPlans.add(n);
+                    assertEquals(p.contentNames.size, distinctPlans.size);
+                }
             }
         }
+        assertTrue(seen > 0, "plans must appear over 300 generations");
+    }
 
-        assertEquals(RewardType.values().length, seen.size,
-            "all reward types must be able to appear, seen: " + seen);
+    @Test
+    void resourceGiftsScaleWithRarity(){
+        MindTheIndustrySession session = newSession(3);
+        RewardGenerator gen = new RewardGenerator(session.rand);
+
+        int seen = 0;
+        for(int i = 0; i < 300; i++){
+            for(Reward r : gen.generateChoices(session, null, 1)){
+                if(r instanceof ResourceReward res){
+                    seen++;
+                    int expectedAmount = RewardGenerator.resourceBaseAmount * res.rarity.multiplier;
+                    assertEquals(Math.min(RewardGenerator.resourceMaxTypes, 1 + res.rarity.ordinal()),
+                        res.itemNames.size, "item type count grows with rarity");
+                    ObjectSet<String> distinctItems = new ObjectSet<>();
+                    for(String n : res.itemNames) distinctItems.add(n);
+                    assertEquals(res.itemNames.size, distinctItems.size, "items must be distinct");
+                    for(int amount : res.amounts){
+                        assertEquals(expectedAmount, amount, "amount must be base x rarity multiplier");
+                    }
+                }
+            }
+        }
+        assertTrue(seen > 0, "resource gifts must appear over 300 generations");
     }
 
     @Test

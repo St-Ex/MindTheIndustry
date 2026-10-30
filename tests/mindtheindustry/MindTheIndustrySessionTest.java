@@ -7,7 +7,6 @@ import mindustry.world.*;
 import org.junit.jupiter.api.*;
 import mindtheindustry.core.*;
 import mindtheindustry.modifiers.*;
-import mindtheindustry.rewards.rewards.*;
 
 import static mindustry.Vars.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -70,9 +69,9 @@ class MindTheIndustrySessionTest extends HeadlessMindTheIndustryTest{
         Player player = Player.create();
         player.name = "tester";
 
-        session.addUnitBonus(player, new UnitBonus(UnitBonusReward.BonusType.DAMAGE, 0.5f));
-        session.addUnitBonus(player, new UnitBonus(UnitBonusReward.BonusType.DAMAGE, 0.5f));
-        session.addUnitBonus(player, new UnitBonus(UnitBonusReward.BonusType.RELOAD, 0.25f));
+        session.addUnitBonus(player, new UnitBonus(UnitBonusType.DAMAGE, 0.5f));
+        session.addUnitBonus(player, new UnitBonus(UnitBonusType.DAMAGE, 0.5f));
+        session.addUnitBonus(player, new UnitBonus(UnitBonusType.RELOAD, 0.25f));
 
         assertEquals(2.25f, session.getDamageMultiplier(player), 0.001f);
         assertEquals(1.25f, session.getReloadMultiplier(player), 0.001f);
@@ -104,14 +103,14 @@ class MindTheIndustrySessionTest extends HeadlessMindTheIndustryTest{
         unit.armor = 2f;
         unit.armorOverride = -1f;
 
-        session.applyBonusToUnit(unit, new UnitBonus(UnitBonusReward.BonusType.HEALTH, 0.5f));
+        session.applyBonusToUnit(unit, new UnitBonus(UnitBonusType.HEALTH, 0.5f));
         assertEquals(150f, unit.maxHealth, 0.001f);
         assertEquals(75f, unit.health, 0.001f, "health ratio must be preserved");
 
-        session.applyBonusToUnit(unit, new UnitBonus(UnitBonusReward.BonusType.SPEED, 0.5f));
+        session.applyBonusToUnit(unit, new UnitBonus(UnitBonusType.SPEED, 0.5f));
         assertEquals(1.5f, unit.speedMultiplier, 0.001f);
 
-        session.applyBonusToUnit(unit, new UnitBonus(UnitBonusReward.BonusType.ARMOR, 3f));
+        session.applyBonusToUnit(unit, new UnitBonus(UnitBonusType.ARMOR, 3f));
         assertEquals(5f, unit.armorOverride, 0.001f);
     }
 

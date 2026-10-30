@@ -42,6 +42,12 @@ public class GlobalModifierRegistry{
         return defs.keys().toSeq();
     }
 
+    /** Returns the display name of a modifier ID, or the ID itself if unknown. */
+    public static String nameOf(String id){
+        GlobalModifierDef def = defs.get(id);
+        return def == null ? id : def.name;
+    }
+
     /** Returns a random weighted modifier. */
     public static GlobalModifier random(Rand rand){
         String id = defs.keys().toSeq().random(rand);

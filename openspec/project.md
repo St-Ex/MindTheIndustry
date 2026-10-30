@@ -2,7 +2,7 @@
 
 MindTheIndustry: a Mindustry mod (Java 17) adding a cooperative roguelike mode.
 Waves get harder each round; after each cleared wave every player picks 1 of 3
-random rewards (buildings, schematics, unit bonuses, global modifiers, synergies).
+random rewards (trade-offs, plans, resource gifts, each with a rarity).
 Commanders with unique abilities are picked at run start and unlock permanently
 through meta-progression.
 

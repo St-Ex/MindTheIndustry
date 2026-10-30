@@ -22,8 +22,7 @@ import static mindustry.Vars.*;
  *
  * This controller only exists server-side (in solo, the local player is also
  * the server). All player interaction goes through chat + server commands, so
- * no custom UI packets are needed (only SchematicUnlockPacket remains, for
- * schematic data which cannot travel through chat).
+ * no custom UI packets are needed.
  */
 public class ServerMindTheIndustryController{
 
@@ -278,7 +277,7 @@ public class ServerMindTheIndustryController{
                 sb.append("\n  [yellow][").append(i).append("] [white]").append(r.displayName)
                   .append(" [gray]- ").append(r.description);
             }
-            sb.append("\n[gray]Vote with: [white]/mindtheindustry reward <index> [targetPlayer|none]");
+            sb.append("\n[gray]Vote with: [white]/mindtheindustry reward <index>");
             notify(player, sb.toString());
         }
     }

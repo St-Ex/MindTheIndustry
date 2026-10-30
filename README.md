@@ -8,12 +8,10 @@ A Mindustry mod that adds a cooperative roguelike mode. After each successful wa
 
 ## Features
 
-- **Reward choices after each wave** — each player gets 3 random options:
-  - **Building**: unlocks a building for the whole group
-  - **Schematic**: unlocks a generated schematic for you only
-  - **Unit / building bonus**: permanent bonus on a player of your choice
-  - **Global modifier**: run-wide bonus (production speed, turret damage, ...)
-  - **Synergy**: conditional bonus if a prerequisite is unlocked
+- **Reward choices after each wave** — each player gets 3 random options, each with a rarity (normal grey / rare blue / epic violet, x1 / x2 / x4 magnitude):
+  - **Trade-off**: +X% on one stat, −X% on another (always a trade, X = 10% × rarity)
+  - **Plan**: unlocks 1/2/4 building or unit plans for the whole group
+  - **Resource gift**: a quantity of one or more resources delivered to the team cores (quantity × rarity)
 - **Commanders** — at the start of a run, each player picks a commander with a unique ability (Vanguard, Architect, Industrialist, ...). Commanders unlock permanently through meta-progression (reach wave 10/20, win a run).
 - **Active player per entity** — assign a player to a building or a group of units; that player's bonuses apply to it.
 - **Difficulty curve** — waves scale from easy to very hard (spawn composition rebuilt every wave from the run seed, enemy stats +5% health / +3% damage per wave), with a **boss every 20 waves**. All knobs live in `src/mindtheindustry/core/DifficultyTuning.java`.
@@ -31,7 +29,7 @@ A Mindustry mod that adds a cooperative roguelike mode. After each successful wa
 1. Open **New Game** and pick the **MTI** planet (a small moon of Serpulo, next to Serpulo/Erekir). It has a single sector and uses Serpulo's technology tree.
 2. Launch its sector: the run map is based on the vanilla **labyrinth** map, and the roguelike run **auto-starts** (commander selection first).
 3. Each player gets 3 commander choices in chat — vote with `/mindtheindustry vote <index>`.
-4. After each cleared wave, each player gets 3 reward choices in chat — pick with `/mindtheindustry reward <index> [targetPlayer|none]`. The next wave starts once everyone has voted.
+4. After each cleared wave, each player gets 3 reward choices in chat (trade-off / plan / resource gift, with a rarity) — pick with `/mindtheindustry reward <index>`. The next wave starts once everyone has voted.
 
 You can also start a run on any other map with `/mindtheindustry start`.
 
@@ -44,7 +42,7 @@ You can also start a run on any other map with `/mindtheindustry start`.
 | `/mindtheindustry commanders` | List unlocked commanders |
 | `/mindtheindustry unlock-all` | Unlock all commanders (debug) |
 | `/mindtheindustry vote <index>` | Vote for a commander |
-| `/mindtheindustry reward <index> [targetPlayer\|none]` | Pick a reward (target for unit bonuses; defaults to yourself) |
+| `/mindtheindustry reward <index>` | Pick one of the 3 post-wave rewards |
 | `/mindtheindustry active <entityId> <isBuilding> <playerName\|none>` | Set the active player for an entity |
 
 ## Development

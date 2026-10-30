@@ -20,8 +20,8 @@ import static mindustry.Vars.*;
  * following the upstream test pattern
  * (../Mindustry/tests/src/test/java/ApplicationTests.java).
  *
- * All game logic (core/, rewards/, modifiers/, meta/, net/ serialization)
- * must be testable through this class — without launching the game.
+ * All game logic (core/, rewards/, modifiers/, meta/) must be testable
+ * through this class — without launching the game.
  */
 public abstract class HeadlessMindTheIndustryTest{
 

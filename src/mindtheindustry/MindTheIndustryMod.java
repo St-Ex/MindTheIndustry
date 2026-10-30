@@ -8,7 +8,6 @@ import mindustry.mod.*;
 import mindtheindustry.content.*;
 import mindtheindustry.core.*;
 import mindtheindustry.meta.*;
-import mindtheindustry.net.*;
 
 import static mindustry.Vars.*;
 
@@ -33,11 +32,6 @@ public class MindTheIndustryMod extends Mod{
 
     public MindTheIndustryMod(){
         Log.info("[MindTheIndustry] Mod loaded.");
-
-        // Register network packets (only SchematicUnlockPacket remains: S→C data
-        // that cannot travel through chat)
-        MindTheIndustryPackets.register();
-        Log.info("[MindTheIndustry] Packets registered.");
 
         // Server-side controller
         Events.on(ServerLoadEvent.class, e -> {
@@ -154,9 +148,9 @@ public class MindTheIndustryMod extends Mod{
                     }
                 }
                 case "reward" -> {
-                    // /mindtheindustry reward <index> [targetPlayer|none]
+                    // /mindtheindustry reward <index>
                     if(args.length < 2){
-                        player.sendMessage("[scarlet]Usage: /mindtheindustry reward <index> [targetPlayer|none]");
+                        player.sendMessage("[scarlet]Usage: /mindtheindustry reward <index>");
                         return;
                     }
                     try{

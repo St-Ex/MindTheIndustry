@@ -1,17 +1,15 @@
 package mindtheindustry.modifiers;
 
-import mindtheindustry.rewards.rewards.*;
-
 /**
  * Permanent bonus applied to the units of a specific player.
  * Stored in MindTheIndustrySession and applied to each new unit of the player.
  */
 public class UnitBonus{
 
-    public final UnitBonusReward.BonusType type;
+    public final UnitBonusType type;
     public final float value;
 
-    public UnitBonus(UnitBonusReward.BonusType type, float value){
+    public UnitBonus(UnitBonusType type, float value){
         this.type = type;
         this.value = value;
     }

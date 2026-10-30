@@ -36,16 +36,31 @@ working identically in solo and multiplayer).
 ### Requirement: reward choice after each wave
 After each cleared wave, the system SHALL offer every player 3 random reward
 choices (announced in chat with indices); the next wave SHALL start only once
-every player has picked (`/mindtheindustry reward <index> [targetPlayer|none]`).
+every player has picked (`/mindtheindustry reward <index>`).
 
 #### Scenario: choices are seeded
 - WHEN a run is started with a seed THEN the reward choices are identical on
   the server and on all clients
 
-### Requirement: reward types
-The system SHALL support: building unlock (whole group), schematic unlock
-(single player), unit bonus (target player), global modifier (whole group),
-synergy (conditional on prerequisites).
+### Requirement: reward categories
+Each of the 3 choices SHALL be exactly one of:
+- **TRADEOFF** — +X% on one stat and −X% on another (two distinct stats from
+  `GlobalModifierRegistry`), applied to the whole group
+- **PLAN** — unlocks building/unit plans for the whole group
+  (`state.rules.researched`)
+- **RESOURCE** — a gift of one or more item types delivered to the team cores
+
+### Requirement: reward rarity
+Each choice SHALL roll a rarity that multiplies its magnitude:
+NORMAL (grey, x1), RARE (blue, x2), EPIC (violet, x4) — trade-off percentage,
+number of plans, and resource quantity respectively. Weights (60/30/10) and
+base magnitudes (±10% trade, 100 base resources) SHALL be static knobs in
+`Rarity` / `RewardGenerator`.
+
+#### Scenario: rarity scales magnitude
+- WHEN a RARE trade-off is generated THEN both stats move by ±20%
+- WHEN an EPIC plan is generated THEN 4 plans are unlocked
+- WHEN a RARE resource gift is generated THEN the amount is 2x the base
 
 ### Requirement: commanders
 At run start, each player SHALL pick one commander with a unique ability

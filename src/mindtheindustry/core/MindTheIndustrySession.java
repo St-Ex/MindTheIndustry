@@ -14,8 +14,7 @@ import static mindustry.Vars.*;
  * State of a rogue-like run, managed SERVER-side.
  *
  * Responsibilities:
- * - Track group unlocks (buildings unlocked for everyone)
- * - Track individual unlocks (schematics per player)
+ * - Track group unlocks (buildings/units unlocked for everyone)
  * - Track unit bonuses per player
  * - Track active global modifiers
  * - Apply the rewards chosen by players
@@ -37,21 +36,18 @@ public class MindTheIndustrySession{
 
     // --- Unlocks ---
 
-    /** Buildings/units unlocked for the WHOLE group (via BuildingReward). */
+    /** Content unlocked for the WHOLE group (via PlanReward). */
     private final ObjectSet<UnlockableContent> groupUnlocks = new ObjectSet<>();
-
-    /** Schematics unlocked per individual player (via SchematicReward). */
-    private final ObjectMap<Player, ObjectSet<String>> playerSchematics = new ObjectMap<>();
 
     // --- Bonuses ---
 
-    /** Unit bonuses per player (via UnitBonusReward). */
+    /** Unit bonuses per player. */
     private final ObjectMap<Player, Seq<UnitBonus>> playerUnitBonuses = new ObjectMap<>();
 
-    /** Building bonuses per player (via BuildingBonusReward). */
+    /** Building bonuses per player. */
     private final ObjectMap<Player, Seq<BuildingBonus>> playerBuildingBonuses = new ObjectMap<>();
 
-    /** Active global modifiers (via GlobalModifierReward). */
+    /** Active global modifiers (applied via TradeoffReward). */
     private final Seq<GlobalModifier> globalModifiers = new Seq<>();
 
     /** Registered synergies (prerequisite → bonus). */
@@ -150,7 +146,6 @@ public class MindTheIndustrySession{
         this.active = true;
 
         groupUnlocks.clear();
-        playerSchematics.clear();
         playerUnitBonuses.clear();
         playerBuildingBonuses.clear();
         globalModifiers.clear();
@@ -182,7 +177,6 @@ public class MindTheIndustrySession{
         this.active = true;
 
         groupUnlocks.clear();
-        playerSchematics.clear();
         playerUnitBonuses.clear();
         playerBuildingBonuses.clear();
         globalModifiers.clear();
@@ -223,17 +217,6 @@ public class MindTheIndustrySession{
     /** Returns all group unlocks. */
     public ObjectSet<UnlockableContent> getGroupUnlocks(){
         return groupUnlocks;
-    }
-
-    /** Unlocks a schematic for an individual player. */
-    public void unlockSchematicForPlayer(Player player, String schematicName){
-        playerSchematics.get(player, ObjectSet::new).add(schematicName);
-        Log.info("[MindTheIndustry] Schematic '" + schematicName + "' unlocked for " + player.name);
-    }
-
-    /** Checks whether a player has unlocked a schematic. */
-    public boolean hasSchematic(Player player, String schematicName){
-        return playerSchematics.get(player, ObjectSet::new).contains(schematicName);
     }
 
     // --- Unit bonus management ---
@@ -438,7 +421,7 @@ public class MindTheIndustrySession{
         Seq<UnitBonus> bonuses = playerUnitBonuses.get(player);
         if(bonuses != null){
             for(UnitBonus b : bonuses){
-                if(b.type == mindtheindustry.rewards.rewards.UnitBonusReward.BonusType.DAMAGE){
+                if(b.type == UnitBonusType.DAMAGE){
                     mult *= (1f + b.value);
                 }
             }
@@ -452,7 +435,7 @@ public class MindTheIndustrySession{
         Seq<UnitBonus> bonuses = playerUnitBonuses.get(player);
         if(bonuses != null){
             for(UnitBonus b : bonuses){
-                if(b.type == mindtheindustry.rewards.rewards.UnitBonusReward.BonusType.RELOAD){
+                if(b.type == UnitBonusType.RELOAD){
                     mult *= (1f + b.value);
                 }
             }

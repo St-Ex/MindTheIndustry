@@ -5,31 +5,36 @@ import mindustry.gen.*;
 import mindtheindustry.core.*;
 
 /**
- * Abstract class representing a reward offered to a player.
+ * Abstract class representing a reward offered to a player after a wave.
  *
  * Each reward has:
- * - a type (determines the scope: group, individual, or targeted)
+ * - a type (TRADEOFF, PLAN or RESOURCE)
+ * - a rarity (NORMAL/RARE/EPIC) that scales its magnitude
  * - a unique identifier (for network serialization)
- * - a name and a description displayed in the choice dialog
+ * - a name and a description displayed in the chat choice announcement
  * - an apply() method that applies the reward in the session
  */
 public abstract class Reward{
 
-    /** Unique identifier of this reward (e.g. "building:salvo", "unit_bonus:damage:20"). */
+    /** Unique identifier of this reward (e.g. "tradeoff:unit_damage:0.2:-build_speed", "plan:salvo", "resource:copper:400"). */
     public final String id;
 
-    /** Reward type (determines the application scope). */
+    /** Reward category. */
     public final RewardType type;
 
-    /** Name displayed in the dialog (e.g. "Salvo", "+20% unit damage"). */
+    /** Rarity (scales the magnitude; also drives the display color). */
+    public final Rarity rarity;
+
+    /** Name displayed in the chat announcement (rarity color baked in). */
     public final String displayName;
 
-    /** Detailed description (e.g. "Unlocks the Salvo turret for all players"). */
+    /** Detailed description. */
     public final String description;
 
-    protected Reward(String id, RewardType type, String displayName, String description){
+    protected Reward(String id, RewardType type, Rarity rarity, String displayName, String description){
         this.id = id;
         this.type = type;
+        this.rarity = rarity;
         this.displayName = displayName;
         this.description = description;
     }
@@ -39,7 +44,7 @@ public abstract class Reward{
      *
      * @param session the current run session
      * @param chooser the player who chose this reward
-     * @param target  the target player (for UNIT_BONUS; null for other types)
+     * @param target  unused by the current reward categories (kept for API stability)
      */
     public abstract void apply(MindTheIndustrySession session, Player chooser, Player target);
 
@@ -47,6 +52,7 @@ public abstract class Reward{
     public void write(Writes write){
         write.str(id);
         write.str(type.name());
+        write.str(rarity.name());
         write.str(displayName);
         write.str(description);
     }
@@ -55,15 +61,16 @@ public abstract class Reward{
     public static Reward read(Reads read){
         String id = read.str();
         RewardType type = RewardType.valueOf(read.str());
+        Rarity rarity = Rarity.valueOf(read.str());
         String name = read.str();
         String desc = read.str();
         // Full deserialization is done by RewardSerializer
         // which knows the type-specific fields
-        return RewardSerializer.readFull(id, type, name, desc, read);
+        return RewardSerializer.readFull(id, type, rarity, name, desc, read);
     }
 
     @Override
     public String toString(){
-        return displayName + " [" + type + "]";
+        return displayName + " [" + type + " " + rarity + "]";
     }
 }
