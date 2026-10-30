@@ -1,7 +1,6 @@
 package mindtheindustry.content;
 
 import mindustry.content.*;
-import mindustry.content.TechTree.*;
 import mindustry.type.*;
 
 /**
@@ -12,12 +11,18 @@ import mindustry.type.*;
  * (via a SectorPreset) and auto-starts the roguelike run (see MindTheIndustryMod's
  * PlayEvent handler). The planet also carries a procedural generator
  * ({@link MindTheIndustryPlanetGenerator}) used for any sector without a preset.
- * Its technology tree is Serpulo's.
+ *
+ * The planet has its OWN tech tree (root = the run preset) so the vanilla campaign
+ * trees are never mutated; buildability of blocks on this planet is handled directly
+ * through shownPlanets in init().
  */
 public class MindTheIndustryPlanet extends Planet{
 
     /** The singleton instance (set at construction, in loadContent). */
     public static MindTheIndustryPlanet instance;
+
+    /** The run map preset (labyrinth-based); also the root of this planet's own tech tree. */
+    public SectorPreset runPreset;
 
     public MindTheIndustryPlanet(){
         //a dwarf moon orbiting Serpulo (small radius, planet parent)
@@ -32,7 +37,7 @@ public class MindTheIndustryPlanet extends Planet{
         startSector = sectors.first().id;
 
         //the run map: based on the vanilla "labyrinth" map (maps/default/labyrinth.msav)
-        new SectorPreset("run", "default/labyrinth", this, startSector);
+        runPreset = new SectorPreset("run", "default/labyrinth", this, startSector);
 
         //appear in the New Game planet menu without campaign progress
         alwaysUnlocked = true;
@@ -45,20 +50,21 @@ public class MindTheIndustryPlanet extends Planet{
 
     @Override
     public void init(){
-        //reuse Serpulo's technology tree — assigned BEFORE super.init() so that
-        //Planet.init() runs techTree.addPlanet(this): it adds this planet to the
-        //shownPlanets of every block in the tree, which is what makes them
-        //environmentBuildable() (i.e. shown in the construction HUD) on this planet
-        techTree = Planets.serpulo.techTree;
+        //own tech tree root containing only the run preset — do NOT clone Serpulo's tree:
+        //the TechNode constructor reassigns content.techNode, which would leak into the
+        //campaign (research objectives read content.techNode). Assigned before super.init()
+        //so Planet.init() keeps it instead of looking up a root for this planet.
+        techTree = TechTree.nodeRoot("mti", runPreset, () -> {});
+        techTree.planet = this;
         super.init();
         //display name shown in the menu
         localizedName = "MTI";
-        //also register on every other tech tree (e.g. Erekir): PLAN rewards and the
-        //starter set include Erekir blocks (ducts, reinforced conduits, ...), and a
-        //block is only buildable on a planet present in its shownPlanets
-        for(TechTree.TechNode root : TechTree.roots){
-            root.addPlanet(this);
-        }
+        //buildability on this planet: the construction HUD only shows blocks whose
+        //shownPlanets contains the current planet (environmentBuildable()). Register
+        //directly instead of via a shared tech tree — additive only, other planets are
+        //unaffected (isOnPlanet checks contains(their own planet))
+        mindustry.Vars.content.blocks().each(b -> b.shownPlanets.add(this));
+        mindustry.Vars.content.units().each(u -> u.shownPlanets.add(this));
     }
 
     /** Whether the currently loaded game is a MindTheIndustry run map. */

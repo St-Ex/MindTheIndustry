@@ -1,5 +1,6 @@
 package mindtheindustry.content;
 
+import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.type.*;
@@ -39,6 +40,11 @@ class PlanetPlayEventTest extends mindtheindustry.HeadlessMindTheIndustryTest{
         assertNotNull(MindTheIndustryPlanet.instance, "planet must be registered by loadContent");
 
         Planet planet = MindTheIndustryPlanet.instance;
+        //own tech tree, not Serpulo's shared one (cloning would reassign content.techNode)
+        assertNotSame(Planets.serpulo.techTree, planet.techTree, "MTI must have its own tech tree root");
+        assertSame(planet, planet.techTree.planet, "tech tree root must be bound to the MTI planet");
+        assertSame(MindTheIndustryPlanet.instance.runPreset, planet.techTree.content, "tech tree root content is the run preset");
+        assertNotSame(planet.techTree, content.block("duo").techNode, "vanilla content techNode must stay on Serpulo's tree");
         Sector sector = planet.sectors.find(s -> s.preset != null);
         assertNotNull(sector, "planet must have a sector bound to a preset");
 
