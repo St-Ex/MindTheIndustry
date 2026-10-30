@@ -1,6 +1,6 @@
 # AGENTS.md — MindTheIndustry
 
-Rules for any agent working on this repository. Read before making any change.
+Rules for any agent working on this repository. Read `DECISIONS.md` (active decisions) before making any change.
 
 ## Context
 
@@ -50,4 +50,5 @@ mise exec -- ./gradlew test
 ## Git
 
 - Commits in English, concise messages, one topic per commit.
-- Development happens on `dev`; `main` is the main branch. Merge `dev` into `main` via pull request. Do not push without explicit approval from the owner.
+- Development happens directly on `main` (owner decision, see `DECISIONS.md`). Do not push without explicit approval from the owner.
+- If a branch diverges from its origin with duplicate commits, rebase onto origin (duplicates drop automatically). Never force-push.
