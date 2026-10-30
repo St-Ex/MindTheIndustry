@@ -57,4 +57,19 @@ At run start, each player SHALL pick one commander with a unique ability
 player's bonuses apply to a given building or unit group.
 
 ### Requirement: difficulty curve
-Enemy stats SHALL scale with the wave number.
+Enemy stats SHALL scale with the wave number, and the spawn composition SHALL be
+rebuilt every wave from the run seed so waves go from easy to very hard.
+
+#### Scenario: scaling waves
+- WHEN wave N starts THEN `state.rules.spawns` is rebuilt via
+  `WaveDesigner.buildSpawns(N, session.rand)` (vanilla `Waves.generate` scaled by
+  `DifficultyTuning.difficultyForWave(N)`) and enemy stat multipliers increase
+
+#### Scenario: boss waves
+- WHEN wave N is a multiple of `DifficultyTuning.bossInterval` (20), starting at
+  `bossWaveStart` THEN the spawn groups SHALL contain exactly one boss group
+  (`StatusEffects.boss`, tiered boss unit from `DifficultyTuning.bossUnits`)
+- WHEN wave N is not a boss wave THEN no boss group SHALL spawn
+
+All curve knobs SHALL live in `core/DifficultyTuning` (base/per-wave/cap difficulty,
+boss interval, boss units, stat bonuses per wave).

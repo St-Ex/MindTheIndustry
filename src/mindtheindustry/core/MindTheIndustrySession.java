@@ -422,11 +422,11 @@ public class MindTheIndustrySession{
         Log.info("[MindTheIndustry] Wave " + wave + " - Difficulty applied");
     }
 
-    /** Applies the difficulty curve based on the wave. */
+    /** Applies the difficulty curve based on the wave (knobs in {@link DifficultyTuning}). */
     private void applyDifficulty(){
         // Increases enemy stats each wave
-        float healthBonus = wave * 0.05f;  // +5% enemy health per wave
-        float damageBonus = wave * 0.03f;  // +3% enemy damage per wave
+        float healthBonus = wave * DifficultyTuning.healthPerWave;
+        float damageBonus = wave * DifficultyTuning.damagePerWave;
 
         state.rules.unitHealthMultiplier = 1f + healthBonus;
         state.rules.unitDamageMultiplier = Math.max(state.rules.unitDamageMultiplier, 1f + damageBonus);

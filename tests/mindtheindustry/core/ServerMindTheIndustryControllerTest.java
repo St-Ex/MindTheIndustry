@@ -89,6 +89,7 @@ class ServerMindTheIndustryControllerTest extends HeadlessMindTheIndustryTest{
         assertEquals(2, controller.session.wave);
         assertFalse(controller.waitingForVotes);
         assertTrue(state.rules.waveTimer);
+        assertFalse(state.rules.spawns.isEmpty(), "starting a wave must install spawn groups");
 
         controller.stopRun();
     }

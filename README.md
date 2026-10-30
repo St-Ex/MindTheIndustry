@@ -16,7 +16,7 @@ A Mindustry mod that adds a cooperative roguelike mode. After each successful wa
   - **Synergy**: conditional bonus if a prerequisite is unlocked
 - **Commanders** — at the start of a run, each player picks a commander with a unique ability (Vanguard, Architect, Industrialist, ...). Commanders unlock permanently through meta-progression (reach wave 10/20, win a run).
 - **Active player per entity** — assign a player to a building or a group of units; that player's bonuses apply to it.
-- **Difficulty curve** — enemies get stronger every wave.
+- **Difficulty curve** — waves scale from easy to very hard (spawn composition rebuilt every wave from the run seed, enemy stats +5% health / +3% damage per wave), with a **boss every 20 waves**. All knobs live in `src/mindtheindustry/core/DifficultyTuning.java`.
 
 ## Installation
 

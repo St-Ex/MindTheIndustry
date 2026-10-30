@@ -220,12 +220,18 @@ public class ServerMindTheIndustryController{
         // Start the first wave after the countdown
         Timer.schedule(() -> {
             if(!session.active) return;
-            session.nextWave();
-            state.wave = session.wave;
-            state.rules.waveTimer = true;
-            state.rules.waves = true;
+            startWave();
             Log.info("[MindTheIndustry] Wave 1 started!");
         }, 10f);
+    }
+
+    /** Advances to the next wave: difficulty curve, spawn groups, wave counter, timer. */
+    private void startWave(){
+        session.nextWave();
+        state.wave = session.wave;
+        state.rules.spawns = WaveDesigner.buildSpawns(session.wave, session.rand);
+        state.rules.waves = true;
+        state.rules.waveTimer = true;
     }
 
     /** Checks whether the current wave is complete (no enemies left). */
@@ -347,11 +353,7 @@ public class ServerMindTheIndustryController{
         if(votes.size >= alivePlayers){
             // Everyone voted, resume the game and start the next wave
             waitingForVotes = false;
-            session.nextWave();
-            state.wave = session.wave;
-
-            // Re-enable the wave timer
-            state.rules.waveTimer = true;
+            startWave();
 
             // Re-enable all buildings
             for(Building b : Groups.build){
