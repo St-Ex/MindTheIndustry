@@ -25,4 +25,5 @@ jobs:
       with:
         archive: false
         name: ${{ github.event.repository.name }}
-        path: build/libs/${{ github.event.repository.name }}.jar
+        path: build/libs/mindtheindustry.jar
+        if-no-files-found: error
