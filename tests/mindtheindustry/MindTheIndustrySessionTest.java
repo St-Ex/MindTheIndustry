@@ -39,6 +39,37 @@ class MindTheIndustrySessionTest extends HeadlessMindTheIndustryTest{
     }
 
     @Test
+    void startUnlocksBasicCategoryBlocks(){
+        MindTheIndustrySession session = newSession(42);
+
+        // distribution / liquid / power (basic) / effect / logic categories
+        for(String name : new String[]{
+            "duct", "duct-router", "underflow-gate", "bridge-conveyor",
+            "pulse-conduit", "bridge-conduit", "liquid-router", "liquid-tank", "rotary-pump", "impulse-pump",
+            "power-node", "power-node-large", "combustion-generator", "solar-panel",
+            "vault", "launch-pad", "command-center",
+            "switch", "message", "micro-processor", "memory-cell"
+        }){
+            Block block = content.block(name);
+            assertNotNull(block, "unknown block: " + name);
+            assertTrue(session.isUnlockedForGroup(block), "basic category block must be unlocked at start: " + name);
+            assertTrue(state.rules.researched.contains(block), "starter block must be in game rules: " + name);
+        }
+    }
+
+    @Test
+    void startDoesNotUnlockBatteriesOrAdvancedGenerators(){
+        MindTheIndustrySession session = newSession(42);
+
+        for(String name : new String[]{"battery", "battery-large", "thorium-reactor", "impact-reactor"}){
+            Block block = content.block(name);
+            assertNotNull(block, "unknown block: " + name);
+            assertFalse(session.isUnlockedForGroup(block), "must NOT be unlocked at start: " + name);
+            assertFalse(state.rules.researched.contains(block), "must NOT be in game rules: " + name);
+        }
+    }
+
+    @Test
     void startUnlocksBasicUnitPlans(){
         MindTheIndustrySession session = newSession(42);
 

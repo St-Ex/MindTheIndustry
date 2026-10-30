@@ -12,7 +12,7 @@ A Mindustry mod that adds a cooperative roguelike mode. After each successful wa
   - **Trade-off**: +X% on one stat, −X% on another (always a trade, X = 10% × rarity)
   - **Plan**: unlocks 1/2/4 building or unit plans for the whole group
   - **Resource gift**: a quantity of one or more resources delivered to the team cores (quantity × rarity)
-- **Basic plans from the start** — the run begins with the basic blocks and units unlocked for everyone (duo, drill, conveyor, dagger, flare, ...); everything else comes from PLAN rewards.
+- **Basic plans from the start** — the run begins with the basic blocks and units unlocked for everyone (duo, drill, conveyor, ducts, conduits, power nodes + basic generators, vault, logic blocks, dagger, flare, ...); batteries and advanced generators excluded — everything else comes from PLAN rewards.
 - **Commanders** — at the start of a run, each player picks a commander with a unique ability (Vanguard, Architect, Industrialist, ...). Commanders unlock permanently through meta-progression (reach wave 10/20, win a run).
 - **Active player per entity** — assign a player to a building or a group of units; that player's bonuses apply to it.
 - **Difficulty curve** — waves scale from easy to very hard (spawn composition rebuilt every wave from the run seed, enemy stats +5% health / +3% damage per wave), with a **boss every 20 waves**. All knobs live in `src/mindtheindustry/core/DifficultyTuning.java`.
