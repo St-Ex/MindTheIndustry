@@ -57,5 +57,6 @@ Tests boot Mindustry headless (JUnit 5, `tests/` sourceSet). Game logic is UI-in
 
 - `AGENTS.md` — rules for agents working on this repo
 - `DECISIONS.md` — decision log (architecture & workflow choices to follow)
+- `openspec/` — intent tracking: active feature proposals in `changes/`, current specs in `specs/`
 - `DEVELOPMENT.md` — architecture, game mechanics, roadmap
 - Engine sources for reference: `../Mindustry` (clone of tag `v160`, read-only)

@@ -41,6 +41,13 @@ mise exec -- ./gradlew test
 - No purely visual content without a gameplay counterpart (no "just a render").
 - The UI (`ui/`) is not testable headless: test what it displays (state, schematics, serialized content), not pixels.
 
+## Intent tracking (openspec)
+
+- Backlog (ideas for someday): GitHub Issues.
+- Non-trivial features: create `openspec/changes/<slug>/` with `proposal.md` (why/what), `design.md` (how), `tasks.md` (checklist). `openspec/specs/` holds the current truth; apply deltas there when the change lands, then archive the change dir.
+- Small fixes and refactors: straight to a PR, no openspec entry.
+- Format and lifecycle: `openspec/project.md`.
+
 ## References
 
 - **Game sources**: `../Mindustry` — clone of tag `v160` (read-only), next to this project. Engine architecture: `NetServer`, `Waves`, `Events`, `arc.scene.ui`.

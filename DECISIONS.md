@@ -10,6 +10,7 @@ replace its entry. The history of past decisions lives in the git log, not here.
 - **Never force-push.** If a branch diverges from its origin with duplicate commits, rebase onto origin (git drops the duplicates automatically).
 - **English-only repo**: docs, comments and user-facing strings.
 - **Java 17 via mise**; `mise build` builds `build/libs/mindtheindustryDesktop.jar`. Mindustry/Arc dependencies are `compileOnly` — never bundle the engine inside the mod jar.
+- **Intent tracking**: backlog in GitHub Issues; non-trivial active features get an `openspec/changes/<slug>/` proposal (format in `openspec/project.md`). Small fixes go straight to a PR.
 
 ## Architecture & branding
 
