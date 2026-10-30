@@ -5,6 +5,7 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import org.junit.jupiter.api.*;
 import mindtheindustry.HeadlessMindTheIndustryTest;
+import mindtheindustry.client.*;
 
 import static mindustry.Vars.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,23 +44,45 @@ class ServerMindTheIndustryControllerTest extends HeadlessMindTheIndustryTest{
     }
 
     @Test
-    void commanderSelectionFlow(){
+    void startRunBeginsWaveOneImmediately(){
         ServerMindTheIndustryController controller = new ServerMindTheIndustryController();
-        Player p = addPlayer("tester");
+        addPlayer("tester");
 
-        controller.startCommanderSelection();
+        controller.lastProcessedWave = Integer.MAX_VALUE; //don't let the live update loop trigger wave-complete mid-test
+        controller.startRun();
 
         assertTrue(controller.session.active);
-        assertTrue(controller.waitingForCommanderVotes);
-        assertTrue(controller.pendingCommanderChoices.containsKey(p));
-        assertEquals(3, controller.pendingCommanderChoices.get(p).size);
+        assertEquals(1, controller.session.wave, "startRun must launch wave 1 without any vote gate");
+        assertEquals(1, state.wave);
+        assertTrue(state.rules.waves && state.rules.waveTimer);
+        assertFalse(state.rules.spawns.isEmpty(), "wave 1 spawn groups must be installed");
+        assertFalse(controller.waitingForVotes);
 
-        controller.handleCommanderVote(p, 0);
+        controller.stopRun();
+        assertFalse(controller.session.active);
+    }
 
-        // single player → all votes received → selection finalized
-        assertFalse(controller.waitingForCommanderVotes);
-        assertEquals(1, controller.commanderVotes.size);
-        assertFalse(controller.pendingCommanderChoices.containsKey(p));
+    @Test
+    void waveCompleteDeliversChoicesLocallyInSolo(){
+        ServerMindTheIndustryController controller = new ServerMindTheIndustryController();
+        Player p = addPlayer("tester"); // headless/solo: p.con == null
+        ClientRewardState.instance.clear();
+
+        controller.session.start(42);
+        controller.generator = new RewardGenerator(controller.session.rand);
+        controller.session.nextWave();
+        state.wave = controller.session.wave;
+
+        controller.onWaveComplete();
+
+        //no connection → choices must be delivered to the local client state directly
+        assertTrue(ClientRewardState.instance.visible, "solo: choice box state must be set without a connection");
+        assertEquals(3, ClientRewardState.instance.choices.size);
+
+        controller.handleRewardVote(p, 0, p);
+
+        assertFalse(ClientRewardState.instance.visible, "solo: box must hide after voting");
+        assertEquals(2, controller.session.wave);
 
         controller.stopRun();
     }

@@ -70,6 +70,7 @@ public class MindTheIndustryMod extends Mod{
             if(MindTheIndustryPlanet.isMindTheIndustryMap()){
                 state.rules.waves = true;
                 state.rules.waveTimer = true;
+                state.rules.waitEnemies = true; //wave timer pauses while enemies remain, so waves don't stack mid-fight
                 state.rules.winWave = 0; //endless: the run ends when players stop
                 //hide everything not unlocked for the run group (in-memory only, so
                 //campaign-unlocked content does not leak into the MTI build menu)
@@ -90,7 +91,7 @@ public class MindTheIndustryMod extends Mod{
             }
             if(MindTheIndustryPlanet.isMindTheIndustryMap() && !serverController.session.active){
                 Log.info("[MindTheIndustry] Auto-starting run on MindTheIndustry map.");
-                serverController.startCommanderSelection();
+                serverController.startRun();
             }
         });
 
@@ -112,7 +113,7 @@ public class MindTheIndustryMod extends Mod{
      */
     @Override
     public void registerServerCommands(CommandHandler handler){
-        handler.<Player>register("mindtheindustry", "[start|stop|skip|status|commanders|unlock-all|vote|active]", "MindTheIndustry run control.", (args, player) -> {
+        handler.<Player>register("mindtheindustry", "[start|stop|skip|status|commanders|unlock-all|active]", "MindTheIndustry run control.", (args, player) -> {
             if(serverController == null){
                 player.sendMessage("[scarlet]Server controller is not initialized.");
                 return;
@@ -132,7 +133,7 @@ public class MindTheIndustryMod extends Mod{
                         player.sendMessage("[scarlet]A run is already in progress.");
                         return;
                     }
-                    serverController.startCommanderSelection();
+                    serverController.startRun();
                 }
                 case "stop" -> {
                     if(!serverController.session.active){
@@ -164,17 +165,6 @@ public class MindTheIndustryMod extends Mod{
                     }
                     player.sendMessage("[green]All commanders unlocked!");
                 }
-                case "vote" -> {
-                    if(args.length < 2){
-                        player.sendMessage("[scarlet]Usage: /mindtheindustry vote <index>");
-                        return;
-                    }
-                    try{
-                        serverController.handleCommanderVote(player, Integer.parseInt(args[1]));
-                    }catch(NumberFormatException e){
-                        player.sendMessage("[scarlet]Invalid index.");
-                    }
-                }
                 case "active" -> {
                     // /mindtheindustry active <entityId> <isBuilding> <playerName|none>
                     if(args.length < 4){
@@ -198,7 +188,7 @@ public class MindTheIndustryMod extends Mod{
                         player.sendMessage("[scarlet]Invalid ID.");
                     }
                 }
-                default -> player.sendMessage("[scarlet]Usage: /mindtheindustry [start|stop|skip|status|commanders|unlock-all|vote|active]");
+                default -> player.sendMessage("[scarlet]Usage: /mindtheindustry [start|stop|skip|status|commanders|unlock-all|active]");
             }
         });
     }

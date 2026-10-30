@@ -5,7 +5,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
-import mindtheindustry.meta.*;
+import mindtheindustry.client.*;
 import mindtheindustry.net.*;
 import mindtheindustry.rewards.*;
 
@@ -50,16 +50,21 @@ public class ServerMindTheIndustryController{
     private float checkTimer = 0f;
     private static final float CHECK_INTERVAL = 1f; // seconds
 
-    // --- Commander selection (run start) ---
+    // --- Run start ---
 
-    /** The 3 commander choices per player (awaiting vote). */
-    final ObjectMap<Player, Seq<Commander>> pendingCommanderChoices = new ObjectMap<>();
-
-    /** The commanders chosen per player. */
-    final ObjectMap<Player, Commander> commanderVotes = new ObjectMap<>();
-
-    /** True if waiting for commander votes. */
-    boolean waitingForCommanderVotes = false;
+    /**
+     * Starts a run immediately: initializes the session (starters unlocked) and
+     * launches wave 1. No commander vote gate — control is the HUD reward box
+     * after each wave plus the /mindtheindustry command.
+     */
+    public void startRun(){
+        if(session.active) return;
+        session.start();
+        generator = new RewardGenerator(session.rand);
+        broadcast("[accent]MindTheIndustry run started — wave 1 incoming!");
+        Log.info("[MindTheIndustry] Run started, wave 1 scheduled.");
+        startWave();
+    }
 
     /** Applies active-player bonuses to game stats. */
     private BonusApplier bonusApplier;
@@ -76,7 +81,7 @@ public class ServerMindTheIndustryController{
 
         // Regularly check whether enemies remain
         Events.run(Trigger.update, () -> {
-            if(!session.active || waitingForVotes || waitingForCommanderVotes) return;
+            if(!session.active || waitingForVotes) return;
 
             checkTimer += Time.delta;
             if(checkTimer < CHECK_INTERVAL) return;
@@ -103,9 +108,6 @@ public class ServerMindTheIndustryController{
             pendingChoices.clear();
             votes.clear();
             waitingForVotes = false;
-            waitingForCommanderVotes = false;
-            pendingCommanderChoices.clear();
-            commanderVotes.clear();
             lastProcessedWave = 0;
             // Re-enable all buildings
             for(Building b : Groups.build){
@@ -132,100 +134,6 @@ public class ServerMindTheIndustryController{
         }
     }
 
-    /**
-     * Starts the commander selection flow.
-     * Announces 3 random commander choices per player in chat;
-     * players vote with /mindtheindustry vote <index>.
-     * Once all players have voted, starts the run countdown.
-     */
-    public void startCommanderSelection(){
-        session.start(); // initializes the base state (active=true, seed, etc.)
-        generator = new RewardGenerator(session.rand); // create the reward generator
-        waitingForCommanderVotes = true;
-        pendingCommanderChoices.clear();
-        commanderVotes.clear();
-
-        Log.info("[MindTheIndustry] startCommanderSelection: players=" + Groups.player.size());
-
-        Seq<Commander> unlocked = MetaProgression.getUnlocked();
-        if(unlocked.isEmpty()){
-            // Fallback: use the starters
-            unlocked = CommanderRegistry.starters();
-        }
-
-        for(Player p : Groups.player){
-            // Generate 3 distinct random choices for this player
-            Seq<Commander> choices = new Seq<>(3);
-            Seq<Commander> pool = unlocked.copy();
-            pool.shuffle();
-            for(int i = 0; i < Math.min(3, pool.size); i++){
-                choices.add(pool.get(i));
-            }
-            pendingCommanderChoices.put(p, choices);
-
-            StringBuilder sb = new StringBuilder("[accent]Choose your commander:");
-            for(int i = 0; i < choices.size; i++){
-                Commander c = choices.get(i);
-                sb.append("\n  [yellow][").append(i).append("] [white]").append(c.displayName)
-                  .append(" [gray]- ").append(c.ability.name());
-            }
-            sb.append("\n[gray]Vote with: [white]/mindtheindustry vote <index>");
-            notify(p, sb.toString());
-        }
-
-        Log.info("[MindTheIndustry] Commander selection started. " + pendingCommanderChoices.size + " players.");
-    }
-
-    /** Handles a player's vote for their commander (/mindtheindustry vote <index>). */
-    public void handleCommanderVote(Player player, int choiceIndex){
-        if(!waitingForCommanderVotes) return;
-        if(!pendingCommanderChoices.containsKey(player)) return;
-
-        Seq<Commander> choices = pendingCommanderChoices.get(player);
-        if(choiceIndex < 0 || choiceIndex >= choices.size) return;
-
-        Commander chosen = choices.get(choiceIndex);
-        commanderVotes.put(player, chosen);
-        pendingCommanderChoices.remove(player);
-
-        Log.info("[MindTheIndustry] " + player.name + " chose the commander: " + chosen.displayName);
-        notify(player, "[accent]Commander chosen: " + chosen.displayName);
-        notify(player, "[gray]Ability: " + chosen.ability.name() + " - " + chosen.ability.description());
-
-        checkAllCommanderVotesReceived();
-    }
-
-    /** Checks whether all players have voted for their commander. */
-    private void checkAllCommanderVotesReceived(){
-        int totalPlayers = Groups.player.size();
-
-        if(commanderVotes.size >= totalPlayers){
-            waitingForCommanderVotes = false;
-            finalizeCommanderSelection();
-        }
-    }
-
-    /** Applies the chosen commanders and starts the countdown. */
-    private void finalizeCommanderSelection(){
-        // Apply each player's commander
-        for(var entry : commanderVotes.entries()){
-            Player p = entry.key;
-            Commander cmdr = entry.value;
-            Log.info("[MindTheIndustry] Commander of " + p.name + ": " + cmdr.displayName);
-            cmdr.ability.apply(session);
-        }
-
-        broadcast("[accent]All commanders chosen — wave 1 in 10 seconds!");
-        Log.info("[MindTheIndustry] All commanders chosen. 10s countdown before wave 1.");
-
-        // Start the first wave after the countdown
-        Timer.schedule(() -> {
-            if(!session.active) return;
-            startWave();
-            Log.info("[MindTheIndustry] Wave 1 started!");
-        }, 10f);
-    }
-
     /** Advances to the next wave: difficulty curve, spawn groups, wave counter, timer. */
     private void startWave(){
         session.nextWave();
@@ -233,6 +141,7 @@ public class ServerMindTheIndustryController{
         state.rules.spawns = WaveDesigner.buildSpawns(session.wave, session.rand);
         state.rules.waves = true;
         state.rules.waveTimer = true;
+        state.wavetime = state.rules.waveSpacing; //engine spawns the wave when wavetime hits 0
     }
 
     /** Checks whether the current wave is complete (no enemies left). */
@@ -284,10 +193,13 @@ public class ServerMindTheIndustryController{
         }
     }
 
-    /** Sends a player their reward choices for the HUD box (null con = headless test). */
+    /** Sends a player their reward choices for the HUD box. In solo/host-local (no connection) the local state is set directly. */
     private void sendChoices(Player player, Seq<Reward> choices){
         if(player.con != null){
             player.con.send(new MindTheIndustryPackets.RewardChoicesPacket(session.wave, choices), true);
+        }else if(!net.client()){
+            //solo or headless: no connection, deliver to the local client state
+            ClientRewardState.instance.set(session.wave, choices);
         }
     }
 
@@ -296,6 +208,8 @@ public class ServerMindTheIndustryController{
         for(Player p : Groups.player){
             if(p.con != null){
                 p.con.send(new MindTheIndustryPackets.RewardChoicesPacket(session.wave, new Seq<>()), true);
+            }else if(!net.client()){
+                ClientRewardState.instance.clear();
             }
         }
     }
@@ -404,11 +318,8 @@ public class ServerMindTheIndustryController{
     public void stopRun(){
         session.stop();
         waitingForVotes = false;
-        waitingForCommanderVotes = false;
         pendingChoices.clear();
         votes.clear();
-        pendingCommanderChoices.clear();
-        commanderVotes.clear();
         clearChoices();
         state.rules.waveTimer = true;
         // Re-enable all buildings
