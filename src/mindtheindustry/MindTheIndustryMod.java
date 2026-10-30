@@ -71,7 +71,13 @@ public class MindTheIndustryMod extends Mod{
                 state.rules.waves = true;
                 state.rules.waveTimer = true;
                 state.rules.winWave = 0; //endless: the run ends when players stop
+                //hide everything not unlocked for the run group (in-memory only, so
+                //campaign-unlocked content does not leak into the MTI build menu)
+                serverController.session.isolateUnlocks();
                 Log.info("[MindTheIndustry] MindTheIndustry map detected, run rules applied.");
+            }else if(serverController != null){
+                //leaving an MTI map: restore the campaign's unlocked flags
+                serverController.session.restoreUnlocks();
             }
         });
 

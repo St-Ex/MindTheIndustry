@@ -1,6 +1,7 @@
 package mindtheindustry.content;
 
 import mindustry.content.*;
+import mindustry.ctype.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.type.*;
@@ -9,6 +10,7 @@ import arc.*;
 import org.junit.jupiter.api.*;
 
 import mindtheindustry.MindTheIndustryMod;
+import mindtheindustry.core.*;
 
 import static mindustry.Vars.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -77,5 +79,20 @@ class PlanetPlayEventTest extends mindtheindustry.HeadlessMindTheIndustryTest{
 
         Block battery = content.block("battery");
         assertFalse(battery.unlockedNowHost(), "batteries must stay locked: battery");
+
+        //MTI unlocks must not leak into the campaign: no write to global settings
+        assertFalse(Core.settings.getBool("duo-unlocked", false), "MTI unlocks must not be persisted to global settings");
+
+        //reverse direction: content unlocked in the campaign must NOT show on MTI
+        UnlockableContent meltdown = content.block("meltdown");
+        UnlockFlags.set(meltdown, true); //simulate campaign progress (in-memory)
+        Events.fire(new WorldLoadEvent()); //still on the MTI map → isolate
+        assertFalse(meltdown.unlocked(), "campaign-unlocked content must be hidden on MTI");
+        assertTrue(duo.unlocked(), "starter must stay unlocked on MTI");
+
+        //leaving the MTI map restores the campaign's unlocked flags
+        state.rules = new Rules(); //sector == null → not an MTI map
+        Events.fire(new WorldLoadEvent());
+        assertTrue(meltdown.unlocked(), "campaign unlocks must be restored when leaving MTI");
     }
 }

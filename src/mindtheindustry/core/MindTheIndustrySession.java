@@ -216,15 +216,51 @@ public class MindTheIndustrySession{
 
     // --- Unlock management ---
 
-    /** Unlocks content for the WHOLE group. */
+    /** Snapshot of in-memory unlocked flags taken when entering an MTI map (for restoreUnlocks). */
+    private final ObjectMap<UnlockableContent, Boolean> savedUnlockFlags = new ObjectMap<>();
+
+    /**
+     * Unlocks content for the WHOLE group. Sets only the in-memory flag (NOT
+     * Core.settings, so MTI unlocks never leak into the campaign); the UnlockEvent
+     * fired here is broadcast to clients by the engine (Call.researched), and
+     * rules.researched carries the unlock for client build menus.
+     */
     public void unlockForGroup(UnlockableContent content){
         if(groupUnlocks.add(content)){
-            //unlock() sets the host-side flag the build menu reads in campaign, and its
-            //UnlockEvent is broadcast to clients (Call.researched) by the engine
-            content.unlock();
+            UnlockFlags.set(content, true);
+            content.onUnlock();
+            arc.Events.fire(new UnlockEvent(content));
             state.rules.researched.add(content);
             Log.info("[MindTheIndustry] Unlocked for the group: " + content.name);
         }
+    }
+
+    /**
+     * MTI map loaded: hide every content that is not unlocked for the group, even if it
+     * was unlocked in the campaign (the host build menu reads the in-memory 'unlocked'
+     * flag). In-memory only — Core.settings is never written, so campaign progress on
+     * disk is untouched. Call on the server only.
+     */
+    public void isolateUnlocks(){
+        savedUnlockFlags.clear();
+        for(ContentType type : ContentType.all){
+            for(Content c : content.getBy(type)){
+                if(c instanceof UnlockableContent u && !u.alwaysUnlocked){
+                    savedUnlockFlags.put(u, UnlockFlags.get(u));
+                    if(!groupUnlocks.contains(u)){
+                        UnlockFlags.set(u, false);
+                    }
+                }
+            }
+        }
+    }
+
+    /** Restores the unlocked flags snapshot taken by isolateUnlocks (when leaving an MTI map). */
+    public void restoreUnlocks(){
+        for(ObjectMap.Entry<UnlockableContent, Boolean> e : savedUnlockFlags.entries()){
+            UnlockFlags.set(e.key, e.value);
+        }
+        savedUnlockFlags.clear();
     }
 
     /** Checks whether content is unlocked for the group. */
