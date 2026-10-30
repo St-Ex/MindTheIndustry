@@ -28,19 +28,19 @@ A Mindustry mod that adds a cooperative roguelike mode. After each successful wa
 
 ## Playing
 
-Type `/rogue start` in the chat to begin a run. After each wave, a dialog shows your 3 reward choices — pick one, and the next wave starts once everyone has voted.
+Type `/mindtheindustry start` in the chat to begin a run. After each wave, a dialog shows your 3 reward choices — pick one, and the next wave starts once everyone has voted.
 
 | Command | Description |
 | --- | --- |
-| `/rogue start` | Start a run (commander selection first) |
-| `/rogue stop` | Stop the current run |
-| `/rogue skip` | Force the next wave |
-| `/rogue status` | Show run state (wave, seed, active/inactive) |
-| `/rogue commanders` | List unlocked commanders |
-| `/rogue unlock-all` | Unlock all commanders (debug) |
-| `/rogue vote <index>` | Vote for a commander |
-| `/rogue reward <index>` | Pick a reward |
-| `/rogue active <entityId> <isBuilding> <playerName\|none>` | Set the active player for an entity |
+| `/mindtheindustry start` | Start a run (commander selection first) |
+| `/mindtheindustry stop` | Stop the current run |
+| `/mindtheindustry skip` | Force the next wave |
+| `/mindtheindustry status` | Show run state (wave, seed, active/inactive) |
+| `/mindtheindustry commanders` | List unlocked commanders |
+| `/mindtheindustry unlock-all` | Unlock all commanders (debug) |
+| `/mindtheindustry vote <index>` | Vote for a commander |
+| `/mindtheindustry reward <index>` | Pick a reward |
+| `/mindtheindustry active <entityId> <isBuilding> <playerName\|none>` | Set the active player for an entity |
 
 ## Development
 

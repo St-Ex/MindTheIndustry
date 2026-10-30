@@ -28,7 +28,7 @@ mise exec -- ./gradlew test
 ## Test harness (mandatory)
 
 - Tests live in `tests/` (Gradle `test` sourceSet), JUnit 5.
-- `tests/rogueindustry/HeadlessRogueTest.java` boots Mindustry **headless** (no UI, no rendering), once per test JVM. Every game-logic test class extends it.
+- `tests/mindtheindustryindustry/HeadlessMindTheIndustryTest.java` boots Mindustry **headless** (no UI, no rendering), once per test JVM. Every game-logic test class extends it.
 - **Do not validate a change by launching the game manually**: write a headless test.
 - Test rules:
   - Deterministic: fixed seed (`new Rand(42)`, `session.start(42)`).
@@ -37,7 +37,7 @@ mise exec -- ./gradlew test
 
 ## Architecture rules
 
-- **Game logic must not depend on `arc.scene`.** The `ui/` folder consumes game state (`RogueSession`, controllers); it does not contain it. Any mechanic (reward, modifier, synergy, wave) must exist and be testable without a UI.
+- **Game logic must not depend on `arc.scene`.** The `ui/` folder consumes game state (`MindTheIndustrySession`, controllers); it does not contain it. Any mechanic (reward, modifier, synergy, wave) must exist and be testable without a UI.
 - No purely visual content without a gameplay counterpart (no "just a render").
 - The UI (`ui/`) is not testable headless: test what it displays (state, schematics, serialized content), not pixels.
 

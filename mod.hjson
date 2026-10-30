@@ -8,7 +8,7 @@ name: "mindtheindustry"
 author: "stex"
 
 #the fully qualified main class of the mod
-main: "rogueindustry.RogueIndustryMod"
+main: "mindtheindustry.MindTheIndustryMod"
 
 #the mod description as seen in the mod dialog
 description: "Rogue-like mode for Mindustry. After each successful wave, choose random bonuses: buildings, units, upgrades. Designed for co-op multiplayer."

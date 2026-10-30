@@ -14,10 +14,10 @@ replace its entry. The history of past decisions lives in the git log, not here.
 
 ## Architecture & branding
 
-- **Player-facing name is `MindTheIndustry`**; internal identifiers stay as-is: package `rogueindustry`, class `RogueIndustryMod`, `/rogue` command. (Renaming internals has no player-visible value — revisit only if it becomes painful.)
+- **Everything is named after the mod**: display name, mod id, package `mindtheindustry`, main class `MindTheIndustryMod`, `/mindtheindustry` command. "Rogue-like" survives only as the genre word in prose.
 - **Game logic never depends on `arc.scene`.** The `ui/` layer only renders state; every mechanic (reward, modifier, synergy, wave) must exist and be testable without a UI. No purely visual content without a gameplay counterpart.
 - **Deterministic, seeded logic**: the run seed drives reward generation and all network-synced randomness, so server and clients stay in sync; tests use fixed seeds (`new Rand(42)`, `session.start(42)`).
 
 ## Validation
 
-- **Headless tests only** — never validate a change by launching the game manually from an agent. Tests live in `tests/` (JUnit 5) and boot Mindustry headless once per JVM via `HeadlessRogueTest`.
+- **Headless tests only** — never validate a change by launching the game manually from an agent. Tests live in `tests/` (JUnit 5) and boot Mindustry headless once per JVM via `HeadlessMindTheIndustryTest`.

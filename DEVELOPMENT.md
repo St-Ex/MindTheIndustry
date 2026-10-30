@@ -37,7 +37,7 @@ mise exec -- ./gradlew test
 ```
 
 The tests in `tests/` boot Mindustry without a UI (headless mode, see
-`tests/rogueindustry/HeadlessRogueTest.java`) and cover the game logic:
+`tests/mindtheindustryindustry/HeadlessMindTheIndustryTest.java`) and cover the game logic:
 session, reward generation (seed determinism), network serialization,
 schematics. Rules and conventions: see `AGENTS.md`.
 
@@ -49,26 +49,26 @@ schematics. Rules and conventions: see `AGENTS.md`.
    - Or launch Mindustry with the JAR as an argument
 3. Launch Mindustry, enable the mod in the Mods menu
 4. Host a solo or multiplayer game
-5. In the chat, type `/rogue start` to start a run
+5. In the chat, type `/mindtheindustry start` to start a run
 
 ### In-game commands
 
 | Command | Description |
 |----------|-------------|
-| `/rogue start` | Starts a rogue-like run |
-| `/rogue stop` | Stops the current run |
-| `/rogue skip` | Forces the next wave (kills all enemies) |
-| `/rogue status` | Shows the run state (wave, seed, active/inactive) |
+| `/mindtheindustry start` | Starts a rogue-like run |
+| `/mindtheindustry stop` | Stops the current run |
+| `/mindtheindustry skip` | Forces the next wave (kills all enemies) |
+| `/mindtheindustry status` | Shows the run state (wave, seed, active/inactive) |
 
 ## Architecture
 
 ```
-src/rogueindustry/
-├── RogueIndustryMod.java          # Entry point, commands, init
+src/mindtheindustryindustry/
+├── MindTheIndustryMod.java          # Entry point, commands, init
 ├── core/
-│   ├── RogueSession.java          # Server state: unlocks, bonuses, modifiers
-│   ├── ServerRogueController.java # Server orchestration (waves, votes)
-│   ├── ClientRogueController.java # Client orchestration (choices, votes)
+│   ├── MindTheIndustrySession.java          # Server state: unlocks, bonuses, modifiers
+│   ├── ServerMindTheIndustryController.java # Server orchestration (waves, votes)
+│   ├── ClientMindTheIndustryController.java # Client orchestration (choices, votes)
 │   └── RewardGenerator.java       # Generates the 3 choices per player
 ├── rewards/
 │   ├── Reward.java                # Abstract class
@@ -85,7 +85,7 @@ src/rogueindustry/
 │   ├── GlobalModifier.java        # Global modifier
 │   └── GlobalModifierRegistry.java # Modifier registry
 ├── net/
-│   └── RoguePackets.java          # All network packets
+│   └── MindTheIndustryPackets.java          # All network packets
 └── ui/
     └── RewardDialog.java          # Choice dialog (3 cards)
 ```
@@ -104,7 +104,7 @@ src/rogueindustry/
 
 - [ ] Phase 2: Implement SchematicReward (random schematic generation)
 - [ ] Phase 2: Implement UnitBonusReward (apply to existing + future units)
-- [ ] Phase 3: RogueHUD (wave display, modifiers, bonuses)
+- [ ] Phase 3: MindTheIndustryHUD (wave display, modifiers, bonuses)
 - [ ] Phase 3: Meta-progression between runs
 - [ ] Phase 3: Difficulty curve balancing
 - [ ] Phase 3: Custom content (mode-specific buildings/units)
