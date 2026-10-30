@@ -35,12 +35,21 @@ working identically in solo and multiplayer).
 
 ### Requirement: reward choice after each wave
 After each cleared wave, the system SHALL offer every player 3 random reward
-choices (announced in chat with indices); the next wave SHALL start only once
-every player has picked (`/mindtheindustry reward <index>`).
+choices, shown as clickable icons in a HUD box (hover = description, click =
+vote via `RewardVotePacket`; also announced in chat as a text fallback); the
+next wave SHALL start only once every player has picked.
 
 #### Scenario: choices are seeded
 - WHEN a run is started with a seed THEN the reward choices are identical on
-  the server and on all clients
+  the server and on all clients (sent S→C via `RewardChoicesPacket`,
+  serialized with `Reward.write`/`read`)
+
+#### Scenario: pick a reward from the HUD
+- WHEN the choice box is visible and a player clicks icon i THEN a
+  `RewardVotePacket(i)` is sent to the server and the server applies choice i
+- WHEN a player has voted THEN their choice box SHALL hide immediately
+- WHEN all players have voted THEN an empty `RewardChoicesPacket` SHALL clear
+  every remaining box
 
 ### Requirement: reward categories
 Each of the 3 choices SHALL be exactly one of:

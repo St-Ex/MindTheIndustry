@@ -28,18 +28,18 @@ mise exec -- ./gradlew test
 ## Test harness (mandatory)
 
 - Tests live in `tests/` (Gradle `test` sourceSet), JUnit 5.
-- `tests/mindtheindustryindustry/HeadlessMindTheIndustryTest.java` boots Mindustry **headless** (no UI, no rendering), once per test JVM. Every game-logic test class extends it.
+- `tests/mindtheindustry/HeadlessMindTheIndustryTest.java` boots Mindustry **headless** (no UI, no rendering), once per test JVM. Every game-logic test class extends it.
 - **Do not validate a change by launching the game manually**: write a headless test.
 - Test rules:
   - Deterministic: fixed seed (`new Rand(42)`, `session.start(42)`).
   - Independent: if a test touches `Vars.state.rules`, do `state.rules = new Rules()` at the start of the test (global state shared between tests).
-  - Cover game logic: `core/`, `rewards/`, `modifiers/`, `meta/`.
+  - Cover game logic: `core/`, `rewards/`, `modifiers/`, `meta/`, `client/`, `net/` serialization. UI (`ui/`) is not headless-testable.
 
 ## Architecture rules
 
-- **Game logic must not depend on `arc.scene`.** All interaction is chat + server commands; any mechanic (reward, modifier, wave) must exist and be testable without a UI.
+- **Game logic must not depend on `arc.scene`.** The `ui/` layer only renders client state (`ClientRewardState`) and sends intents (vote packets); every mechanic (reward, modifier, wave) lives in `core/` and must be testable without a UI.
 - No purely visual content without a gameplay counterpart (no "just a render").
-- There is no `ui/` layer: rewards and choices are announced in chat and serialized via `rewards/Reward.write`/`read`.
+- Run control is the server-side `/mindtheindustry` command (works in solo and multi); reward picking is the HUD box (`ui/RewardChoicePanel`) fed by `RewardChoicesPacket`.
 
 ## Intent tracking (openspec)
 

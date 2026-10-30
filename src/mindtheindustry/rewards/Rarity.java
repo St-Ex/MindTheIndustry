@@ -1,5 +1,6 @@
 package mindtheindustry.rewards;
 
+import arc.graphics.*;
 import arc.math.*;
 
 /**
@@ -9,18 +10,22 @@ import arc.math.*;
  * NORMAL (grey) x1, RARE (blue) x2, EPIC (violet) x4.
  */
 public enum Rarity{
-    NORMAL("[#9d9d9d]", 1),
-    RARE("[#4d7dff]", 2),
-    EPIC("[#a64dff]", 4);
+    NORMAL("[#9d9d9d]", Color.valueOf("9d9d9d"), 1),
+    RARE("[#4d7dff]", Color.valueOf("4d7dff"), 2),
+    EPIC("[#a64dff]", Color.valueOf("a64dff"), 4);
 
     /** Chat color markup prefix used in display names/descriptions. */
     public final String color;
 
+    /** Solid color for UI elements (icon borders, rarity bars). */
+    public final Color hex;
+
     /** Magnitude multiplier applied to the reward (x1 / x2 / x4). */
     public final int multiplier;
 
-    Rarity(String color, int multiplier){
+    Rarity(String color, Color hex, int multiplier){
         this.color = color;
+        this.hex = hex;
         this.multiplier = multiplier;
     }
 

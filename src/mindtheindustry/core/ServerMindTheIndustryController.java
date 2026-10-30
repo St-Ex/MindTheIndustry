@@ -6,6 +6,7 @@ import arc.util.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindtheindustry.meta.*;
+import mindtheindustry.net.*;
 import mindtheindustry.rewards.*;
 
 import static mindustry.Vars.*;
@@ -16,13 +17,14 @@ import static mindustry.Vars.*;
  * Responsibilities:
  * - Start/stop a run
  * - Detect the end of a wave (all enemies killed)
- * - Generate reward choices for each player and announce them in chat
- * - Receive player votes via /mindtheindustry and apply the rewards
+ * - Generate reward choices for each player, announce them in chat and send
+ *   them to each client for the HUD choice box (RewardChoicesPacket)
+ * - Receive player votes (RewardVotePacket from the HUD) and apply the rewards
  * - Manage wave progression
  *
  * This controller only exists server-side (in solo, the local player is also
- * the server). All player interaction goes through chat + server commands, so
- * no custom UI packets are needed.
+ * the server, so ServerLoadEvent fires there too). Run control goes through
+ * the /mindtheindustry server command; reward picking goes through the HUD box.
  */
 public class ServerMindTheIndustryController{
 
@@ -252,8 +254,8 @@ public class ServerMindTheIndustryController{
 
     /**
      * Called when a wave is complete (all enemies killed).
-     * Announces 3 reward choices per player in chat;
-     * players vote with /mindtheindustry reward <index> [targetPlayer|none].
+     * Announces 3 reward choices per player in chat and sends them to each
+     * client so the HUD choice box shows them; players click an icon to vote.
      */
     void onWaveComplete(){
         Log.info("[MindTheIndustry] Wave " + session.wave + " complete!");
@@ -270,6 +272,7 @@ public class ServerMindTheIndustryController{
 
             Seq<Reward> choices = generator.generateChoices(session, player, session.wave);
             pendingChoices.put(player, choices);
+            sendChoices(player, choices);
 
             StringBuilder sb = new StringBuilder("[accent]Wave " + session.wave + " complete! Choose a reward:");
             for(int i = 0; i < choices.size; i++){
@@ -277,13 +280,28 @@ public class ServerMindTheIndustryController{
                 sb.append("\n  [yellow][").append(i).append("] [white]").append(r.displayName)
                   .append(" [gray]- ").append(r.description);
             }
-            sb.append("\n[gray]Vote with: [white]/mindtheindustry reward <index>");
             notify(player, sb.toString());
         }
     }
 
+    /** Sends a player their reward choices for the HUD box (null con = headless test). */
+    private void sendChoices(Player player, Seq<Reward> choices){
+        if(player.con != null){
+            player.con.send(new MindTheIndustryPackets.RewardChoicesPacket(session.wave, choices), true);
+        }
+    }
+
+    /** Clears the reward choice box on every client. */
+    private void clearChoices(){
+        for(Player p : Groups.player){
+            if(p.con != null){
+                p.con.send(new MindTheIndustryPackets.RewardChoicesPacket(session.wave, new Seq<>()), true);
+            }
+        }
+    }
+
     /**
-     * Processes a player's reward vote (called via /mindtheindustry reward <index> [target]).
+     * Processes a player's reward vote (called via RewardVotePacket from the HUD choice box).
      */
     public void handleRewardVote(Player player, int choiceIndex, Player target){
         handleVote(player, choiceIndex, target);
@@ -328,6 +346,7 @@ public class ServerMindTheIndustryController{
 
         // Remove the pending choices for this player
         pendingChoices.remove(player);
+        sendChoices(player, new Seq<>()); // hide the voter's choice box
         votes.put(player, choiceIndex);
 
         // Apply the reward
@@ -353,6 +372,7 @@ public class ServerMindTheIndustryController{
             // Everyone voted, resume the game and start the next wave
             waitingForVotes = false;
             startWave();
+            clearChoices();
 
             // Re-enable all buildings
             for(Building b : Groups.build){
@@ -389,6 +409,7 @@ public class ServerMindTheIndustryController{
         votes.clear();
         pendingCommanderChoices.clear();
         commanderVotes.clear();
+        clearChoices();
         state.rules.waveTimer = true;
         // Re-enable all buildings
         for(Building b : Groups.build){

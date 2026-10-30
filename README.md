@@ -29,7 +29,7 @@ A Mindustry mod that adds a cooperative roguelike mode. After each successful wa
 1. Open **New Game** and pick the **MTI** planet (a small moon of Serpulo, next to Serpulo/Erekir). It has a single sector and uses Serpulo's technology tree.
 2. Launch its sector: the run map is based on the vanilla **labyrinth** map, and the roguelike run **auto-starts** (commander selection first).
 3. Each player gets 3 commander choices in chat — vote with `/mindtheindustry vote <index>`.
-4. After each cleared wave, each player gets 3 reward choices in chat (trade-off / plan / resource gift, with a rarity) — pick with `/mindtheindustry reward <index>`. The next wave starts once everyone has voted.
+4. After each cleared wave, a box appears at the top of the HUD with 3 reward icons (trade-off / plan / resource gift, rarity shown as a colored bar). Hover an icon to read what it does, click it to pick it. The choices are also listed in chat. The next wave starts once everyone has picked.
 
 You can also start a run on any other map with `/mindtheindustry start`.
 
@@ -42,7 +42,6 @@ You can also start a run on any other map with `/mindtheindustry start`.
 | `/mindtheindustry commanders` | List unlocked commanders |
 | `/mindtheindustry unlock-all` | Unlock all commanders (debug) |
 | `/mindtheindustry vote <index>` | Vote for a commander |
-| `/mindtheindustry reward <index>` | Pick one of the 3 post-wave rewards |
 | `/mindtheindustry active <entityId> <isBuilding> <playerName\|none>` | Set the active player for an entity |
 
 ## Development
