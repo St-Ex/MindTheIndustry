@@ -8,7 +8,7 @@ A Mindustry mod that adds a cooperative roguelike mode. After each successful wa
 
 ## Features
 
-- **Reward choices after each wave** — each player gets 3 random options, each with a rarity (normal grey / rare blue / epic violet, x1 / x2 / x4 magnitude):
+- **Reward choices after each wave** — each player gets exactly one of each category, in a shuffled order, each with a rarity (normal grey / rare blue / epic violet, x1 / x2 / x4 magnitude):
   - **Trade-off**: +X% on one stat, −X% on another (always a trade, X = 10% × rarity)
   - **Plan**: unlocks 1/2/4 building or unit plans for the whole group
   - **Resource gift**: a quantity of one or more resources delivered to the team cores (quantity × rarity)

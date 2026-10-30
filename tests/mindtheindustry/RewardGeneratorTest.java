@@ -81,6 +81,28 @@ class RewardGeneratorTest extends HeadlessMindTheIndustryTest{
     }
 
     @Test
+    void alwaysOneOfEachCategory(){
+        MindTheIndustrySession session = newSession(42);
+        RewardGenerator gen = new RewardGenerator(session.rand);
+
+        for(int wave = 1; wave <= 20; wave++){
+            Seq<Reward> choices = gen.generateChoices(session, null, wave);
+            assertEquals(3, choices.size);
+            int tradeoffs = 0, plans = 0, resources = 0;
+            for(Reward r : choices){
+                switch(r.type){
+                    case TRADEOFF -> tradeoffs++;
+                    case PLAN -> plans++;
+                    case RESOURCE -> resources++;
+                }
+            }
+            assertEquals(1, tradeoffs, "exactly one trade-off per wave (wave " + wave + ")");
+            assertEquals(1, plans, "exactly one plan per wave (wave " + wave + ")");
+            assertEquals(1, resources, "exactly one resource gift per wave (wave " + wave + ")");
+        }
+    }
+
+    @Test
     void allCategoriesAndRaritiesEventuallyAppear(){
         MindTheIndustrySession session = newSession(42);
         RewardGenerator gen = new RewardGenerator(session.rand);

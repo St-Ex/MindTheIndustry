@@ -52,7 +52,8 @@ next wave SHALL start only once every player has picked.
   every remaining box
 
 ### Requirement: reward categories
-Each of the 3 choices SHALL be exactly one of:
+The 3 choices SHALL always be exactly one of each category (order shuffled per
+wave, seeded):
 - **TRADEOFF** — +X% on one stat and −X% on another (two distinct stats from
   `GlobalModifierRegistry`), applied to the whole group
 - **PLAN** — unlocks building/unit plans for the whole group

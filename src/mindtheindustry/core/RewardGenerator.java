@@ -13,14 +13,14 @@ import mindtheindustry.rewards.rewards.*;
 import static mindustry.Vars.*;
 
 /**
- * Generates the 3 reward choices offered to a player after each wave.
+ * Generates the 3 reward choices offered to a player after each wave:
+ * always exactly one TRADEOFF, one PLAN and one RESOURCE (order shuffled).
  *
- * Each choice is one of three categories (uniform roll):
  * - TRADEOFF: +X% on one stat, -X% on another (two distinct stats)
  * - PLAN: unlocks 1 building/unit plan(s) for the whole group
  * - RESOURCE: a gift of resources delivered to the team cores
  *
- * Each choice also rolls a rarity (NORMAL x1 / RARE x2 / EPIC x4, weighted) that
+ * Each choice rolls a rarity (NORMAL x1 / RARE x2 / EPIC x4, weighted) that
  * multiplies its magnitude: trade-off percentage, number of plans, resource
  * quantity.
  *
@@ -144,27 +144,20 @@ public class RewardGenerator{
         Seq<Reward> choices = new Seq<>(3);
         // content already offered in this round must not appear twice
         ObjectSet<String> offered = new ObjectSet<>();
-        for(int i = 0; i < 3; i++){
-            choices.add(generateChoice(session, offered));
+
+        // Always exactly one of each category; rarity rolled per choice.
+        // If the plan pool is exhausted, fall back to a second resource gift.
+        Reward plan = generatePlan(session, Rarity.roll(rand), offered);
+        choices.add(generateTradeoff(Rarity.roll(rand)));
+        choices.add(plan != null ? plan : generateResource(Rarity.roll(rand)));
+        choices.add(generateResource(Rarity.roll(rand)));
+
+        // Shuffle so the category order varies per wave (seeded → deterministic)
+        for(int i = choices.size - 1; i > 0; i--){
+            int j = rand.random(i);
+            choices.swap(i, j);
         }
         return choices;
-    }
-
-    /** Generates one reward: random category x rolled rarity. */
-    private Reward generateChoice(MindTheIndustrySession session, ObjectSet<String> offered){
-        RewardType[] types = RewardType.values();
-        RewardType type = types[rand.random(types.length - 1)];
-        Rarity rarity = Rarity.roll(rand);
-
-        return switch(type){
-            case TRADEOFF -> generateTradeoff(rarity);
-            case PLAN -> {
-                Reward plan = generatePlan(session, rarity, offered);
-                // Pool exhausted → fall back to a resource gift of the same rarity
-                yield plan != null ? plan : generateResource(rarity);
-            }
-            case RESOURCE -> generateResource(rarity);
-        };
     }
 
     /** Trade-off: +X% on one stat, -X% on another (X = tradeoffBase x rarity). */
