@@ -5,92 +5,92 @@ import arc.util.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.mod.*;
-import mindustry.ui.dialogs.*;
+import mindtheindustry.content.*;
 import mindtheindustry.core.*;
 import mindtheindustry.meta.*;
 import mindtheindustry.net.*;
 
+import static mindustry.Vars.*;
+
 /**
  * MindTheIndustry mod - Rogue-like mode for Mindustry co-op.
  *
- * After each completed wave, each player receives 3 random reward choices:
- * - Buildings unlocked for the whole group
- * - Schematics unlocked for a single player
- * - Unit bonuses targeted at a player of your choice
- * - Global modifiers for everyone
- * - Conditional synergies
+ * Entry point: the "MindTheIndustry" planet in the New Game menu. Launching it
+ * procedurally generates a fresh map (native campaign generator, new seed per
+ * run) and auto-starts the run.
+ *
+ * In-game control: the server-side /mindtheindustry command (works identically
+ * in solo and multiplayer). After each completed wave, each player gets 3
+ * random reward choices in chat and picks with /mindtheindustry reward <index>.
  */
 public class MindTheIndustryMod extends Mod{
 
-    /** Server controller (null on pure client). */
+    /** Server controller (null on a pure client). */
     public static ServerMindTheIndustryController serverController;
-
-    /** Client controller. */
-    public static ClientMindTheIndustryController clientController;
 
     /** Server session (alias for quick access). */
     public static MindTheIndustrySession serverSession;
 
-    /** Client session (alias for quick access). */
-    public static MindTheIndustrySession clientSession;
-
-    /** If true, rogue mode starts automatically when a game starts. */
-    public static boolean autoStartMindTheIndustry = false;
-
     public MindTheIndustryMod(){
         Log.info("[MindTheIndustry] Mod loaded.");
 
-        // Register network packets
+        // Register network packets (only SchematicUnlockPacket remains: S→C data
+        // that cannot travel through chat)
         MindTheIndustryPackets.register();
         Log.info("[MindTheIndustry] Packets registered.");
 
-        // Initialize the controllers
-        clientController = new ClientMindTheIndustryController();
-        clientSession = clientController.session;
-
-        // Server-side (or solo), initialize the server controller
+        // Server-side controller
         Events.on(ServerLoadEvent.class, e -> {
             serverController = new ServerMindTheIndustryController();
             serverSession = serverController.session;
             Log.info("[MindTheIndustry] Server controller initialized (ServerLoadEvent).");
         });
 
-        // Fallback: create the controller at PlayEvent if ServerLoadEvent didn't fire (solo)
-        Events.on(mindustry.game.EventType.PlayEvent.class, e -> {
+        // Client-side meta-progression (unlocked commanders are stored locally)
+        Events.on(ClientLoadEvent.class, e -> MetaProgression.load());
+
+        // When a MindTheIndustry map loads, force run-friendly rules
+        Events.on(WorldLoadEvent.class, e -> {
+            if(MindTheIndustryPlanet.isMindTheIndustryMap()){
+                state.rules.waves = true;
+                state.rules.waveTimer = true;
+                state.rules.winWave = 0; //endless: the run ends when players stop
+                Log.info("[MindTheIndustry] MindTheIndustry map detected, run rules applied.");
+            }
+        });
+
+        // Auto-start the run when a MindTheIndustry map is played (solo + multi)
+        Events.on(PlayEvent.class, e -> {
             if(serverController == null){
                 serverController = new ServerMindTheIndustryController();
                 serverSession = serverController.session;
                 Log.info("[MindTheIndustry] Server controller initialized (PlayEvent fallback).");
             }
+            if(MindTheIndustryPlanet.isMindTheIndustryMap() && !serverController.session.active){
+                Log.info("[MindTheIndustry] Auto-starting run on MindTheIndustry map.");
+                serverController.startCommanderSelection();
+            }
         });
 
-        // Client-side, on connect
-        Events.on(ClientLoadEvent.class, e -> {
-            Log.info("[MindTheIndustry] Client loaded - ready for rogue-like mode.");
-            // Load meta-progression
-            MetaProgression.load();
-            // Initialize the active player selector
-            mindtheindustry.ui.EntityPlayerSelector.init();
-            // Initialize the HUD
-            mindtheindustry.ui.MindTheIndustryHUD.init();
-        });
-
-        // Admin command to start a run (debug)
         Events.on(ServerLoadEvent.class, e -> {
-            // Will be replaced by a real UI button later
-            Log.info("[MindTheIndustry] Use the server console: 'mindtheindustry start' to start a run");
+            Log.info("[MindTheIndustry] In-game command: /mindtheindustry [start|stop|skip|status|vote|reward|active]");
         });
     }
 
     @Override
     public void loadContent(){
-        Log.info("[MindTheIndustry] Loading content...");
-        // Custom content (buildings, units) will be added here in Phase 3
+        // Registers the MindTheIndustry planet in the New Game menu
+        new MindTheIndustryPlanet();
+        Log.info("[MindTheIndustry] MindTheIndustry planet registered (New Game menu).");
     }
 
+    /**
+     * Server-side commands. Registered on the server so they work identically
+     * in solo (integrated server) and in multiplayer (host/dedicated server).
+     */
     @Override
-    public void registerClientCommands(CommandHandler handler){
-        handler.<Player>register("mindtheindustry", "[start|stop|skip|status]", "Command for MindTheIndustry mode.", (args, player) -> {
+    public void registerServerCommands(CommandHandler handler){
+        handler.<Player>register("mindtheindustry", "[start|stop|skip|status|commanders|unlock-all|vote|reward|active]", "MindTheIndustry run control.", (args, player) -> {
             if(serverController == null){
                 player.sendMessage("[scarlet]Server controller is not initialized.");
                 return;
@@ -110,9 +110,7 @@ public class MindTheIndustryMod extends Mod{
                         player.sendMessage("[scarlet]A run is already in progress.");
                         return;
                     }
-                    // Start the commander selection flow (with a delay to let the player connect)
-                    player.sendMessage("[accent]Commander selection...");
-                    arc.util.Timer.schedule(() -> serverController.startCommanderSelection(), 0.5f);
+                    serverController.startCommanderSelection();
                 }
                 case "stop" -> {
                     if(!serverController.session.active){
@@ -150,20 +148,28 @@ public class MindTheIndustryMod extends Mod{
                         return;
                     }
                     try{
-                        int index = Integer.parseInt(args[1]);
-                        serverController.handleCommanderVote(player, index);
+                        serverController.handleCommanderVote(player, Integer.parseInt(args[1]));
                     }catch(NumberFormatException e){
                         player.sendMessage("[scarlet]Invalid index.");
                     }
                 }
                 case "reward" -> {
+                    // /mindtheindustry reward <index> [targetPlayer|none]
                     if(args.length < 2){
-                        player.sendMessage("[scarlet]Usage: /mindtheindustry reward <index>");
+                        player.sendMessage("[scarlet]Usage: /mindtheindustry reward <index> [targetPlayer|none]");
                         return;
                     }
                     try{
                         int index = Integer.parseInt(args[1]);
-                        serverController.handleRewardVote(player, index);
+                        Player target = player; //default: the voter themselves
+                        if(args.length >= 3 && !args[2].equalsIgnoreCase("none")){
+                            target = Groups.player.find(p -> p.name != null && p.name.toLowerCase().contains(args[2].toLowerCase()));
+                            if(target == null){
+                                player.sendMessage("[scarlet]Player not found: " + args[2]);
+                                return;
+                            }
+                        }
+                        serverController.handleRewardVote(player, index, target);
                     }catch(NumberFormatException e){
                         player.sendMessage("[scarlet]Invalid index.");
                     }

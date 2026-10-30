@@ -17,6 +17,8 @@ replace its entry. The history of past decisions lives in the git log, not here.
 - **Everything is named after the mod**: display name, mod id, package `mindtheindustry`, main class `MindTheIndustryMod`, `/mindtheindustry` command. "Rogue-like" survives only as the genre word in prose.
 - **Game logic never depends on `arc.scene`.** The `ui/` layer only renders state; every mechanic (reward, modifier, synergy, wave) must exist and be testable without a UI. No purely visual content without a gameplay counterpart.
 - **Deterministic, seeded logic**: the run seed drives reward generation and all network-synced randomness, so server and clients stay in sync; tests use fixed seeds (`new Rand(42)`, `session.start(42)`).
+- **Run entry point = the MindTheIndustry planet in the New Game menu.** A mod-created `Planet` (`alwaysUnlocked = true`) appears automatically in the planet menu; its start sector is bound to the vanilla **labyrinth** map via a `SectorPreset` (`default/labyrinth`), and launching it auto-starts the run (`PlayEvent`). The old in-game UI (HUD buttons, dialogs) is removed — control is exclusively the server-registered `/mindtheindustry` command + chat messages, which work identically in solo and multiplayer. The planet also carries a procedural generator (`SerpuloPlanetGenerator` subclass, random `seedOffset` per launch) for any sector without a preset.
+- **Backlog flag**: build a dedicated run map with the map editor later (instead of reusing labyrinth).
 
 ## Validation
 

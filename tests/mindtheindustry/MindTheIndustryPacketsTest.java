@@ -1,21 +1,19 @@
 package mindtheindustry;
 
-import arc.struct.*;
 import arc.util.io.*;
-import mindustry.game.*;
 import mindustry.net.*;
 import org.junit.jupiter.api.*;
-import mindtheindustry.core.*;
 import mindtheindustry.net.MindTheIndustryPackets.*;
-import mindtheindustry.rewards.*;
 
 import java.io.*;
 import java.util.function.*;
 
-import static mindustry.Vars.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests for custom network packet serialization (round-trip write → read). */
+/**
+ * Tests for custom network packet serialization (round-trip write → read).
+ * Only SchematicUnlockPacket remains: everything else travels through chat + commands.
+ */
 class MindTheIndustryPacketsTest extends HeadlessMindTheIndustryTest{
 
     /** Serializes then deserializes a packet. */
@@ -28,105 +26,26 @@ class MindTheIndustryPacketsTest extends HeadlessMindTheIndustryTest{
     }
 
     @Test
-    void rogueStartPacketRoundTrip(){
-        StartPacket p = new StartPacket();
-        p.seed = 123456789012345L;
-        p.wave = 7;
+    void schematicUnlockPacketRoundTrip(){
+        SchematicUnlockPacket p = new SchematicUnlockPacket();
+        p.schematicName = "fortress";
+        p.schematicData = "bXN0cmluZy1kYXRhLXdpdGgtc3BlY2lhbC1jaGFycyE=";
 
-        StartPacket back = roundTrip(p, StartPacket::new);
+        SchematicUnlockPacket back = roundTrip(p, SchematicUnlockPacket::new);
 
-        assertEquals(p.seed, back.seed);
-        assertEquals(p.wave, back.wave);
+        assertEquals("fortress", back.schematicName);
+        assertEquals(p.schematicData, back.schematicData);
     }
 
     @Test
-    void rewardAppliedPacketRoundTrip(){
-        RewardAppliedPacket p = new RewardAppliedPacket();
-        p.playerName = "alice";
-        p.rewardName = "Salvo";
-        p.rewardType = "BUILDING";
-        p.targetName = null;
+    void schematicUnlockPacketRoundTripEmptyData(){
+        SchematicUnlockPacket p = new SchematicUnlockPacket();
+        p.schematicName = "empty";
+        p.schematicData = "";
 
-        RewardAppliedPacket back = roundTrip(p, RewardAppliedPacket::new);
+        SchematicUnlockPacket back = roundTrip(p, SchematicUnlockPacket::new);
 
-        assertEquals("alice", back.playerName);
-        assertEquals("Salvo", back.rewardName);
-        assertEquals("BUILDING", back.rewardType);
-        assertNull(back.targetName, "a null targetName must survive (encoded as empty string)");
-    }
-
-    @Test
-    void rogueStatePacketRoundTrip(){
-        StatePacket p = new StatePacket();
-        p.seed = 42;
-        p.wave = 3;
-        p.groupUnlocks = Seq.with("duo", "hail");
-        p.globalModifiers = Seq.with("build_speed");
-
-        StatePacket back = roundTrip(p, StatePacket::new);
-
-        assertEquals(42, back.seed);
-        assertEquals(3, back.wave);
-        assertEquals(Seq.with("duo", "hail"), back.groupUnlocks);
-        assertEquals(Seq.with("build_speed"), back.globalModifiers);
-    }
-
-    @Test
-    void setActivePlayerPacketRoundTrip(){
-        SetActivePlayerPacket p = new SetActivePlayerPacket();
-        p.entityIds = new int[]{1, 2, 3};
-        p.isBuilding = true;
-        p.playerId = 5;
-
-        SetActivePlayerPacket back = roundTrip(p, SetActivePlayerPacket::new);
-
-        assertArrayEquals(new int[]{1, 2, 3}, back.entityIds);
-        assertTrue(back.isBuilding);
-        assertEquals(5, back.playerId);
-    }
-
-    @Test
-    void rewardVotePacketRoundTrip(){
-        RewardVotePacket p = new RewardVotePacket();
-        p.choiceIndex = 2;
-        p.targetPlayerId = -1;
-
-        RewardVotePacket back = roundTrip(p, RewardVotePacket::new);
-
-        assertEquals(2, back.choiceIndex);
-        assertEquals(-1, back.targetPlayerId);
-    }
-
-    @Test
-    void commanderChoicesPacketRoundTrip(){
-        CommanderChoicesPacket p = new CommanderChoicesPacket();
-        p.commanderIds = new String[]{"warrior", "mage"};
-
-        CommanderChoicesPacket back = roundTrip(p, CommanderChoicesPacket::new);
-
-        assertArrayEquals(new String[]{"warrior", "mage"}, back.commanderIds);
-    }
-
-    @Test
-    void rewardChoicesPacketRoundTrip(){
-        state.rules = new Rules();
-        MindTheIndustrySession session = new MindTheIndustrySession();
-        session.start(42);
-        RewardGenerator gen = new RewardGenerator(session.rand);
-        Seq<Reward> choices = gen.generateChoices(session, null, 3);
-
-        RewardChoicesPacket p = new RewardChoicesPacket();
-        p.wave = 3;
-        p.choices = choices;
-
-        RewardChoicesPacket back = roundTrip(p, RewardChoicesPacket::new);
-
-        assertEquals(3, back.wave);
-        assertEquals(choices.size, back.choices.size);
-        for(int i = 0; i < choices.size; i++){
-            assertEquals(choices.get(i).id, back.choices.get(i).id);
-            assertEquals(choices.get(i).type, back.choices.get(i).type);
-            assertEquals(choices.get(i).displayName, back.choices.get(i).displayName);
-        }
+        assertEquals("empty", back.schematicName);
+        assertEquals("", back.schematicData);
     }
 }

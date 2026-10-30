@@ -28,7 +28,12 @@ A Mindustry mod that adds a cooperative roguelike mode. After each successful wa
 
 ## Playing
 
-Type `/mindtheindustry start` in the chat to begin a run. After each wave, a dialog shows your 3 reward choices — pick one, and the next wave starts once everyone has voted.
+1. Open **New Game** and pick the **MindTheIndustry** planet (it appears next to Serpulo/Erekir).
+2. Launch its sector: the run map is based on the vanilla **labyrinth** map, and the roguelike run **auto-starts** (commander selection first).
+3. Each player gets 3 commander choices in chat — vote with `/mindtheindustry vote <index>`.
+4. After each cleared wave, each player gets 3 reward choices in chat — pick with `/mindtheindustry reward <index> [targetPlayer|none]`. The next wave starts once everyone has voted.
+
+You can also start a run on any other map with `/mindtheindustry start`.
 
 | Command | Description |
 | --- | --- |
@@ -39,7 +44,7 @@ Type `/mindtheindustry start` in the chat to begin a run. After each wave, a dia
 | `/mindtheindustry commanders` | List unlocked commanders |
 | `/mindtheindustry unlock-all` | Unlock all commanders (debug) |
 | `/mindtheindustry vote <index>` | Vote for a commander |
-| `/mindtheindustry reward <index>` | Pick a reward |
+| `/mindtheindustry reward <index> [targetPlayer\|none]` | Pick a reward (target for unit bonuses; defaults to yourself) |
 | `/mindtheindustry active <entityId> <isBuilding> <playerName\|none>` | Set the active player for an entity |
 
 ## Development

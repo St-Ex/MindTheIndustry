@@ -37,7 +37,7 @@ mise exec -- ./gradlew test
 ```
 
 The tests in `tests/` boot Mindustry without a UI (headless mode, see
-`tests/mindtheindustryindustry/HeadlessMindTheIndustryTest.java`) and cover the game logic:
+`tests/mindtheindustry/HeadlessMindTheIndustryTest.java`) and cover the game logic:
 session, reward generation (seed determinism), network serialization,
 schematics. Rules and conventions: see `AGENTS.md`.
 
@@ -48,47 +48,52 @@ schematics. Rules and conventions: see `AGENTS.md`.
    - Linux Steam: `~/.local/share/Steam/steamapps/compatdata/451480/pfx/drive/c/users/steamuser/AppData/Roaming/Mindustry/mods/`
    - Or launch Mindustry with the JAR as an argument
 3. Launch Mindustry, enable the mod in the Mods menu
-4. Host a solo or multiplayer game
-5. In the chat, type `/mindtheindustry start` to start a run
+4. Open **New Game**, pick the **MindTheIndustry** planet and launch its sector — the run map is based on the vanilla labyrinth map and the run auto-starts. (On any other map, `/mindtheindustry start` works too.)
 
-### In-game commands
+### In-game commands (server-side, work in solo and multiplayer)
 
 | Command | Description |
 |----------|-------------|
-| `/mindtheindustry start` | Starts a rogue-like run |
+| `/mindtheindustry start` | Starts a rogue-like run (commander selection first) |
 | `/mindtheindustry stop` | Stops the current run |
 | `/mindtheindustry skip` | Forces the next wave (kills all enemies) |
 | `/mindtheindustry status` | Shows the run state (wave, seed, active/inactive) |
+| `/mindtheindustry commanders` | Lists unlocked commanders |
+| `/mindtheindustry unlock-all` | Unlocks all commanders (debug) |
+| `/mindtheindustry vote <index>` | Votes for a commander choice |
+| `/mindtheindustry reward <index> [targetPlayer\|none]` | Picks a reward choice |
+| `/mindtheindustry active <entityId> <isBuilding> <playerName\|none>` | Sets the active player for an entity |
 
 ## Architecture
 
 ```
-src/mindtheindustryindustry/
-├── MindTheIndustryMod.java          # Entry point, commands, init
+src/mindtheindustry/
+├── MindTheIndustryMod.java          # Entry point: planet in loadContent, server commands, auto-start
+├── content/
+│   ├── MindTheIndustryPlanet.java        # New Game menu planet (alwaysUnlocked); start sector → labyrinth map
+│   └── MindTheIndustryPlanetGenerator.java # Procedural Serpulo-style generator (random seed per launch)
 ├── core/
 │   ├── MindTheIndustrySession.java          # Server state: unlocks, bonuses, modifiers
-│   ├── ServerMindTheIndustryController.java # Server orchestration (waves, votes)
-│   ├── ClientMindTheIndustryController.java # Client orchestration (choices, votes)
-│   └── RewardGenerator.java       # Generates the 3 choices per player
-├── rewards/
-│   ├── Reward.java                # Abstract class
-│   ├── RewardType.java            # BUILDING, SCHEMATIC, UNIT_BONUS, GLOBAL_MOD, SYNERGY
-│   ├── RewardSerializer.java      # Network serialization
-│   └── rewards/
-│       ├── BuildingReward.java    # Unlocks a building for EVERYONE
-│       ├── SchematicReward.java   # Unlocks a schematic for ONE player
-│       ├── UnitBonusReward.java   # Unit bonus for a TARGET player
-│       ├── GlobalModifierReward.java # Bonus for EVERYONE
-│       └── SynergyReward.java     # Conditional bonus
+│   ├── ServerMindTheIndustryController.java # Server orchestration (waves, chat votes)
+│   ├── RewardGenerator.java       # Generates the 3 choices per player
+│   └── BonusApplier.java          # Applies active-player bonuses to game stats
+├── meta/                          # Commanders + meta-progression
 ├── modifiers/
 │   ├── UnitBonus.java             # Unit bonus (damage, health, speed...)
 │   ├── GlobalModifier.java        # Global modifier
 │   └── GlobalModifierRegistry.java # Modifier registry
-├── net/
-│   └── MindTheIndustryPackets.java          # All network packets
-└── ui/
-    └── RewardDialog.java          # Choice dialog (3 cards)
+├── rewards/
+│   ├── Reward.java                # Abstract class
+│   ├── RewardType.java            # BUILDING, SCHEMATIC, UNIT_BONUS, GLOBAL_MOD, SYNERGY
+│   ├── RewardSerializer.java      # Network serialization
+│   ├── SchematicGenerator.java    # Random schematic generation
+│   └── rewards/                   # BuildingReward, SchematicReward, UnitBonusReward, ...
+└── net/
+    └── MindTheIndustryPackets.java          # Only SchematicUnlockPacket (S→C); everything else is chat + commands
 ```
+
+There is intentionally **no `ui/` package**: all player interaction goes through chat
+messages and the server-side `/mindtheindustry` command, so no custom dialogs/HUD are needed.
 
 ## Reward mechanics
 
@@ -102,12 +107,9 @@ src/mindtheindustryindustry/
 
 ## Next steps (TODO)
 
-- [ ] Phase 2: Implement SchematicReward (random schematic generation)
-- [ ] Phase 2: Implement UnitBonusReward (apply to existing + future units)
-- [ ] Phase 3: MindTheIndustryHUD (wave display, modifiers, bonuses)
-- [ ] Phase 3: Meta-progression between runs
-- [ ] Phase 3: Difficulty curve balancing
-- [ ] Phase 3: Custom content (mode-specific buildings/units)
+- [ ] Build a dedicated run map with the map editor (currently reusing the vanilla labyrinth map)
+- [ ] Difficulty curve balancing
+- [ ] Custom content (mode-specific buildings/units)
 
 ## Notes & Resources
 
