@@ -115,3 +115,4 @@ src/mindtheindustryindustry/
 - **Modding wiki**: https://mindustrygame.github.io/wiki/modding/1-modding/
 - **Mindustry v160 sources** — clone next to the project: `../Mindustry` (tag `v160`, read-only). Headless boot pattern: `../Mindustry/tests/src/test/java/ApplicationTests.java`.
 - **Mindustry v160.7** — build 160, Java 17
+- **NewHorizonMod** — full custom campaign mod (planet / sectors / tech tree), good reference if we add campaign content: https://github.com/Yuria-Shikibe/NewHorizonMod

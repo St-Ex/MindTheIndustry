@@ -53,6 +53,7 @@ mise exec -- ./gradlew test
 - **Game sources**: `../Mindustry` — clone of tag `v160` (read-only), next to this project. Engine architecture: `NetServer`, `Waves`, `Events`, `arc.scene.ui`.
 - Headless boot pattern: `../Mindustry/tests/src/test/java/ApplicationTests.java`.
 - Modding wiki: https://mindustrygame.github.io/wiki/modding/1-modding/
+- **Full custom campaign example**: [NewHorizonMod](https://github.com/Yuria-Shikibe/NewHorizonMod) — custom planet, sectors, tech tree. Reference for campaign content; clone next to the project if needed: `git clone --depth 1 https://github.com/Yuria-Shikibe/NewHorizonMod ../NewHorizonMod`.
 
 ## Git
 
