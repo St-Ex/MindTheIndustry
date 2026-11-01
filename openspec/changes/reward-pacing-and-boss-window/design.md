@@ -89,6 +89,20 @@ where unavoidable (vanilla interop).
   the final boss death goes straight to the victory screen (GG) — no break, no
   endless mode.
 
+## Playable start (protected floor)
+
+- A fresh run SHALL start with a **floor of pre-unlocked techs** — enough to
+  build basic supply and defense from wave 0 (extraction, transport, basic
+  turret class). Owner observation (Nov 2026): the current build starts with
+  the bastion only — the 5-minute initial break has nothing to build.
+- The floor is the **protected core of the standard pack** (tech-tree change,
+  M3): it never varies between runs and cannot be removed by certifications.
+- Contents: a provisional list marked "balance pass" — category coverage
+  (extraction, transport, storage, basic defense) is structural; exact nodes
+  are not to be tuned while implementing.
+- M3 formalizes the floor as data inside the named standard pack; M1 ships a
+  provisional unlock list.
+
 ## Flavor text (corporate satire tone)
 
 - The mod's voice is **corporate satire** (consulting/ESN humor: assignments,
@@ -142,3 +156,5 @@ where unavoidable (vanilla interop).
     triggers the victory state directly — no break, no wave 31 — and the
     flavor subtitle resolves from the bundle key `mti.victory.flavor`
     (canonical EN copy, no hardcoded literal in game-logic code).
+11. Playable start: a fresh run's floor of basic techs is unlocked and
+    buildable from wave 0 (deterministic; does not vary between runs).
