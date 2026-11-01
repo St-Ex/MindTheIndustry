@@ -31,24 +31,26 @@ where unavoidable (vanilla interop).
 - Relic choice (boss window) follows the same rules with a rarer pool;
   arrival of the relic choice converts any pending wave choice.
 
-## Boss window
+## Chapter structure (5 min — 9 waves — boss wave)
 
-- Trigger: chapter boss killed → ceasefire: next wave countdown frozen, no
-  spawns; the world keeps simulating (multiplayer Mindustry has no true pause).
-- During the window:
-  - **Relic choice** per player (rare/boosted pool), same one-at-a-time rules.
-  - **Trade**: exactly one exchange between two players of an **already-taken
-    reward** (its effects transfer to the receiving player); mutual confirmation.
-  - **Assignment switch**: entity active-player reassignment allowed *only* here.
-  - Pending choices convert at window open.
-- Duration: **fixed 5 min** (`windowDuration = 300s`, configurable) — long enough
-  to rebuild forces after the boss fight. Decoupled from `waveSpacing` (owner,
-  Nov 2026: waveSpacing drops to 30s, so a spacing-relative window would be
-  uselessly short).
-- Closes early when all connected players confirm ready, or when the duration
-  cap is reached → countdown resumes, next chapter.
-- The duration is a **cap, not a wait**: the ready signal closes the window
-  early; the cap only prevents an indefinite window (AFK players).
+- A **chapter** = **5-minute start break + 9 waves + 1 boss wave** (10 waves).
+- The start break IS the post-boss window — one notion, not two:
+  - Chapter 1: pure initial build time (5 min, `chapterBreakDuration = 300s`).
+  - Chapters 2+: the break opens on the previous chapter's boss death — a
+    ceasefire (`waveTimer = false`, no spawns; the world keeps simulating,
+    multiplayer Mindustry has no true pause) — and hosts the boss-window
+    features:
+    - **Relic choice** per player (rare/boosted pool), one-at-a-time rules.
+    - **Trade**: exactly one exchange between two players of an
+      **already-taken reward** (effects transfer); mutual confirmation.
+    - **Assignment switch**: entity active-player reassignment allowed *only*
+      during a break.
+    - Pending choices convert at break open.
+  - The break is a **cap, not a wait**: all-ready closes it early; the 5-minute
+    cap only bounds AFK players.
+- **Victory (GG)**: the FINAL chapter's boss death triggers the victory screen
+  directly — no break, no next chapter. Fixed chapter count
+  (`runChapters`, default 3) → `winWave = runChapters * 10` (default 30).
 
 ## Vanilla interop (verified against Mindustry v160 source)
 
@@ -74,14 +76,15 @@ where unavoidable (vanilla interop).
 - `initialWaveSpacing` is set explicitly to **300s** (5 min before wave 1):
   vanilla's `<= 0 → waveSpacing * 2` fallback would collapse to 60s with the
   30s spacing — the room for initial base building is preserved instead.
-- Chapter = 10 waves: ~5 min of countdown + combat durations (`waitEnemies = true`
-  freezes the countdown while enemies live, so combat time stacks on top and
-  **dominates** the chapter length) + boss window (5 min) → chapter length is
-  **combat-driven**, ≈ 20-30 min for typical fights.
+- Chapter = 5-min break + 9 waves + boss wave: ~4.5 min of countdown + combat
+  durations (`waitEnemies = true` freezes the countdown while enemies live, so
+  combat time stacks on top and **dominates** the chapter length) → ≈ 20-30 min
+  for typical fights.
 - Target run length: **3 chapters ≈ 1h-1h30** (combat-dominant). Targets, not
   hard rules: the balance pass owns the numbers.
-- Open question (not for M1): victory condition — fixed 3 chapters (winWave = 30)
-  vs endless. The target assumes 3 chapters.
+- Victory (decided, Nov 2026): fixed chapter count (`runChapters`, default 3);
+  the final boss death goes straight to the victory screen (GG) — no break, no
+  endless mode.
 
 ## Enemy scaling
 
