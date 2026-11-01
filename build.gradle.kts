@@ -73,6 +73,21 @@ tasks.test{
     useJUnitPlatform()
 }
 
+// Build + copy the mod into the local Mindustry mods folder (native Linux data
+// dir), so a restart picks it up. The mod stays enabled once toggled in the
+// in-game Mods menu — no manual re-import needed, same file name each time.
+// Proton/Windows builds read mods from
+// steamapps/compatdata/1127400/pfx/drive_c/users/steamuser/AppData/Roaming/Mindustry/mods instead.
+tasks.register<Copy>("deployMod"){
+    dependsOn(tasks.jar)
+    from(layout.buildDirectory.file("libs/${projectName}Desktop.jar"))
+    // default: native Linux Mindustry mods folder; override with -PmindustryModsDir=... (e.g. the Proton prefix)
+    val modsDir = project.findProperty("mindustryModsDir")?.toString()
+        ?: "${System.getProperty("user.home")}/.local/share/Mindustry/mods"
+    into(modsDir)
+    rename{ "mindtheindustry.zip" }
+}
+
 tasks.jar{
     archiveFileName.set("${projectName}Desktop.jar")
 
