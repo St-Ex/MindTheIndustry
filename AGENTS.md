@@ -40,15 +40,28 @@ mise exec -- ./gradlew test
 - **Game logic must not depend on `arc.scene`.** The `ui/` layer only renders client state (`ClientRewardState`) and sends intents (vote packets); every mechanic (reward, modifier, wave) lives in `core/` and must be testable without a UI.
 - No purely visual content without a gameplay counterpart (no "just a render").
 - Run control is the server-side `/mindtheindustry` command (works in solo and multi); reward picking is the HUD box (`ui/RewardChoicePanel`) fed by `RewardChoicesPacket`.
+- **User-facing strings are localized**: all in-game text goes through Mindustry bundle keys (`bundles/bundle.properties` as the canonical EN reference, plus locale variants matching Mindustry's own bundle locales, e.g. `bundle_fr.properties`), never hardcoded Java literals. Mindustry falls back to the default bundle for missing keys/locales, so partial coverage is safe. Code, docs, openspec and commits remain English-only. The working agent authors the locale variants — **adapt the register, don't translate literally** (corporate satire must stay funny in its own market's jargon: bench time / inter-contrat / Bench / bench / ベンチ), cover the locales it can do well, and leave the long tail to EN fallback or community contributions.
+
+## Ubiquitous language (DDD, November 2026)
+
+Agents and code must use these terms consistently:
+
+- **Wave**: the spawn of a set of enemies; it ends when its last enemy dies. Not the Mindustry wave counter.
+- **Chapter**: 5-minute start break + 9 waves + 1 boss wave (10 waves, configurable). The start break doubles as the post-boss window.
+- **Choice**: the 3 proposals offered to a player at wave end. At most 1 may be taken; taking none converts. One choice at a time per player: a choice remains available until the next one appears — the arrival of a new choice triggers the fallback conversion of the previous, unchosen one. No timers.
+- **Boss window**: the chapter start break after a boss kill (ceasefire: relic choice, one trade of an already-taken reward, assignment switches). The final chapter's boss death goes straight to victory — no break.
+- **Strategy**: the run "class" picked at the draft (Kanban, Lean, Stock zero, Six Sigma, Agile).
 
 ## Design direction (decided, October 2026)
 
 - This section is the **target design** agreed in the October 2026 session. Until the M1-M3 changes land, the current truth remains `DECISIONS.md` and `openspec/specs/`; when they conflict, the specs win for what is built next, `DECISIONS.md` wins for what the mod does today.
+- **Blocking principle (owner, Nov 2026)**: the only hard block in the whole game is the strategy draft lobby (no builders spawned, no countdown). After the draft, nothing blocks: wave countdowns and chapter-end boss windows are simply **longer waits** during which the world keeps simulating (build, mine, produce). Never gate wave progression on player input.
 - Bring the roguelike **through Mindustry's own mechanics** (supply chains, logistics, territory, tech trees). Altering core behaviours positively or negatively is in-scope; bolting a generic roguelike on top is not.
 - Build identity comes from **typed bonus-malus and entity assignment**, never from lock-outs: unlocks are group-wide, anyone can build anything unlocked (slower/costlier without bonuses), and forced multi-player construction is rejected.
 - Reward pools: **weighted bias is allowed, hard exclusions are not** (target ~70/30, see strategies change). Unit lifespans/timers are measured in **waves, not seconds**. Player builder-unit destruction keeps vanilla respawn behaviour — no roguelike penalty on it.
 - Enemy waves: **plug onto the native Mindustry wave system** (intervals, stat multipliers, boss flags). No parallel wave engine.
 - Numeric balance values (fallback amounts, scaling curves, tech prices, unit caps) are deliberately **frozen**: do not invent them while implementing — mark them "balance pass" and defer (issue tracker).
+- **Flavor & tone (owner, Nov 2026)**: the mod's voice is corporate satire (assignments, bench time, PTO, certifications, Man-Hours). Flavor text is welcome on screens and events (first instance: the GG victory screen) but never gates a mechanic or widens a milestone's scope.
 
 ## Roadmap (playtest-gated)
 
