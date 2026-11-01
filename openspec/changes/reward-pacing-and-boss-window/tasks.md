@@ -11,6 +11,8 @@
 - [ ] Conversion on replacement: arrival of a new choice converts the previous
       unchosen one (fallback resources to group cores).
 - [ ] Choice persistence across countdown and next-wave combat (no blocking).
+- [ ] Demolish the M0 vote gate: `waitingForVotes`, wave-timer freeze, building
+      disable during vote, `checkAllVotesReceived` — replaced by the overlay model.
 - [ ] Effect scoping: bonus-malus per player (via entity assignment), plans and
       resources for the group.
 - [ ] Chapter tracker: boss wave at chapter end via native Waves (boss flag).
