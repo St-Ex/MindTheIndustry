@@ -94,9 +94,16 @@ where unavoidable (vanilla interop).
 - The mod's voice is **corporate satire** (consulting/ESN humor: assignments,
   bench time, PTO, certifications, Man-Hours). Flavor text on screens and
   events is welcome; the victory screen is the first instance.
-- Rules: English-only (repo rule); never a hardcoded Java literal — always a
-  Mindustry bundle key (first instance: `mti.victory.flavor` in the mod's
-  `bundle.properties`, single EN locale for now).
+- Rules: never a hardcoded Java literal — always a Mindustry bundle key
+  (first instance: `mti.victory.flavor`). The **default EN bundle is the
+  canonical reference**; end-user text is localized into the locales
+  Mindustry ships bundles for (e.g. `bundle_fr.properties`), with automatic
+  fallback to the default bundle for missing keys/locales — partial
+  coverage is safe. English-only remains the rule for code, docs, openspec
+  and commits.
+- FR variant of the victory subtitle (owner's original wording):
+  « GG — Mission accomplie. Prochaine affectation en cours de négociation.
+  N'oubliez pas de poser vos congés pendant votre inter-contrat. »
 - Flavor never gates a mechanic and never widens a milestone's scope.
 
 ## Enemy scaling
@@ -134,4 +141,4 @@ where unavoidable (vanilla interop).
 10. Victory: final chapter boss death (`runChapters` default 3 → wave 30)
     triggers the victory state directly — no break, no wave 31 — and the
     flavor subtitle resolves from the bundle key `mti.victory.flavor`
-    (agreed EN copy, no hardcoded literal in game-logic code).
+    (canonical EN copy, no hardcoded literal in game-logic code).

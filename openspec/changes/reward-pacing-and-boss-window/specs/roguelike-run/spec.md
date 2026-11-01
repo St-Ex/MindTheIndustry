@@ -33,6 +33,8 @@ The final chapter's boss death SHALL trigger the victory screen directly, with
 no break and no next chapter. The chapter count SHALL be run-configurable
 (default 3), giving winWave = chapters x 10. The victory screen SHALL display
 the GG title with a corporate-satire flavor subtitle resolved from a Mindustry
-bundle key (`mti.victory.flavor`), English-only, never hardcoded: "GG —
+bundle key (`mti.victory.flavor`), never hardcoded; the default EN bundle
+is the canonical reference, localized into Mindustry's bundle locales with
+automatic EN fallback: "GG —
 Mission accomplished. Next assignment under negotiation. Don't forget to take
 your PTO during your bench time."

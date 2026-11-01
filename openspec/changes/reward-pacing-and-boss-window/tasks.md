@@ -28,7 +28,11 @@
       final boss death shows the victory screen directly (no break, no next
       chapter).
 - [ ] Victory screen copy: GG title + corporate-satire flavor subtitle via
-      bundle key `mti.victory.flavor` in the mod's `bundle.properties`
-      (English-only, no hardcoded literals).
+      bundle key `mti.victory.flavor` in `bundles/bundle.properties`
+      (canonical EN, no hardcoded literals).
+- [ ] Localization setup: mod bundle files (`bundles/bundle.properties`
+      canonical EN + locale variants matching Mindustry's bundle locales,
+      e.g. `bundles/bundle_fr.properties` with the FR victory subtitle);
+      verify automatic fallback to the default bundle for missing keys.
 - [ ] Net packets + serialization tests (choice, relic, trade, ready, switch).
 - [ ] Headless tests for every acceptance criterion (fixed seeds).
