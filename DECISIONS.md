@@ -6,7 +6,7 @@ replace its entry. The history of past decisions lives in the git log, not here.
 
 ## Workflow & repo
 
-- **PR-first workflow (Nov 2026, supersedes work-on-main-directly).** Feature work lands through pull requests: one branch per change, one **worktree per PR** (`git worktree add ../MindTheIndustry-<slug> -b <branch>`) so agents/devs never share a dirty checkout. `main` receives changes only via merged PRs. Never push without explicit owner approval. Commits in English, one topic per commit.
+- **PR-first workflow (Nov 2026, supersedes work-on-main-directly).** Feature work lands through pull requests: one branch per change, one **worktree per PR** — `vibe --worktree <slug>` (creates/reuses a git worktree under `~/.vibe/worktrees/<repo-bucket>/<slug>` on branch `<slug>`; add the bucket path to `trusted` in `~/.vibe/trusted_folders.toml` once per machine so every worktree of this repo is trusted by default) so agents/devs never share a dirty checkout. `main` receives changes only via merged PRs. Never push without explicit owner approval. Commits in English, one topic per commit.
 - **Never force-push.** If a branch diverges from its origin with duplicate commits, rebase onto origin (git drops the duplicates automatically).
 - **English-only repo**: docs, comments and user-facing strings.
 - **Java 17 via mise**; `mise build` builds `build/libs/mindtheindustryDesktop.jar`. Mindustry/Arc dependencies are `compileOnly` — never bundle the engine inside the mod jar.
