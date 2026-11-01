@@ -71,7 +71,7 @@ where unavoidable (vanilla interop).
   `waveSpacing = 2 * Time.toMinutes`) — but the mod overrides it to **30s**
   (owner, Nov 2026: combats already take long; the countdown must not add dead
   time). Config knob: `runWaveSpacing = 30s`.
-- `initialWaveSpacing` is set explicitly to **240s** (4 min before wave 1):
+- `initialWaveSpacing` is set explicitly to **300s** (5 min before wave 1):
   vanilla's `<= 0 → waveSpacing * 2` fallback would collapse to 60s with the
   30s spacing — the room for initial base building is preserved instead.
 - Chapter = 10 waves: ~5 min of countdown + combat durations (`waitEnemies = true`

@@ -26,4 +26,4 @@ window duration SHALL be a fixed configurable cap (default 5 min), not tied to
 waveSpacing. The window SHALL close early when all connected players are ready,
 or when the duration cap is reached. The run SHALL override the inter-wave
 countdown to 30s (configurable) while preserving a long initial spacing (default
-4 min) before wave 1.
+5 min) before wave 1.
