@@ -2,6 +2,9 @@
 
 - [ ] Run config: chapterLength (default 10), windowTimeout (default 60s),
       fallback resource amounts, relic pool weights.
+- [ ] Playable start: pre-unlocked floor at run start (basic
+      extraction/transport/storage/defense; provisional contents marked
+      balance pass).
 - [ ] Ubiquitous language in code: Wave/Chapter/Choice/BossWindow types named
       accordingly (rename existing wave-* concepts to match).
 - [ ] Wave-end detection per wave set (last enemy of the set dies) — extend the

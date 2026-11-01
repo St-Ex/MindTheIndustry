@@ -38,3 +38,9 @@ is the canonical reference, localized into Mindustry's bundle locales with
 automatic EN fallback: "GG —
 Mission accomplished. Next assignment under negotiation. Don't forget to take
 your PTO during your bench time."
+
+### Requirement: Playable start
+A fresh run SHALL start with a floor of pre-unlocked techs sufficient to build
+basic supply and defense from wave 0. The floor SHALL NOT vary between runs;
+it is the protected core of the standard pack (tech-tree change). Its exact
+contents are owned by the balance pass.
