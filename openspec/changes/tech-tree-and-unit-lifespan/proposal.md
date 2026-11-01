@@ -25,6 +25,10 @@ Two systems that make production chains the heart of the roguelike:
   the door to "seek tougher waves" risk-reward, later.
 - A **group tech tree** (buildings and units). Unlocked plans are shared by all
   players. Units require the unit plan **and** a built producer building.
+- The **starting unlocked set is a standard pack** — a curated baseline with a
+  protected floor of survival-critical basics. Later, certifications add or
+  remove techs above the floor, group-wide at the draft (chosen run identity,
+  not per-player lock-out).
 - Anyone can build anything unlocked; a player without construction bonuses
   builds slower/costlier but is **never blocked**.
 - **Unit lifespan**: default units are persistent with a **cap** (some builds
