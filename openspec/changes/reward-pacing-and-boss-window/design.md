@@ -44,6 +44,20 @@ where unavoidable (vanilla interop).
 - Closes when all connected players confirm ready, or after a safety timeout
   (default `60s` after the last relic pick) → countdown resumes, next chapter.
 
+## Vanilla interop (verified against Mindustry v160 source)
+
+- Vanilla has **no post-boss window**: a boss is just a unit with `StatusEffects.boss`
+  (native boss health bar), and after the campaign `winWave` waves are simply
+  disabled (`sectorCapture()` sets `state.rules.waves = false`).
+- Our window is therefore built from existing knobs:
+  - Ceasefire = `state.rules.waveTimer = false` (freezes the countdown while the
+    world keeps simulating — the same mechanism the M0 vote gate uses; we demolish
+    the gate, keep the trick).
+  - Longer chapter-end wait = extended `waveSpacing` on window close.
+- `Logic.skipWave()` is native and public (reusable for the wave-skip backlog item).
+- `state.rules.waitEnemies` already pauses the countdown while enemies remain
+  (already enabled on MTI maps).
+
 ## Enemy scaling
 
 - Reuse the vanilla Waves table as backbone; the mod adjusts spawn interval and
