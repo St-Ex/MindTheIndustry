@@ -95,4 +95,35 @@ class PlanetPlayEventTest extends mindtheindustry.HeadlessMindTheIndustryTest{
         Events.fire(new WorldLoadEvent());
         assertTrue(meltdown.unlocked(), "campaign unlocks must be restored when leaving MTI");
     }
+
+    /** A SaveSlot instance without running the Saves constructor (headless has no Core.assets). */
+    private static Saves.SaveSlot fakeSaveSlot() throws Exception{
+        java.lang.reflect.Field f = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+        f.setAccessible(true);
+        sun.misc.Unsafe unsafe = (sun.misc.Unsafe)f.get(null);
+        return (Saves.SaveSlot)unsafe.allocateInstance(Saves.SaveSlot.class);
+    }
+
+    @Test
+    void mtiSectorSaveIsDroppedInMenuSoEveryRunIsFresh() throws Exception{
+        //a previous run leaves a sector save slot assigned (buildings = "ruins",
+        //and the saved wavetime) — the mod must drop it while in the menu so
+        //Control.playSector always takes the fresh-map path (playNewSector)
+        Sector sector = MindTheIndustryPlanet.instance.sectors.first();
+        sector.save = fakeSaveSlot();
+        state.set(mindustry.core.GameState.State.menu);
+
+        //the mod's Trigger.update hook runs on the headless loop — give it a moment
+        long deadline = System.currentTimeMillis() + 5000;
+        while(sector.save != null && System.currentTimeMillis() < deadline){
+            try{
+                Thread.sleep(50);
+            }catch(InterruptedException e){
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+
+        assertNull(sector.save, "MTI sector save slot must be dropped in the menu → next launch regenerates a fresh map (no ruins, fresh wavetime)");
+    }
 }

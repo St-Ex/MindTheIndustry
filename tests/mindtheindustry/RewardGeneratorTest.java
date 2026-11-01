@@ -16,6 +16,7 @@ class RewardGeneratorTest extends HeadlessMindTheIndustryTest{
 
     private MindTheIndustrySession newSession(long seed){
         state.rules = new Rules();
+        resetUnlockFlags();
         MindTheIndustrySession session = new MindTheIndustrySession();
         session.start(seed);
         return session;

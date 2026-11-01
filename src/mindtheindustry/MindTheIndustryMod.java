@@ -51,6 +51,16 @@ public class MindTheIndustryMod extends Mod{
             Log.info("[MindTheIndustry] Server controller initialized (ServerLoadEvent).");
         });
 
+        // MTI runs are always fresh: never reuse a previous run's sector save
+        // (a reused save would carry the old buildings = "ruins" and the old
+        // wavetime). While in the menu, drop the MTI sectors' save slots so
+        // Control.playSector always takes the playNewSector (fresh map) path.
+        Events.run(Trigger.update, () -> {
+            if(state.isMenu() && MindTheIndustryPlanet.instance != null){
+                MindTheIndustryPlanet.instance.sectors.each(s -> s.save = null);
+            }
+        });
+
         // Client-side meta-progression (unlocked commanders are stored locally)
         // + the HUD reward choice box
         Events.on(ClientLoadEvent.class, e -> {
@@ -134,7 +144,10 @@ public class MindTheIndustryMod extends Mod{
                     (serverController.session.active ? "[green]ACTIVE" : "[red]INACTIVE") +
                     "[] | Wave: [yellow]" + serverController.session.wave +
                     "[] | Chapter: [yellow]" + serverController.session.config.currentChapter(Math.max(1, serverController.session.wave)) +
-                    "[] | Seed: [gray]" + serverController.session.seed);
+                    "[] | Seed: [gray]" + serverController.session.seed +
+                    "[] | waveSpacing: [gray]" + state.rules.waveSpacing + " ticks (" + (state.rules.waveSpacing / 60f) + "s)" +
+                    " | wavetime: [gray]" + state.wavetime + " ticks (" + (state.wavetime / 60f) + "s)" +
+                    " | waveTimer: [gray]" + state.rules.waveTimer);
                 return;
             }
 

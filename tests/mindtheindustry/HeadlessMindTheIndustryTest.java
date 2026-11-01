@@ -6,10 +6,12 @@ import arc.files.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.core.*;
+import mindustry.ctype.*;
 import mindustry.game.*;
 import mindustry.net.*;
 import mindustry.world.*;
 import org.junit.jupiter.api.*;
+import mindtheindustry.core.*;
 
 import static mindustry.Vars.*;
 
@@ -92,6 +94,22 @@ public abstract class HeadlessMindTheIndustryTest{
         }catch(Throwable t){
             bootError = t;
             throw new IllegalStateException("Failed to boot headless Mindustry", t);
+        }
+    }
+
+    /**
+     * Resets the global in-memory unlock flags to their pristine state
+     * (only alwaysUnlocked content unlocked). Tests that apply rewards mutate
+     * these flags (unlockForGroup); call this in setup/cleanup to stay
+     * independent of test execution order. Never touches Core.settings.
+     */
+    protected static void resetUnlockFlags(){
+        for(ContentType type : ContentType.all){
+            for(Content c : content.getBy(type)){
+                if(c instanceof UnlockableContent u){
+                    UnlockFlags.set(u, u.alwaysUnlocked);
+                }
+            }
         }
     }
 }

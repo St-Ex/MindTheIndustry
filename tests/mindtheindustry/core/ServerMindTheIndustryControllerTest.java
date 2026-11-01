@@ -39,6 +39,7 @@ class ServerMindTheIndustryControllerTest extends HeadlessMindTheIndustryTest{
         }
         state.rules = new Rules();
         state.gameOver = false;
+        resetUnlockFlags(); //reward picks mutate the global unlock flags
         ClientRewardState.instance.clear();
         ClientRewardState.instance.setBossWindow(false, 0f);
     }

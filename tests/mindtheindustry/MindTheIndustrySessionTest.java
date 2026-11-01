@@ -15,9 +15,10 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Tests for the server session (state of the rogue-like run). */
 class MindTheIndustrySessionTest extends HeadlessMindTheIndustryTest{
 
-    /** New session with fresh game rules (global state shared between tests). */
+    /** New session with fresh game rules and pristine unlock flags (global state shared between tests). */
     private MindTheIndustrySession newSession(long seed){
         state.rules = new Rules();
+        resetUnlockFlags();
         MindTheIndustrySession session = new MindTheIndustrySession();
         session.start(seed);
         return session;

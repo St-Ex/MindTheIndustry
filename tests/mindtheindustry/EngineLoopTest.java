@@ -45,6 +45,7 @@ class EngineLoopTest extends HeadlessMindTheIndustryTest{
         state.rules = new Rules();
         state.set(mindustry.core.GameState.State.menu); //in case a test entered play state
         state.gameOver = false;
+        resetUnlockFlags(); //reward picks mutate the global unlock flags
     }
 
     private Player addPlayer(String name){
