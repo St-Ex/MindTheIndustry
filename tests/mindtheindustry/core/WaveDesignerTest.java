@@ -9,8 +9,10 @@ import mindtheindustry.HeadlessMindTheIndustryTest;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests for the wave difficulty curve (WaveDesigner + DifficultyTuning). */
+/** Tests for the wave designer: chapter boss cadence, calibration hooks, determinism. */
 class WaveDesignerTest extends HeadlessMindTheIndustryTest{
+
+    private final RunConfig config = new RunConfig();
 
     /** Total enemies a wave's spawn groups produce (the spawner evaluates position wave - 1). */
     private static int totalSpawned(Seq<SpawnGroup> groups, int wave){
@@ -23,10 +25,7 @@ class WaveDesignerTest extends HeadlessMindTheIndustryTest{
 
     /** Whether a boss group actually spawns on this wave. */
     private static boolean hasBoss(Seq<SpawnGroup> groups, int wave){
-        for(SpawnGroup g : groups){
-            if(g.effect == StatusEffects.boss && g.getSpawned(wave - 1) > 0) return true;
-        }
-        return false;
+        return bossOf(groups, wave) != null;
     }
 
     private static SpawnGroup bossOf(Seq<SpawnGroup> groups, int wave){
@@ -44,8 +43,8 @@ class WaveDesignerTest extends HeadlessMindTheIndustryTest{
 
     @Test
     void wave1IsEasyAndHasNoBoss(){
-        Seq<SpawnGroup> early = WaveDesigner.buildSpawns(1, new Rand(42));
-        Seq<SpawnGroup> late = WaveDesigner.buildSpawns(30, new Rand(42));
+        Seq<SpawnGroup> early = WaveDesigner.buildSpawns(1, new Rand(42), config);
+        Seq<SpawnGroup> late = WaveDesigner.buildSpawns(30, new Rand(42), config);
 
         assertFalse(early.isEmpty(), "wave 1 must have spawn groups");
         assertFalse(hasBoss(early, 1), "no boss on wave 1");
@@ -54,32 +53,49 @@ class WaveDesignerTest extends HeadlessMindTheIndustryTest{
     }
 
     @Test
-    void bossEveryBossIntervalWaves(){
+    void bossOnTheLastWaveOfEachChapter(){
         for(int w = 1; w <= 61; w++){
-            boolean expected = w >= DifficultyTuning.bossWaveStart && (w - DifficultyTuning.bossWaveStart) % DifficultyTuning.bossInterval == 0;
-            assertEquals(expected, hasBoss(WaveDesigner.buildSpawns(w, new Rand(42)), w), "boss presence wrong on wave " + w);
+            assertEquals(config.isBossWave(w), hasBoss(WaveDesigner.buildSpawns(w, new Rand(42), config), w),
+                "boss presence wrong on wave " + w);
         }
     }
 
     @Test
-    void bossUnitScalesWithTier(){
-        SpawnGroup g20 = bossOf(WaveDesigner.buildSpawns(20, new Rand(42)), 20);
-        SpawnGroup g40 = bossOf(WaveDesigner.buildSpawns(40, new Rand(42)), 40);
+    void bossUnitScalesWithChapterTier(){
+        SpawnGroup g10 = bossOf(WaveDesigner.buildSpawns(10, new Rand(42), config), 10);
+        SpawnGroup g20 = bossOf(WaveDesigner.buildSpawns(20, new Rand(42), config), 20);
+        SpawnGroup g30 = bossOf(WaveDesigner.buildSpawns(30, new Rand(42), config), 30);
 
+        assertNotNull(g10);
         assertNotNull(g20);
-        assertNotNull(g40);
-        assertEquals(DifficultyTuning.bossUnits[0], g20.type, "first boss wave uses the first boss unit");
-        assertEquals(DifficultyTuning.bossUnits[1], g40.type, "second boss wave uses the next boss unit");
+        assertNotNull(g30);
+        assertEquals(DifficultyTuning.bossUnits[0], g10.type, "chapter 1 boss uses the first boss unit");
+        assertEquals(DifficultyTuning.bossUnits[1], g20.type, "chapter 2 boss uses the next boss unit");
+        assertEquals(DifficultyTuning.bossUnits[2], g30.type, "chapter 3 boss uses the third boss unit");
     }
 
     @Test
     void deterministicPerSeed(){
-        Seq<SpawnGroup> a = WaveDesigner.buildSpawns(25, new Rand(42));
-        Seq<SpawnGroup> b = WaveDesigner.buildSpawns(25, new Rand(42));
-        Seq<SpawnGroup> c = WaveDesigner.buildSpawns(25, new Rand(43));
+        Seq<SpawnGroup> a = WaveDesigner.buildSpawns(25, new Rand(42), config);
+        Seq<SpawnGroup> b = WaveDesigner.buildSpawns(25, new Rand(42), config);
+        Seq<SpawnGroup> c = WaveDesigner.buildSpawns(25, new Rand(43), config);
 
         assertEquals(signature(a), signature(b), "same seed must give the same spawn groups");
         assertNotEquals(signature(a), signature(c), "different seed should give a different composition");
+    }
+
+    @Test
+    void calibrationHooksScaleSpawns(){
+        RunConfig tuned = new RunConfig();
+        tuned.spawnIntervalMultiplier = 3f; //sparser spawn groups
+        Seq<SpawnGroup> base = WaveDesigner.buildSpawns(5, new Rand(42), config);
+        Seq<SpawnGroup> tunedGroups = WaveDesigner.buildSpawns(5, new Rand(42), tuned);
+
+        int baseSpacing = 0, tunedSpacing = 0;
+        for(SpawnGroup g : base) baseSpacing += g.spacing;
+        for(SpawnGroup g : tunedGroups) tunedSpacing += g.spacing;
+        assertTrue(tunedSpacing > baseSpacing, "spawn interval multiplier must scale group spacing");
+        assertTrue(hasBoss(WaveDesigner.buildSpawns(10, new Rand(42), tuned), 10), "calibration must not affect boss cadence");
     }
 
     @Test

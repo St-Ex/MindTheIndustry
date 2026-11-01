@@ -244,4 +244,37 @@ class RewardGeneratorTest extends HeadlessMindTheIndustryTest{
         Seq<Reward> choices = gen.generateChoices(session, null, 500);
         assertEquals(3, choices.size);
     }
+
+    @Test
+    void relicChoicesAreAlwaysRareOrEpic(){
+        MindTheIndustrySession session = newSession(7);
+        RewardGenerator gen = new RewardGenerator(session.rand);
+
+        int seen = 0;
+        for(int i = 0; i < 100; i++){
+            Seq<Reward> relics = gen.generateRelicChoices(session, null, 10);
+            assertEquals(3, relics.size);
+            for(Reward r : relics){
+                seen++;
+                assertTrue(r.rarity == Rarity.RARE || r.rarity == Rarity.EPIC,
+                    "relic pool must be rare/boosted only, got " + r.rarity);
+            }
+        }
+        assertEquals(300, seen);
+    }
+
+    @Test
+    void relicChoicesAreDeterministicPerSeed(){
+        MindTheIndustrySession s1 = newSession(555);
+        MindTheIndustrySession s2 = newSession(555);
+        RewardGenerator g1 = new RewardGenerator(s1.rand);
+        RewardGenerator g2 = new RewardGenerator(s2.rand);
+
+        Seq<Reward> r1 = g1.generateRelicChoices(s1, null, 10);
+        Seq<Reward> r2 = g2.generateRelicChoices(s2, null, 10);
+        for(int i = 0; i < 3; i++){
+            assertEquals(r1.get(i).id, r2.get(i).id);
+            assertEquals(r1.get(i).rarity, r2.get(i).rarity);
+        }
+    }
 }
