@@ -48,6 +48,15 @@ public abstract class Reward{
      */
     public abstract void apply(MindTheIndustrySession session, Player chooser, Player target);
 
+    /**
+     * Transfers this reward's effects from one player to another (boss-window
+     * trade of an already-taken reward). Default: re-apply to the recipient
+     * (correct for group-wide effects like plans and resources).
+     */
+    public void transfer(MindTheIndustrySession session, Player from, Player to){
+        apply(session, to, to);
+    }
+
     /** Serializes the reward for network sending. */
     public void write(Writes write){
         write.str(id);

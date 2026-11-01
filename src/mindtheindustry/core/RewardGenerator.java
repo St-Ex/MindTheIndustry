@@ -133,24 +133,43 @@ public class RewardGenerator{
     }
 
     /**
-     * Generates 3 reward choices for a player.
+     * Generates the 3 wave-end choices for a player (rarities from the standard
+     * weighted distribution).
      *
      * @param session the server session (to know existing unlocks)
-     * @param player  the player to generate choices for (unused: choices are group-wide)
+     * @param player  the player to generate choices for
      * @param wave    the current wave number
      * @return a sequence of 3 rewards
      */
     public Seq<Reward> generateChoices(MindTheIndustrySession session, Player player, int wave){
+        return generate(session, false);
+    }
+
+    /**
+     * Generates the 3 relic choices offered at boss window open: same category
+     * mix, but rarities come from the relic pool (RARE/EPIC only, ~70/30 target,
+     * weights in {@link RunConfig}).
+     */
+    public Seq<Reward> generateRelicChoices(MindTheIndustrySession session, Player player, int wave){
+        return generate(session, true);
+    }
+
+    /** Shared generation: one TRADEOFF + one PLAN + one RESOURCE (order shuffled), rarities rolled per choice. */
+    private Seq<Reward> generate(MindTheIndustrySession session, boolean relic){
         Seq<Reward> choices = new Seq<>(3);
         // content already offered in this round must not appear twice
         ObjectSet<String> offered = new ObjectSet<>();
 
+        java.util.function.Supplier<Rarity> roll = relic
+            ? () -> Rarity.rollRelic(rand, session.config.relicRareWeight, session.config.relicEpicWeight)
+            : () -> Rarity.roll(rand);
+
         // Always exactly one of each category; rarity rolled per choice.
         // If the plan pool is exhausted, fall back to a second resource gift.
-        Reward plan = generatePlan(session, Rarity.roll(rand), offered);
-        choices.add(generateTradeoff(Rarity.roll(rand)));
-        choices.add(plan != null ? plan : generateResource(Rarity.roll(rand)));
-        choices.add(generateResource(Rarity.roll(rand)));
+        Reward plan = generatePlan(session, roll.get(), offered);
+        choices.add(generateTradeoff(roll.get()));
+        choices.add(plan != null ? plan : generateResource(roll.get()));
+        choices.add(generateResource(roll.get()));
 
         // Shuffle so the category order varies per wave (seeded → deterministic)
         for(int i = choices.size - 1; i > 0; i--){
@@ -178,7 +197,7 @@ public class RewardGenerator{
 
         String displayName = color + "+" + pct + "% " + bonusName + " [gray]/ [red]-" + pct + "% " + malusName;
         String description = color + "Trade-off: [green]+" + pct + "% " + bonusName +
-            "[] but [red]-" + pct + "% " + malusName + "[] (all players)";
+            "[] but [red]-" + pct + "% " + malusName + "[] (applies to you, via your assigned entities)";
 
         return new TradeoffReward(bonusId, magnitude, malusId, -magnitude, rarity, displayName, description);
     }
