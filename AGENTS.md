@@ -43,6 +43,7 @@ mise exec -- ./gradlew test
 
 ## Design direction (decided, October 2026)
 
+- This section is the **target design** agreed in the October 2026 session. Until the M1-M3 changes land, the current truth remains `DECISIONS.md` and `openspec/specs/`; when they conflict, the specs win for what is built next, `DECISIONS.md` wins for what the mod does today.
 - Bring the roguelike **through Mindustry's own mechanics** (supply chains, logistics, territory, tech trees). Altering core behaviours positively or negatively is in-scope; bolting a generic roguelike on top is not.
 - Build identity comes from **typed bonus-malus and entity assignment**, never from lock-outs: unlocks are group-wide, anyone can build anything unlocked (slower/costlier without bonuses), and forced multi-player construction is rejected.
 - Reward pools: **weighted bias is allowed, hard exclusions are not** (target ~70/30, see strategies change). Unit lifespans/timers are measured in **waves, not seconds**. Player builder-unit destruction keeps vanilla respawn behaviour — no roguelike penalty on it.
