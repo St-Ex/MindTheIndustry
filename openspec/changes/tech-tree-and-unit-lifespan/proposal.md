@@ -23,7 +23,7 @@ Two systems that make production chains the heart of the roguelike:
   (a session counter, not a map resource). Sources: forfeited rewards (the main
   sink for non-aligned proposals) and kills (units/bosses) — the latter opens
   the door to "seek tougher waves" risk-reward, later.
-- - A **group tech tree** (buildings and units). Unlocked plans are shared by all
+- A **group tech tree** (buildings and units). Unlocked plans are shared by all
   players. Units require the unit plan **and** a built producer building.
 - The **starting unlocked set is a standard pack** — a curated baseline with a
   protected floor of survival-critical basics. Later, certifications add or
