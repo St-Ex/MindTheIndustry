@@ -24,5 +24,11 @@
 - [ ] Trade: one already-taken reward transfer per window, mutual confirmation.
 - [ ] Assignment switch restricted to the boss window.
 - [ ] Ready signal + safety timeout to close the window.
+- [ ] Victory: `runChapters` run config (default 3, `winWave = chapters x 10`);
+      final boss death shows the victory screen directly (no break, no next
+      chapter).
+- [ ] Victory screen copy: GG title + corporate-satire flavor subtitle via
+      bundle key `mti.victory.flavor` in the mod's `bundle.properties`
+      (English-only, no hardcoded literals).
 - [ ] Net packets + serialization tests (choice, relic, trade, ready, switch).
 - [ ] Headless tests for every acceptance criterion (fixed seeds).

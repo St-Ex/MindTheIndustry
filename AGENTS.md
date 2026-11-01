@@ -28,7 +28,7 @@ mise exec -- ./gradlew test
 ## Test harness (mandatory)
 
 - Tests live in `tests/` (Gradle `test` sourceSet), JUnit 5.
-- `tests/mindtheindustry/HeadlessMindTheIndustryTest.java` boots Mindustry **headless** (no UI, no rendering), once per test JVM. Every game-logic test class extends it.
+- `tests/mindtheindustry/HeadlessMindustryIndustryTest.java` boots Mindustry **headless** (no UI, no rendering), once per test JVM. Every game-logic test class extends it.
 - **Do not validate a change by launching the game manually**: write a headless test.
 - Test rules:
   - Deterministic: fixed seed (`new Rand(42)`, `session.start(42)`).
@@ -60,6 +60,7 @@ Agents and code must use these terms consistently:
 - Reward pools: **weighted bias is allowed, hard exclusions are not** (target ~70/30, see strategies change). Unit lifespans/timers are measured in **waves, not seconds**. Player builder-unit destruction keeps vanilla respawn behaviour — no roguelike penalty on it.
 - Enemy waves: **plug onto the native Mindustry wave system** (intervals, stat multipliers, boss flags). No parallel wave engine.
 - Numeric balance values (fallback amounts, scaling curves, tech prices, unit caps) are deliberately **frozen**: do not invent them while implementing — mark them "balance pass" and defer (issue tracker).
+- **Flavor & tone (owner, Nov 2026)**: the mod's voice is corporate satire (assignments, bench time, PTO, certifications, Man-Hours). Flavor text is welcome on screens and events (first instance: the GG victory screen) but never gates a mechanic or widens a milestone's scope. All user-facing strings go through Mindustry bundle keys (English-only), never hardcoded Java literals.
 
 ## Roadmap (playtest-gated)
 

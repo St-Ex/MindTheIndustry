@@ -13,7 +13,7 @@ where unavoidable (vanilla interop).
 
 ## Choice flow
 
-- Trigger: wave end (last enemy of the wave dies) → choice revealed for each
+- Trigger: wave end (last enemy of the wave set dies) → choice revealed for each
   connected player. The discovery happens right after the stress peak; it is
   never announced in advance.
 - A choice stays open through the inter-wave countdown AND through the following
@@ -51,6 +51,9 @@ where unavoidable (vanilla interop).
 - **Victory (GG)**: the FINAL chapter's boss death triggers the victory screen
   directly — no break, no next chapter. Fixed chapter count
   (`runChapters`, default 3) → `winWave = runChapters * 10` (default 30).
+  The screen shows the GG title plus a corporate-satire flavor subtitle
+  (owner, Nov 2026): "GG — Mission accomplished. Next assignment under
+  negotiation. Don't forget to take your PTO during your bench time."
 
 ## Vanilla interop (verified against Mindustry v160 source)
 
@@ -86,6 +89,16 @@ where unavoidable (vanilla interop).
   the final boss death goes straight to the victory screen (GG) — no break, no
   endless mode.
 
+## Flavor text (corporate satire tone)
+
+- The mod's voice is **corporate satire** (consulting/ESN humor: assignments,
+  bench time, PTO, certifications, Man-Hours). Flavor text on screens and
+  events is welcome; the victory screen is the first instance.
+- Rules: English-only (repo rule); never a hardcoded Java literal — always a
+  Mindustry bundle key (first instance: `mti.victory.flavor` in the mod's
+  `bundle.properties`, single EN locale for now).
+- Flavor never gates a mechanic and never widens a milestone's scope.
+
 ## Enemy scaling
 
 - Reuse the vanilla Waves table as backbone; the mod adjusts spawn interval and
@@ -118,3 +131,7 @@ where unavoidable (vanilla interop).
 7. Trade: one already-taken reward transfer per window; second trade rejected.
 8. Assignment switch succeeds during the window, rejected outside.
 9. Pending choices convert at window open.
+10. Victory: final chapter boss death (`runChapters` default 3 → wave 30)
+    triggers the victory state directly — no break, no wave 31 — and the
+    flavor subtitle resolves from the bundle key `mti.victory.flavor`
+    (agreed EN copy, no hardcoded literal in game-logic code).

@@ -7,8 +7,8 @@ The run SHALL reveal a choice of 3 proposals to each player when a wave ends
 (last enemy of the wave set dies). At most 1 proposal may be taken; taking none
 converts to a small resource grant. A choice remains available until the next
 choice appears, at which point an unchosen choice converts. Bonus-malus effects
-apply to the taking player (via entity assignment); plans and resources apply to
-the group.
+apply to the taking player (via entity assignment); plans and resources apply
+to the group.
 
 ## ADDED Requirements
 
@@ -31,4 +31,8 @@ SHALL close early when all connected players are ready, or at the duration cap
 ### Requirement: Victory
 The final chapter's boss death SHALL trigger the victory screen directly, with
 no break and no next chapter. The chapter count SHALL be run-configurable
-(default 3), giving winWave = chapters x 10.
+(default 3), giving winWave = chapters x 10. The victory screen SHALL display
+the GG title with a corporate-satire flavor subtitle resolved from a Mindustry
+bundle key (`mti.victory.flavor`), English-only, never hardcoded: "GG —
+Mission accomplished. Next assignment under negotiation. Don't forget to take
+your PTO during your bench time."
