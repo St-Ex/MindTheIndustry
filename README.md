@@ -63,3 +63,20 @@ Tests boot Mindustry headless (JUnit 5, `tests/` sourceSet). Game logic is UI-in
 - `openspec/` — intent tracking: active feature proposals in `changes/`, current specs in `specs/`
 - `DEVELOPMENT.md` — architecture, game mechanics, roadmap
 - Engine sources for reference: `../Mindustry` (clone of tag `v160`, read-only)
+
+## License
+
+MindTheIndustry is licensed under the **GNU General Public License v3.0 or later**
+([GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.en.html)). Copyright (C) 2026
+Thomas de Saint-Exupery.
+
+This mod is built against and distributed for [Mindustry](https://github.com/Anuken/Mindustry),
+itself licensed under the GNU GPL v3; as a derivative work, this mod is distributed under
+the same license. See [LICENSE](LICENSE) for the full text.
+
+## Acknowledgements
+
+- [Mindustry](https://github.com/Anuken/Mindustry) by Anuken and contributors — the game this
+  mod builds on, GPL-3.0.
+- The design and development of MindTheIndustry are driven with **Vibe**, Mistral AI's
+  agentic coding & design collaborator — [mistral.ai](https://mistral.ai).
