@@ -41,8 +41,13 @@ where unavoidable (vanilla interop).
     reward** (its effects transfer to the receiving player); mutual confirmation.
   - **Assignment switch**: entity active-player reassignment allowed *only* here.
   - Pending choices convert at window open.
-- Closes when all connected players confirm ready, or after a safety timeout
-  (default `60s` after the last relic pick) → countdown resumes, next chapter.
+- Duration: **2-3x the inter-wave countdown** (`waveSpacing`) — long enough to
+  rebuild forces after the boss fight. Default `2x`, configurable via
+  `windowWaveSpacingMultiplier` (2-3); exact value deferred to the balance pass.
+- Closes early when all connected players confirm ready, or when the duration
+  cap is reached → countdown resumes, next chapter.
+- The duration is a **cap, not a wait**: the ready signal closes the window
+  early; the 2-3x cap only prevents an indefinite window (AFK players).
 
 ## Vanilla interop (verified against Mindustry v160 source)
 

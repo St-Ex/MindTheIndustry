@@ -22,5 +22,6 @@ Killing the chapter boss SHALL open a ceasefire window (wave countdown frozen,
 no spawns). During the window the run SHALL offer rare relic proposals per
 player, allow exactly one trade of an already-taken reward between players, allow
 entity active-player assignment switches, and convert all pending choices. The
-window SHALL close when all connected players are ready or after a safety
-timeout.
+window duration SHALL be 2-3x the inter-wave countdown (waveSpacing; default 2x,
+configurable) — a cap, not a wait. The window SHALL close early when all
+connected players are ready, or when the duration cap is reached.
