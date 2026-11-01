@@ -1,8 +1,10 @@
 package mindtheindustry;
 
 import java.util.function.*;
+import arc.*;
 import mindustry.content.*;
 import mindustry.game.*;
+import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.maps.*;
 import mindustry.type.*;
@@ -41,6 +43,8 @@ class EngineLoopTest extends HeadlessMindTheIndustryTest{
             if(u.team == Team.crux) u.remove();
         }
         state.rules = new Rules();
+        state.set(mindustry.core.GameState.State.menu); //in case a test entered play state
+        state.gameOver = false;
     }
 
     private Player addPlayer(String name){
@@ -116,6 +120,32 @@ class EngineLoopTest extends HeadlessMindTheIndustryTest{
             "wave end must be detected by the update poll and reveal a choice (standing wave-team cores on map: " + standingCores + ")");
         assertEquals(3, c.session.getChoice(p).proposals.size);
         assertTrue(state.rules.waveTimer, "the choice must NOT freeze the countdown (non-blocking)");
+
+        c.stopRun();
+    }
+
+    /**
+     * The real launch sequence: Logic.play() sets wavetime from the MAP rules
+     * (labyrinth: waveSpacing 7200 ticks → 2x = 14400 ticks = 240s), then fires
+     * PlayEvent → the mod's startRun() must override it with the run pacing
+     * (initial break 300s = 18000 ticks, waveSpacing 30s = 1800 ticks).
+     */
+    @Test
+    void playSequenceAppliesRunPacingInTicks(){
+        ServerMindTheIndustryController c = new ServerMindTheIndustryController();
+        Player p = addPlayer("tester");
+        state.rules.canGameOver = false;
+        Events.on(PlayEvent.class, e -> c.startRun()); //what MindTheIndustryMod does on MTI maps
+
+        assertEquals(7200f, state.rules.waveSpacing, 0.001f, "map rule baseline: 7200 ticks = 120s");
+        logic.play(); //sets wavetime from map rules, then fires PlayEvent
+
+        assertEquals(18000f, state.wavetime, 0.001f, "startRun must override the initial break: 300s = 18000 ticks (not 300)");
+        assertEquals(1800f, state.rules.waveSpacing, 0.001f, "30s inter-wave countdown = 1800 ticks");
+        assertEquals(18000f, state.rules.initialWaveSpacing, 0.001f);
+        assertTrue(c.session.active);
+        assertTrue(state.rules.waves && state.rules.waveTimer && state.rules.waitEnemies);
+        assertEquals(0, state.rules.winWave);
 
         c.stopRun();
     }
