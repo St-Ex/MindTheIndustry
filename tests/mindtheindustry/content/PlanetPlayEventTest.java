@@ -25,16 +25,33 @@ import static org.junit.jupiter.api.Assertions.*;
 class PlanetPlayEventTest extends mindtheindustry.HeadlessMindTheIndustryTest{
 
     private static boolean modRegistered;
+    private static MindTheIndustryMod mod;
 
     @BeforeAll
     static void registerMod(){
         if(modRegistered) return;
         modRegistered = true;
         //register the mod's event handlers + content, like the game does at startup
-        MindTheIndustryMod mod = new MindTheIndustryMod();
+        mod = new MindTheIndustryMod();
         mod.loadContent();
         //ContentLoader normally calls init() on all content after loadContent
         MindTheIndustryPlanet.instance.init();
+    }
+
+    @Test
+    void mindtheindustryCommandRegisteredOnBothServerAndClientHandlers(){
+        //v160: dedicated ServerControl calls registerServerCommands (console),
+        //NetServer.init calls registerClientCommands (in-game chat in solo/host)
+        arc.util.CommandHandler serverHandler = new arc.util.CommandHandler("/");
+        arc.util.CommandHandler chatHandler = new arc.util.CommandHandler("/");
+        mod.registerServerCommands(serverHandler);
+        mod.registerClientCommands(chatHandler);
+
+        boolean onServer = false, onChat = false;
+        for(arc.util.CommandHandler.Command c : serverHandler.getCommandList()) if(c.text.equals("mindtheindustry")) onServer = true;
+        for(arc.util.CommandHandler.Command c : chatHandler.getCommandList()) if(c.text.equals("mindtheindustry")) onChat = true;
+        assertTrue(onServer, "/mindtheindustry must be registered for the dedicated-server console");
+        assertTrue(onChat, "/mindtheindustry must be registered for in-game chat (solo/hosted)");
     }
 
     @Test

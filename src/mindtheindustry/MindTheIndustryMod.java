@@ -128,11 +128,23 @@ public class MindTheIndustryMod extends Mod{
     }
 
     /**
-     * Server-side commands. Registered on the server so they work identically
-     * in solo (integrated server) and in multiplayer (host/dedicated server).
+     * Dedicated-server console commands (ServerControl calls this). In solo /
+     * hosted games the same commands must go through {@link #registerClientCommands}
+     * because in-game chat commands are handled by netServer.clientCommands.
      */
     @Override
     public void registerServerCommands(CommandHandler handler){
+        registerMtiCommands(handler);
+    }
+
+    /** In-game chat commands for solo/hosted games (NetServer.init calls this). */
+    @Override
+    public void registerClientCommands(CommandHandler handler){
+        registerMtiCommands(handler);
+    }
+
+    /** Registers /mindtheindustry on the given handler (server console or in-game chat). */
+    private void registerMtiCommands(CommandHandler handler){
         handler.<Player>register("mindtheindustry", "[start|stop|skip|status|ready|trade|confirm|commanders|unlock-all|active]", "MindTheIndustry run control.", (args, player) -> {
             if(serverController == null){
                 player.sendMessage("[scarlet]Server controller is not initialized.");
