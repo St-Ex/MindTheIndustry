@@ -161,8 +161,9 @@ public class ServerMindTheIndustryController{
 
         // Count living enemies of the wave set (same semantics as the engine's
         // state.enemies / isWaitingWave) — a wave ends when its last enemy dies;
-        // standing map cores are not part of the wave set.
-        int enemies = Groups.unit.count(u -> u.team() == state.rules.waveTeam && u.isEnemy());
+        // standing map cores are not part of the wave set. isValid() excludes
+        // corpses (isEnemy() is type-based and would count dead units).
+        int enemies = Groups.unit.count(u -> u.team() == state.rules.waveTeam && u.isEnemy() && u.isValid());
 
         if(enemies == 0){
             lastProcessedWave = session.wave;

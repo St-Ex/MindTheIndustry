@@ -5,9 +5,12 @@ import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.maps.*;
+import mindustry.type.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
+import mindustry.world.modules.*;
 import org.junit.jupiter.api.*;
 import mindtheindustry.core.*;
+import mindtheindustry.rewards.*;
 
 import static mindustry.Vars.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -113,6 +116,76 @@ class EngineLoopTest extends HeadlessMindTheIndustryTest{
             "wave end must be detected by the update poll and reveal a choice (standing wave-team cores on map: " + standingCores + ")");
         assertEquals(3, c.session.getChoice(p).proposals.size);
         assertTrue(state.rules.waveTimer, "the choice must NOT freeze the countdown (non-blocking)");
+
+        c.stopRun();
+    }
+
+    /**
+     * Full chapter 1 → 2 progression through the real engine loop: 20 waves
+     * spawned via logic.runWave(), each wave cleared by killing its enemies,
+     * wave-end detected by the live poll. Boss waves 10 and 20 must spawn a
+     * boss-flagged unit of the right tier and open a boss window; all other
+     * waves must reveal a regular choice without blocking the countdown.
+     */
+    @Test
+    void chapterTwoBossFlowThroughRealEngine(){
+        ServerMindTheIndustryController c = new ServerMindTheIndustryController();
+        Player p = addPlayer("tester");
+        state.rules.canGameOver = false; //no player core in this test — keep checkGameState out of the way
+        c.startRun();
+
+        for(int wave = 1; wave <= 20; wave++){
+            logic.runWave(); //engine spawns the wave + fires WaveEvent (syncs session.wave)
+            assertEquals(wave, c.session.wave, "WaveEvent must sync session.wave to " + wave);
+            assertEquals(wave + 1, state.wave);
+
+            boolean bossWave = c.session.config.isBossWave(wave);
+            if(bossWave){
+                int chapter = c.session.config.currentChapter(wave);
+                UnitType expected = DifficultyTuning.bossUnits[chapter - 1];
+                Unit boss = Groups.unit.find(u -> u.team == state.rules.waveTeam && u.hasEffect(StatusEffects.boss));
+                assertNotNull(boss, "boss wave " + wave + " must spawn a boss-flagged unit");
+                assertEquals(expected, boss.type, "chapter " + chapter + " boss must be " + expected.name);
+            }
+
+            //clear the wave: last enemy of the set dies
+            Groups.unit.copy().each(u -> {
+                if(u.team == state.rules.waveTeam) u.kill();
+            });
+
+            if(bossWave){
+                await(() -> c.session.isBossWindowOpen(), 10000);
+                assertTrue(c.session.isBossWindowOpen(), "boss wave " + wave + " death must open the boss window");
+                assertFalse(state.rules.waveTimer, "ceasefire: countdown frozen during the window");
+                ChoiceState relic = c.session.bossWindow.relicChoices.get(p);
+                assertNotNull(relic, "relic choice revealed at window open (wave " + wave + ")");
+                for(Reward r : relic.proposals){
+                    assertTrue(r.rarity == Rarity.RARE || r.rarity == Rarity.EPIC, "relic pool is rare/boosted");
+                }
+                //all-ready closes the window early → next chapter starts
+                c.handleReady(p);
+                assertFalse(c.session.isBossWindowOpen(), "all-ready must close the window (wave " + wave + ")");
+                assertTrue(state.rules.waveTimer, "countdown resumes after the window");
+                assertEquals(RunPhase.WAVE, c.session.phase);
+            }else{
+                final int expectedWave = wave;
+                await(() -> c.session.getChoice(p) != null && c.session.getChoice(p).waveNumber == expectedWave, 10000);
+                ChoiceState choice = c.session.getChoice(p);
+                assertNotNull(choice, "wave " + wave + " end must reveal a choice");
+                assertEquals(3, choice.proposals.size);
+                assertEquals(wave, choice.waveNumber);
+                assertTrue(state.rules.waveTimer, "regular wave choice must NOT freeze the countdown (wave " + wave + ")");
+                //pick one this time — the box resolves, ≤1 pick
+                c.handleRewardVote(p, 0, p);
+                assertTrue(choice.resolved);
+                assertNotNull(choice.taken);
+            }
+        }
+
+        //after two boss windows we are in chapter 3 territory
+        assertEquals(2, c.session.config.currentChapter(20));
+        assertEquals(3, c.session.config.currentChapter(21));
+        assertFalse(c.session.victory, "wave 20 boss is not the final boss");
 
         c.stopRun();
     }
