@@ -405,6 +405,85 @@ class ServerMindTheIndustryControllerTest extends HeadlessMindTheIndustryTest{
     }
 
     @Test
+    void disconnectConvertsPendingChoice(){
+        ServerMindTheIndustryController controller = newRunController(42);
+        Player p = addPlayer("tester");
+        CoreBuild core = addCore();
+        controller.session.syncWave(1);
+        controller.onWaveComplete(1);
+        ChoiceState choice = controller.session.getChoice(p);
+        assertTrue(choice.isOpen());
+
+        int before = core.items.get(Items.copper);
+        arc.Events.fire(new PlayerLeave(p));
+
+        assertTrue(choice.resolved, "disconnect resolves the pending choice");
+        assertNull(choice.taken, "converted, not taken");
+        assertEquals(before + controller.session.config.fallbackAmount, core.items.get(Items.copper),
+            "disconnect → fallback grant to the group cores");
+
+        state.teams.unregisterCore(core);
+        controller.stopRun();
+    }
+
+    @Test
+    void lateJoinerGetsFirstChoiceAtNextWaveEnd(){
+        ServerMindTheIndustryController controller = newRunController(42);
+        Player p1 = addPlayer("one");
+        controller.session.syncWave(1);
+        controller.onWaveComplete(1);
+        assertNotNull(controller.session.getChoice(p1));
+
+        //a second player joins mid-run: no choice until the next wave end
+        Player p2 = addPlayer("two");
+        assertNull(controller.session.getChoice(p2), "late joiner gets no retroactive choice");
+
+        controller.session.syncWave(2);
+        controller.onWaveComplete(2);
+
+        assertNotNull(controller.session.getChoice(p2), "late joiner gets a choice at the next wave end");
+        assertEquals(2, controller.session.getChoice(p2).waveNumber);
+        assertEquals(2, controller.session.getChoice(p1).waveNumber, "p1's choice was replaced (wave-1 one converted)");
+
+        controller.stopRun();
+    }
+
+    @Test
+    void relicPickDuringBossWindow(){
+        ServerMindTheIndustryController controller = newRunController(42);
+        Player p = addPlayer("tester");
+        controller.session.syncWave(10);
+        controller.onWaveComplete(10);
+        assertTrue(controller.session.isBossWindowOpen());
+        ChoiceState relic = controller.session.bossWindow.relicChoices.get(p);
+
+        controller.handleRewardVote(p, 1, p);
+
+        assertTrue(relic.resolved, "relic choice resolved by the pick");
+        assertNotNull(relic.taken);
+        assertEquals(1, controller.session.getTakenRewards(p).size, "relic recorded as taken (tradeable)");
+        assertNull(controller.session.getOpenChoice(p), "no open choice after the relic pick");
+
+        controller.stopRun();
+    }
+
+    @Test
+    void stopRunDuringBossWindowRestoresCountdown(){
+        ServerMindTheIndustryController controller = newRunController(42);
+        addPlayer("tester");
+        controller.session.syncWave(10);
+        controller.onWaveComplete(10);
+        assertTrue(controller.session.isBossWindowOpen());
+        assertFalse(state.rules.waveTimer);
+
+        controller.stopRun();
+
+        assertFalse(controller.session.active);
+        assertFalse(controller.session.isBossWindowOpen());
+        assertTrue(state.rules.waveTimer, "stopping the run restores the wave countdown");
+    }
+
+    @Test
     void nonFinalBossWaveDoesNotTriggerVictory(){
         ServerMindTheIndustryController controller = newRunController(42);
         addPlayer("tester");
