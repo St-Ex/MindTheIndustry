@@ -2,6 +2,8 @@
 
 - [ ] Tech currency field in session + sources (forfeit, decline, kills, boss).
 - [ ] Data-driven tech tree (nodes, costs, prerequisites, plan grants).
+- [ ] Standard pack: data-driven baseline of pre-unlocked nodes at run start
+      (protected floor + margin above it); content deferred to balance pass.
 - [ ] Group-wide unlock application (plans to all players).
 - [ ] Chat commands for tree browsing/purchase (UI later, separate change).
 - [ ] Random plan proposals remain in the reward pool (early access / discount

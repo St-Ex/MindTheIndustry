@@ -16,8 +16,23 @@
 
 - Group-wide: a purchase by anyone unlocks the plan for everyone. Rationale:
   identity must come from bonus-malus and entity assignment, not lock-outs.
-- Node structure reuses the Mindustry research-tree concept (data-driven);
-  initial tree = subset of vanilla buildings/units with price tiers.
+- Node structure reuses the Mindustry research-tree concept (data-driven).
+- **Standard pack (owner, Nov 2026)**: the initial unlocked set is a named,
+  curated baseline — the **standard pack** — identical for every run without
+  certification mutations. Contents (which nodes are pre-unlocked at run
+  start) are data-driven; values owned by the balance pass.
+  - **Protected floor**: survival-critical basics never vary, so a mutated
+    pack is always playable.
+  - **Certifications (M2) mutate the pack** — add or remove techs above the
+    floor, group-wide, at the draft. Mutations are a chosen run identity, not
+    a per-player lock-out (the rejected lock-outs were individual; the whole
+    team shares the mutated pack).
+  - Adding techs must be paid inside the certification's trade-off budget;
+    removing techs is an accepted restriction. Removed techs are gone for
+    the run (not re-purchasable with tech currency) — revisit at balance
+    pass if too harsh.
+  - **M3 scope: implement the pack as data** (declarable, diffable set) so
+    certification mutations hook in without rework; no mutation logic in M3.
 - **Constraint (DECISIONS.md, clarified by owner)**: the MTI planet tech tree is **based on Serpulo's tree**, with its own root at the run `SectorPreset` — never registered under the campaign trees. `new TechNode(...)` reassigns `content.techNode`, so any node creation must stay under the MTI root to avoid leaking into the campaign. The run tech tree (currency purchases) must either integrate with this existing Serpulo-based MTI tree or stay a parallel data structure. Supporting a second tech tree (Erekir) is **deferred — out of scope for now**.
 - Unit unlock = plan + built producer. The producer itself is a tree node.
 - The tree is a **backbone, not the whole economy**: random plan proposals
@@ -63,3 +78,5 @@
 5. Expiring units are removed at the end of their expiry wave (not mid-wave).
 6. Persistent units below cap never expire.
 7. Destroyed builder unit respawns at core with vanilla behaviour, no penalty.
+8. A fresh run starts with exactly the standard pack's nodes unlocked
+   (deterministic per config; protected floor present).
