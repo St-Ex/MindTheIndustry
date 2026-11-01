@@ -18,6 +18,7 @@
   identity must come from bonus-malus and entity assignment, not lock-outs.
 - Node structure reuses the Mindustry research-tree concept (data-driven);
   initial tree = subset of vanilla buildings/units with price tiers.
+- **Constraint (DECISIONS.md)**: the MTI planet has its OWN tech tree — never clone/share Serpulo's. `new TechNode(...)` reassigns `content.techNode` and would leak into the campaign. The run tech tree must either integrate with the existing MTI tree or stay a parallel data structure without registering vanilla `TechNode`s.
 - Unit unlock = plan + built producer. The producer itself is a tree node.
 - The tree is a **backbone, not the whole economy**: random plan proposals
   remain as wave rewards (variance layer) — sometimes offering a node early,
