@@ -23,6 +23,10 @@
   start) are data-driven; values owned by the balance pass.
   - **Protected floor**: survival-critical basics never vary, so a mutated
     pack is always playable.
+  - **Floor ships with M1** (owner, Nov 2026): M1's playable-start requirement
+    guarantees a fresh run is buildable from wave 0 — the current build starts
+    with the bastion only. M3 formalizes the floor as data inside the named
+    pack; the margin above it and the data structure are M3's.
   - **Certifications (M2) mutate the pack** — add or remove techs above the
     floor, group-wide, at the draft. Mutations are a chosen run identity, not
     a per-player lock-out (the rejected lock-outs were individual; the whole
