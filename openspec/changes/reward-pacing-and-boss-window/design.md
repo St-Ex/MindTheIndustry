@@ -59,7 +59,8 @@ where unavoidable (vanilla interop).
   - Ceasefire = `state.rules.waveTimer = false` (freezes the countdown while the
     world keeps simulating — the same mechanism the M0 vote gate uses; we demolish
     the gate, keep the trick).
-  - Longer chapter-end wait = extended `waveSpacing` on window close.
+  - Window duration = own timer while `waveTimer = false` (decoupled from
+    `waveSpacing`, which the run overrides to 30s).
 - `Logic.skipWave()` is native and public (reusable for the wave-skip backlog item).
 - `state.rules.waitEnemies` already pauses the countdown while enemies remain
   (already enabled on MTI maps).
