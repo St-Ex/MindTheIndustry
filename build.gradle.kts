@@ -83,6 +83,7 @@ tasks.jar{
     from(projectDir){
         include("mod.hjson")
         include("icon.png")
+        include("bundles/**")
     }
 
     from("assets/"){

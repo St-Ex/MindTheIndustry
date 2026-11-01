@@ -1,6 +1,7 @@
 package mindtheindustry;
 
 import arc.*;
+import arc.scene.ui.*;
 import arc.util.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -56,6 +57,17 @@ public class MindTheIndustryMod extends Mod{
             MetaProgression.load();
             ClientRewardState.instance.clear();
             ui.hudGroup.addChild(RewardChoicePanel.createContainer());
+
+            // Victory screen flavor (corporate satire): GG title + subtitle from
+            // the mod bundle — never hardcoded. Only on MindTheIndustry runs.
+            Events.on(GameOverEvent.class, gameOver -> {
+                if(!MindTheIndustryPlanet.isMindTheIndustryMap()) return;
+                if(gameOver.winner != state.rules.defaultTeam) return;
+                Dialog dialog = new Dialog(Core.bundle.get("mti.victory.title"));
+                dialog.cont.add(Core.bundle.get("mti.victory.flavor")).wrap().width(520f).pad(10f);
+                dialog.addCloseButton();
+                dialog.show();
+            });
         });
 
         // When a MindTheIndustry map loads, force run-friendly rules
@@ -68,10 +80,8 @@ public class MindTheIndustryMod extends Mod{
                 Log.info("[MindTheIndustry] Server controller initialized (WorldLoadEvent fallback).");
             }
             if(MindTheIndustryPlanet.isMindTheIndustryMap()){
-                state.rules.waves = true;
-                state.rules.waveTimer = true;
                 state.rules.waitEnemies = true; //wave timer pauses while enemies remain, so waves don't stack mid-fight
-                state.rules.winWave = 0; //endless: the run ends when players stop
+                state.rules.winWave = 0; //the mod owns victory (final boss death) — vanilla must not sectorCapture
                 //hide everything not unlocked for the run group (in-memory only, so
                 //campaign-unlocked content does not leak into the MTI build menu)
                 serverController.session.isolateUnlocks();
@@ -113,7 +123,7 @@ public class MindTheIndustryMod extends Mod{
      */
     @Override
     public void registerServerCommands(CommandHandler handler){
-        handler.<Player>register("mindtheindustry", "[start|stop|skip|status|commanders|unlock-all|active]", "MindTheIndustry run control.", (args, player) -> {
+        handler.<Player>register("mindtheindustry", "[start|stop|skip|status|ready|trade|confirm|commanders|unlock-all|active]", "MindTheIndustry run control.", (args, player) -> {
             if(serverController == null){
                 player.sendMessage("[scarlet]Server controller is not initialized.");
                 return;
@@ -123,6 +133,7 @@ public class MindTheIndustryMod extends Mod{
                 player.sendMessage("[accent]MindTheIndustry: " +
                     (serverController.session.active ? "[green]ACTIVE" : "[red]INACTIVE") +
                     "[] | Wave: [yellow]" + serverController.session.wave +
+                    "[] | Chapter: [yellow]" + serverController.session.config.currentChapter(Math.max(1, serverController.session.wave)) +
                     "[] | Seed: [gray]" + serverController.session.seed);
                 return;
             }
@@ -151,6 +162,21 @@ public class MindTheIndustryMod extends Mod{
                     serverController.skipToNextWave();
                     player.sendMessage("[accent]Next wave forced.");
                 }
+                case "ready" -> serverController.handleReady(player);
+                case "trade" -> {
+                    // /mindtheindustry trade <playerName> <rewardId> — one trade per boss window
+                    if(args.length < 3){
+                        player.sendMessage("[scarlet]Usage: /mindtheindustry trade <playerName> <rewardId>");
+                        return;
+                    }
+                    Player target = Groups.player.find(p -> p.name != null && p.name.toLowerCase().contains(args[1].toLowerCase()));
+                    if(target == null){
+                        player.sendMessage("[scarlet]Player not found: " + args[1]);
+                        return;
+                    }
+                    serverController.offerTrade(player, target, args[2]);
+                }
+                case "confirm" -> serverController.confirmTrade(player);
                 case "commanders" -> {
                     player.sendMessage("[accent]=== Unlocked commanders ===");
                     player.sendMessage("[gray]" + MetaProgression.unlockedCount() + "/" + MetaProgression.totalCount() + " unlocked");
@@ -166,7 +192,7 @@ public class MindTheIndustryMod extends Mod{
                     player.sendMessage("[green]All commanders unlocked!");
                 }
                 case "active" -> {
-                    // /mindtheindustry active <entityId> <isBuilding> <playerName|none>
+                    // /mindtheindustry active <entityId> <isBuilding> <playerName|none> — boss window only
                     if(args.length < 4){
                         player.sendMessage("[scarlet]Usage: /mindtheindustry active <entityId> <isBuilding> <playerName|none>");
                         return;
@@ -183,12 +209,12 @@ public class MindTheIndustryMod extends Mod{
                                 return;
                             }
                         }
-                        serverController.setActivePlayer(entityId, isBuilding, target);
+                        serverController.setActivePlayer(entityId, isBuilding, target, player);
                     }catch(NumberFormatException e){
                         player.sendMessage("[scarlet]Invalid ID.");
                     }
                 }
-                default -> player.sendMessage("[scarlet]Usage: /mindtheindustry [start|stop|skip|status|commanders|unlock-all|active]");
+                default -> player.sendMessage("[scarlet]Usage: /mindtheindustry [start|stop|skip|status|ready|trade|confirm|commanders|unlock-all|active]");
             }
         });
     }

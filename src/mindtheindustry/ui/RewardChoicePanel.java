@@ -1,5 +1,6 @@
 package mindtheindustry.ui;
 
+import arc.*;
 import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.style.*;
@@ -66,9 +67,21 @@ public class RewardChoicePanel extends Table{
     }
 
     private void rebuild(ClientRewardState st){
-        title.setText("Wave " + st.wave + " — choose a reward");
+        title.setText(st.relic
+            ? Core.bundle.format("mti.choice.relic.title", st.wave)
+            : Core.bundle.format("mti.choice.title", st.wave));
         tip.setText("");
         buttons.clearChildren();
+
+        // explicit "take none" decision (converts to the fallback grant)
+        TextButton none = new TextButton(Core.bundle.get("mti.choice.take.none"));
+        none.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y){
+                vote(-1);
+            }
+        });
+        buttons.add(none).pad(4f);
 
         for(int i = 0; i < st.choices.size; i++){
             Reward r = st.choices.get(i);
