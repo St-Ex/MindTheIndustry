@@ -138,9 +138,9 @@ public class ServerMindTheIndustryController{
         return Core.bundle.format(key, args);
     }
 
-    /** Sends a chat message to a player (logs instead when there is no connection, e.g. headless tests). */
+    /** Sends a chat message to a player. sendMessage handles the local player (solo) itself; headless tests have neither con nor local player → log only. */
     static void notify(Player player, String message){
-        if(player != null && player.con != null){
+        if(player != null && (player.con != null || player.isLocal())){
             player.sendMessage(message);
         }else{
             Log.info("[MindTheIndustry] -> " + (player == null ? "?" : player.name) + ": " + message);

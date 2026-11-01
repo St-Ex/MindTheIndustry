@@ -92,78 +92,30 @@ public class MindTheIndustrySession{
 
     // --- Starting configuration ---
 
-    /** Base buildings always unlocked when a run starts. */
+    /**
+     * Playable-start floor (M1): basic Serpulo plans unlocked at run start —
+     * enough to build supply and defense from wave 0. Category coverage
+     * (core/storage, transport, extraction, power, basic defense) is
+     * structural; the exact contents are provisional — balance pass.
+     * The floor never varies between runs (protected core of the standard
+     * pack, M3); Erekir/advanced content comes in via PLAN rewards.
+     */
     private static final String[] STARTER_BLOCKS = {
-        "core-shard", "core-foundation", "core-nucleus",
-        "conveyor", "junction", "router", "sorter", "overflow-gate",
-        "distributor", "titanium-conveyor", "plastanium-conveyor",
-        "power-node", "power-node-large",
-        "combustion-generator", "steam-generator", "solar-panel", "differential-generator",
-        "drill", "pneumatic-drill", "laser-drill", "blast-drill",
-        "mechanical-pump", "rotary-pump", "impulse-pump",
-        "wall", "large-wall", "titanium-wall", "thorium-wall",
-        "door", "large-door",
-        "mender", "mend-projector", "overdrive-projector",
-        "container", "vault", "launch-pad",
-        "switch", "message", "micro-processor", "logic-processor", "memory-cell", "memory-bank",
-        "duo", "scatter", "scorch", "hail",
-        "copper-wall", "copper-wall-large",
-        "graphite-press", "silicon-smelter", "coal-centrifuge", "multi-press",
-        "cultivator", "oil-extractor", "pyratite-mixer", "blast-mixer", "spore-press",
-        "vent-condenser", "atmospheric-concentrator",
-        "phase-conveyor", "phase-bridge",
-        "mass-driver",
-        "mechanical-drill", "eruption-drill",
-        "ground-factory", "air-factory", "naval-factory",
-        "additive-reconstructor", "multiplicative-reconstructor",
-        "exponential-reconstructor", "tetrative-reconstructor",
-        "tank-fabricator", "tank-refabricator", "tank-assembler",
-        "ship-fabricator", "ship-refabricator", "ship-assembler",
-        "mech-fabricator", "mech-refabricator", "mech-assembler",
-        "prime-refabricator", "basic-assembler-module",
-        "rally", "repair-point", "repair-tower", "regen-projector",
-        "shockwave-tower",
-        "luminous-silicon-fabricator", "heat-redirector", "heat-router",
-        "slag-incinerator", "phase-heater", "heat-turbine",
-        "slag-heater", "thermal-generator",
-        "neoplasia-heater", "neoplasia-centrifuge",
-        "vent-compressor",
-        "plasma-bore", "impact-drill", "eruption-drill",
-        "carbide-crucible", "slag-incinerator",
-        "pulse-conduit", "plated-conduit", "surge-conduit", "phase-conduit", "bridge-conduit",
-        "liquid-router", "liquid-junction", "liquid-container", "liquid-tank",
-        "arc", "ws", // Erekir base turrets
-        "beryllium-wall", "beryllium-wall-large", "tungsten-wall", "tungsten-wall-large",
-        "shielded-wall",
-        "thruster", "small-thruster",
-        "fuse", "ripples", "cyclone", "foreshadow", "breach", "sublimate", "disrupt", "tsunami",
-        "afflict", "distraction", "aegis", "navanax",
-        "conveyor", "titanium-conveyor",
-        "duct", "duct-router", "duct-bridge", "armored-duct", "duct-unloader",
-        "armored-conveyor", "bridge-conveyor", "underflow-gate",
-        "heat-conduit", "heat-router", "heat-redirector",
-        "surge-conveyor", "surge-router",
-        "unit-cargo-loader", "unit-cargo-unload-point",
-        "tank", "ship",
-        "command-center",
-        "payload-conveyor", "payload-router", "payload-mass-driver", "payload-void", "payload-source",
-        "large-payload-mass-driver",
-        "small-deconstructor",
-        "core-bastion", "core-citadel", "core-core",
-        "reinforced-conveyor", "reinforced-junction", "reinforced-router", "reinforced-bridge",
-        "reinforced-conduit", "reinforced-liquid-junction", "reinforced-liquid-router", "reinforced-bridge-conduit", "reinforced-liquid-container", "reinforced-liquid-tank",
-        "reinforced-pump",
-        "reinforced-power-node",
-        "large-shield-projector",
-        "force-projector",
+        // core & storage
+        "core-shard", "container", "vault",
+        // transport
+        "conveyor", "junction", "router", "titanium-conveyor",
+        // extraction
+        "mechanical-drill", "pneumatic-drill",
+        // power
+        "power-node", "combustion-generator", "solar-panel",
+        // basic defense
+        "copper-wall", "copper-wall-large", "duo", "scatter", "hail", "mender",
     };
 
     /** Basic unit plans available from the start of a run. */
     private static final String[] STARTER_UNITS = {
-        // Serpulo ground/air/naval basics
-        "dagger", "mace", "nova", "flare", "horizon", "crawler", "risso", "minke",
-        // Erekir basics (small mechs/fliers)
-        "alpha", "beta", "gamma", "stell", "locus", "elude",
+        "dagger", "mace", "nova", "flare",
     };
 
     public MindTheIndustrySession(){

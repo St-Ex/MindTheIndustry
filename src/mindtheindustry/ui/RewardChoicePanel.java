@@ -58,8 +58,9 @@ public class RewardChoicePanel extends Table{
     public void act(float delta){
         super.act(delta);
         ClientRewardState st = ClientRewardState.instance;
-        // only show while playing on a server that runs the mod (solo = integrated server)
-        visible = st.visible && (net.client() || net.server()) && state.isGame();
+        // show while playing with the mod loaded: multiplayer (client or server)
+        // OR solo (net inactive → neither net.client() nor net.server() is true)
+        visible = st.visible && state.isGame() && (net.client() || net.server() || !net.active());
         if(visible && builtWave != st.wave){
             builtWave = st.wave;
             rebuild(st);

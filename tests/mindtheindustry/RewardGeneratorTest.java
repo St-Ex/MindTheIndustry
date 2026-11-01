@@ -173,11 +173,14 @@ class RewardGeneratorTest extends HeadlessMindTheIndustryTest{
         MindTheIndustrySession session = newSession(11);
         RewardGenerator gen = new RewardGenerator(session.rand);
 
-        // basic plans are unlocked at run start → must never be offered as a reward
+        // floor plans are unlocked at run start → must never be offered as a reward
         ObjectSet<String> starters = ObjectSet.with(
-            "unit:dagger", "unit:mace", "unit:nova", "unit:flare", "unit:horizon", "unit:crawler",
-            "unit:risso", "unit:minke", "unit:alpha", "unit:beta", "unit:gamma", "unit:stell",
-            "unit:locus", "unit:elude", "block:duo", "block:conveyor", "block:drill", "block:core-shard");
+            "unit:dagger", "unit:mace", "unit:nova", "unit:flare",
+            "block:core-shard", "block:container", "block:vault",
+            "block:conveyor", "block:junction", "block:router", "block:titanium-conveyor",
+            "block:mechanical-drill", "block:pneumatic-drill",
+            "block:power-node", "block:combustion-generator", "block:solar-panel",
+            "block:copper-wall", "block:copper-wall-large", "block:duo", "block:scatter", "block:hail", "block:mender");
 
         for(int i = 0; i < 200; i++){
             for(Reward r : gen.generateChoices(session, null, 1)){

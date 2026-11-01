@@ -91,8 +91,8 @@ class PlanetPlayEventTest extends mindtheindustry.HeadlessMindTheIndustryTest{
         assertTrue(duo.environmentBuildable(), "environmentBuildable() gates the menu on the current planet");
         assertTrue(duo.placeablePlayer && duo.supportsEnv(state.rules.env), "placeable + env must pass");
 
-        Block duct = content.block("duct");
-        assertTrue(duct.unlockedNowHost() && duct.environmentBuildable(), "category starter must pass the build menu gate: duct");
+        Block drill = content.block("mechanical-drill");
+        assertTrue(drill.unlockedNowHost() && drill.environmentBuildable(), "floor block must pass the build menu gate: mechanical-drill");
 
         Block battery = content.block("battery");
         assertFalse(battery.unlockedNowHost(), "batteries must stay locked: battery");
