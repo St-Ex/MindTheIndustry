@@ -28,7 +28,7 @@ mise exec -- ./gradlew test
 ## Test harness (mandatory)
 
 - Tests live in `tests/` (Gradle `test` sourceSet), JUnit 5.
-- `tests/mindtheindustry/HeadlessMindustryIndustryTest.java` boots Mindustry **headless** (no UI, no rendering), once per test JVM. Every game-logic test class extends it.
+- `tests/mindtheindustry/HeadlessMindTheIndustryTest.java` boots Mindustry **headless** (no UI, no rendering), once per test JVM. Every game-logic test class extends it.
 - **Do not validate a change by launching the game manually**: write a headless test.
 - Test rules:
   - Deterministic: fixed seed (`new Rand(42)`, `session.start(42)`).
