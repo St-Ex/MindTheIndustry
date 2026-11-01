@@ -41,13 +41,14 @@ where unavoidable (vanilla interop).
     reward** (its effects transfer to the receiving player); mutual confirmation.
   - **Assignment switch**: entity active-player reassignment allowed *only* here.
   - Pending choices convert at window open.
-- Duration: **2-3x the inter-wave countdown** (`waveSpacing`) — long enough to
-  rebuild forces after the boss fight. Default `2x`, configurable via
-  `windowWaveSpacingMultiplier` (2-3); exact value deferred to the balance pass.
+- Duration: **fixed 5 min** (`windowDuration = 300s`, configurable) — long enough
+  to rebuild forces after the boss fight. Decoupled from `waveSpacing` (owner,
+  Nov 2026: waveSpacing drops to 30s, so a spacing-relative window would be
+  uselessly short).
 - Closes early when all connected players confirm ready, or when the duration
   cap is reached → countdown resumes, next chapter.
 - The duration is a **cap, not a wait**: the ready signal closes the window
-  early; the 2-3x cap only prevents an indefinite window (AFK players).
+  early; the cap only prevents an indefinite window (AFK players).
 
 ## Vanilla interop (verified against Mindustry v160 source)
 
@@ -65,18 +66,21 @@ where unavoidable (vanilla interop).
 
 ## Run pacing targets (owner, Nov 2026)
 
-- Vanilla survival default `waveSpacing` = **120s** (verified: `Rules.java`,
-  `waveSpacing = 2 * Time.toMinutes`).
-- `initialWaveSpacing <= 0` uses `waveSpacing * 2` (4 min before wave 1) — keep
-  the room for initial base building.
-- Chapter = 10 waves: ~20 min of countdown + combat durations (`waitEnemies = true`
-  pauses the countdown while enemies live, so combat time stacks on top) + boss
-  window (2-3x waveSpacing = 4-6 min) ≈ **~30 min per chapter**.
-- Target run length: **3 chapters ≈ 1h30**. Targets, not hard rules: the balance
-  pass owns the numbers, and combat gets longer in later chapters, so real runs
-  will drift above the pure-countdown math.
+- Vanilla survival default `waveSpacing` = **120s** (`Rules.java`:
+  `waveSpacing = 2 * Time.toMinutes`) — but the mod overrides it to **30s**
+  (owner, Nov 2026: combats already take long; the countdown must not add dead
+  time). Config knob: `runWaveSpacing = 30s`.
+- `initialWaveSpacing` is set explicitly to **240s** (4 min before wave 1):
+  vanilla's `<= 0 → waveSpacing * 2` fallback would collapse to 60s with the
+  30s spacing — the room for initial base building is preserved instead.
+- Chapter = 10 waves: ~5 min of countdown + combat durations (`waitEnemies = true`
+  freezes the countdown while enemies live, so combat time stacks on top and
+  **dominates** the chapter length) + boss window (5 min) → chapter length is
+  **combat-driven**, ≈ 20-30 min for typical fights.
+- Target run length: **3 chapters ≈ 1h-1h30** (combat-dominant). Targets, not
+  hard rules: the balance pass owns the numbers.
 - Open question (not for M1): victory condition — fixed 3 chapters (winWave = 30)
-  vs endless. The 1h30 target assumes 3 chapters.
+  vs endless. The target assumes 3 chapters.
 
 ## Enemy scaling
 
