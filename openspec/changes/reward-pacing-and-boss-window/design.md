@@ -63,6 +63,21 @@ where unavoidable (vanilla interop).
 - `state.rules.waitEnemies` already pauses the countdown while enemies remain
   (already enabled on MTI maps).
 
+## Run pacing targets (owner, Nov 2026)
+
+- Vanilla survival default `waveSpacing` = **120s** (verified: `Rules.java`,
+  `waveSpacing = 2 * Time.toMinutes`).
+- `initialWaveSpacing <= 0` uses `waveSpacing * 2` (4 min before wave 1) — keep
+  the room for initial base building.
+- Chapter = 10 waves: ~20 min of countdown + combat durations (`waitEnemies = true`
+  pauses the countdown while enemies live, so combat time stacks on top) + boss
+  window (2-3x waveSpacing = 4-6 min) ≈ **~30 min per chapter**.
+- Target run length: **3 chapters ≈ 1h30**. Targets, not hard rules: the balance
+  pass owns the numbers, and combat gets longer in later chapters, so real runs
+  will drift above the pure-countdown math.
+- Open question (not for M1): victory condition — fixed 3 chapters (winWave = 30)
+  vs endless. The 1h30 target assumes 3 chapters.
+
 ## Enemy scaling
 
 - Reuse the vanilla Waves table as backbone; the mod adjusts spawn interval and
