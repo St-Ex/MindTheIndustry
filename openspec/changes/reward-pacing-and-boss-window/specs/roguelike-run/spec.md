@@ -3,20 +3,24 @@
 ## MODIFIED Requirements
 
 ### Requirement: Wave rewards
-The run SHALL reveal 3 proposals per player when a wave is cleared. The choice is
-individual (even for group-benefit proposals), revealed after the wave clear,
-subject to a configurable timer (default 30s) after which unchosen proposals
-convert to a small resource grant.
+The run SHALL reveal a choice of 3 proposals to each player when a wave ends
+(last enemy of the wave set dies). At most 1 proposal may be taken; taking none
+converts to a small resource grant. A choice remains available until the next
+choice appears, at which point an unchosen choice converts. Bonus-malus effects
+apply to the taking player (via entity assignment); plans and resources apply to
+the group.
 
 ## ADDED Requirements
 
-### Requirement: Boss cadence
-The run SHALL trigger a boss wave every `bossInterval` waves (default 10), using
-the native Mindustry wave system with a boss-flagged unit.
+### Requirement: Chapters
+The run SHALL group waves into chapters of `chapterLength` waves (default 10);
+the last wave of each chapter SHALL feature a boss, using the native Mindustry
+wave system with a boss-flagged unit.
 
 ### Requirement: Boss window
-Killing the boss SHALL open a ceasefire window (wave countdown frozen, no
-spawns). During the window the run SHALL offer rare relic proposals per player,
-allow exactly one reward trade between players, allow entity active-player
-assignment switches, and expire all pending wave proposals. The window SHALL
-close when all players are ready or after a safety timeout.
+Killing the chapter boss SHALL open a ceasefire window (wave countdown frozen,
+no spawns). During the window the run SHALL offer rare relic proposals per
+player, allow exactly one trade of an already-taken reward between players, allow
+entity active-player assignment switches, and convert all pending choices. The
+window SHALL close when all connected players are ready or after a safety
+timeout.

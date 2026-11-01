@@ -41,6 +41,16 @@ mise exec -- ./gradlew test
 - No purely visual content without a gameplay counterpart (no "just a render").
 - Run control is the server-side `/mindtheindustry` command (works in solo and multi); reward picking is the HUD box (`ui/RewardChoicePanel`) fed by `RewardChoicesPacket`.
 
+## Ubiquitous language (DDD, November 2026)
+
+Agents and code must use these terms consistently:
+
+- **Wave**: the spawn of a set of enemies; it ends when its last enemy dies. Not the Mindustry wave counter.
+- **Chapter**: a set of 10 waves (configurable); the last wave of a chapter features a boss. Waves arrive after a standard Mindustry countdown.
+- **Choice**: the 3 proposals offered to a player at wave end. At most 1 may be taken; taking none converts. One choice at a time per player: a choice remains available until the next one appears — the arrival of a new choice triggers the fallback conversion of the previous, unchosen one. No timers.
+- **Boss window**: the ceasefire between chapters (relic choice, one trade of an already-taken reward, assignment switches).
+- **Strategy**: the run "class" picked at the draft (Kanban, Lean, Stock zero, Six Sigma, Agile).
+
 ## Design direction (decided, October 2026)
 
 - This section is the **target design** agreed in the October 2026 session. Until the M1-M3 changes land, the current truth remains `DECISIONS.md` and `openspec/specs/`; when they conflict, the specs win for what is built next, `DECISIONS.md` wins for what the mod does today.
