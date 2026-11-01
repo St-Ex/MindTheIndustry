@@ -77,5 +77,5 @@ Backlog (4-square UI, zone branching, elite waves, balance pass) lives in GitHub
 ## Git
 
 - Commits in English, concise messages, one topic per commit.
-- Development happens directly on `main` (owner decision, see `DECISIONS.md`). Do not push without explicit approval from the owner.
+- **PR-first workflow** (see `DECISIONS.md`): one branch per change, one **worktree per PR** (`git worktree add ../MindTheIndustry-<slug> -b <branch>`) so agents/devs never share a dirty checkout; `main` receives changes only via merged PRs. Do not push without explicit approval from the owner.
 - If a branch diverges from its origin with duplicate commits, rebase onto origin (duplicates drop automatically). Never force-push.
