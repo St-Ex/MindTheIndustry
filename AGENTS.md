@@ -91,5 +91,5 @@ Backlog (4-square UI, zone branching, elite waves, balance pass) lives in GitHub
 ## Git
 
 - Commits in English, concise messages, one topic per commit.
-- **PR-first workflow** (see `DECISIONS.md`): one branch per change, one **worktree per PR** (`git worktree add ../MindTheIndustry-<slug> -b <branch>`) so agents/devs never share a dirty checkout; `main` receives changes only via merged PRs. Do not push without explicit approval from the owner.
+- **PR-first workflow** (see `DECISIONS.md`): one branch per change, one **worktree per PR** — start one with `vibe --worktree <slug>` (creates/reuses a git worktree under `~/.vibe/worktrees/<repo-bucket>/<slug>` on branch `<slug>`) so agents/devs never share a dirty checkout. Trust the bucket once per machine by adding `~/.vibe/worktrees/<repo-bucket>` to `trusted` in `~/.vibe/trusted_folders.toml`; all worktrees of this repo are then trusted by default. `main` receives changes only via merged PRs. Do not push without explicit approval from the owner.
 - If a branch diverges from its origin with duplicate commits, rebase onto origin (duplicates drop automatically). Never force-push.
