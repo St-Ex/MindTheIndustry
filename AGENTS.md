@@ -40,7 +40,7 @@ mise exec -- ./gradlew test
 - **Game logic must not depend on `arc.scene`.** The `ui/` layer only renders client state (`ClientRewardState`) and sends intents (vote packets); every mechanic (reward, modifier, wave) lives in `core/` and must be testable without a UI.
 - No purely visual content without a gameplay counterpart (no "just a render").
 - Run control is the server-side `/mindtheindustry` command (works in solo and multi); reward picking is the HUD box (`ui/RewardChoicePanel`) fed by `RewardChoicesPacket`.
-- **User-facing strings are localized**: all in-game text goes through Mindustry bundle keys (`bundles/bundle.properties` as the canonical EN reference, plus locale variants matching Mindustry's own bundle locales, e.g. `bundle_fr.properties`), never hardcoded Java literals. Mindustry falls back to the default bundle for missing keys/locales, so partial coverage is safe. Code, docs, openspec and commits remain English-only.
+- **User-facing strings are localized**: all in-game text goes through Mindustry bundle keys (`bundles/bundle.properties` as the canonical EN reference, plus locale variants matching Mindustry's own bundle locales, e.g. `bundle_fr.properties`), never hardcoded Java literals. Mindustry falls back to the default bundle for missing keys/locales, so partial coverage is safe. Code, docs, openspec and commits remain English-only. The working agent authors the locale variants — **adapt the register, don't translate literally** (corporate satire must stay funny in its own market's jargon: bench time / inter-contrat / Bench / bench / ベンチ), cover the locales it can do well, and leave the long tail to EN fallback or community contributions.
 
 ## Ubiquitous language (DDD, November 2026)
 
