@@ -41,7 +41,8 @@ public class ServerMindTheIndustryController{
 
     /** Timer to regularly check wave completion / tick the boss window. */
     private float checkTimer = 0f;
-    private static final float CHECK_INTERVAL = 1f; // seconds
+    /** Poll interval in engine ticks (60 ticks = 1 second). */
+    private static final float CHECK_INTERVAL = 60f;
 
     // --- Run start ---
 
@@ -58,15 +59,16 @@ public class ServerMindTheIndustryController{
         state.wave = 1; //the engine spawns wave N from position N-1 = state.wave
         session.syncWave(0);
         installSpawns();
-        state.wavetime = session.config.initialWaveSpacing;
+        state.wavetime = session.config.ticks(session.config.initialWaveSpacing); //engine time is in ticks
         broadcast(msg("mti.run.started"));
         Log.info("[MindTheIndustry] Run started, wave 1 scheduled.");
     }
 
     /** Applies the run pacing rules (M1): 30s inter-wave countdown, 5 min initial break, mod-owned victory. */
     private void applyRunRules(){
-        state.rules.waveSpacing = session.config.runWaveSpacing;
-        state.rules.initialWaveSpacing = session.config.initialWaveSpacing;
+        //engine time fields are in ticks (60/s); RunConfig durations are in seconds
+        state.rules.waveSpacing = session.config.ticks(session.config.runWaveSpacing);
+        state.rules.initialWaveSpacing = session.config.ticks(session.config.initialWaveSpacing);
         state.rules.winWave = 0; //the mod owns victory (final boss death) — vanilla must not sectorCapture
         state.rules.waves = true;
         state.rules.waveTimer = true;
@@ -157,13 +159,12 @@ public class ServerMindTheIndustryController{
         if(session.wave <= lastProcessedWave) return;
         if(session.isBossWindowOpen()) return; //the window drives its own transition
 
-        // Count living enemies
-        int enemies = Groups.unit.count(u -> u.team == state.rules.waveTeam && u.isValid());
+        // Count living enemies of the wave set (same semantics as the engine's
+        // state.enemies / isWaitingWave) — a wave ends when its last enemy dies;
+        // standing map cores are not part of the wave set.
+        int enemies = Groups.unit.count(u -> u.team() == state.rules.waveTeam && u.isEnemy());
 
-        // Also count enemy buildings (enemy cores)
-        int enemyCores = Groups.build.count(b -> b.team == state.rules.waveTeam && b instanceof mindustry.world.blocks.storage.CoreBlock.CoreBuild);
-
-        if(enemies == 0 && enemyCores == 0){
+        if(enemies == 0){
             lastProcessedWave = session.wave;
             onWaveComplete(session.wave);
         }
@@ -211,7 +212,7 @@ public class ServerMindTheIndustryController{
         session.openBossWindow(); //converts all pending wave choices
         // ceasefire: freeze the wave countdown (the world keeps simulating), no spawns until the window closes
         state.rules.waveTimer = false;
-        state.wavetime = state.rules.waveSpacing;
+        state.wavetime = state.rules.waveSpacing; //ticks — ready to resume when the window closes
         installSpawns(); //the next chapter's first wave is ready when the window closes
 
         for(Player player : Groups.player){

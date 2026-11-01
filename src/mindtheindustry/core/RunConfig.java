@@ -12,6 +12,14 @@ package mindtheindustry.core;
  */
 public class RunConfig{
 
+    /**
+     * Engine time is in TICKS (60 ticks = 1 second — vanilla waveSpacing default
+     * is 2 * Time.toMinutes = 7200 ticks = 120s). All RunConfig durations are in
+     * SECONDS (design language); convert with {@link #ticks(float)} when applying
+     * them to engine fields (state.rules.waveSpacing, state.wavetime, ...).
+     */
+    public static final float TICKS_PER_SECOND = 60f;
+
     /** Waves per chapter; the last wave of each chapter is the boss wave. */
     public int chapterLength = 10;
 
@@ -26,6 +34,11 @@ public class RunConfig{
 
     /** Boss window / chapter break cap in seconds; all-ready closes it early. */
     public float bossWindowTimeout = 300f;
+
+    /** Converts a duration in seconds to engine ticks. */
+    public float ticks(float seconds){
+        return seconds * TICKS_PER_SECOND;
+    }
 
     /** Item granted by the fallback conversion of an untaken choice. */
     public String fallbackItem = "copper";

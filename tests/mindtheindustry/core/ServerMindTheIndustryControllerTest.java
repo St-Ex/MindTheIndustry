@@ -85,9 +85,9 @@ class ServerMindTheIndustryControllerTest extends HeadlessMindTheIndustryTest{
         assertTrue(controller.session.active);
         assertEquals(1, state.wave, "the engine's next wave to spawn is wave 1");
         assertEquals(0, controller.session.wave, "no wave spawned yet");
-        assertEquals(30f, state.rules.waveSpacing, 0.001f, "inter-wave countdown overridden to 30s");
-        assertEquals(300f, state.rules.initialWaveSpacing, 0.001f, "5 min initial break configured");
-        assertEquals(300f, state.wavetime, 0.001f, "the break before wave 1 is the initial countdown");
+        assertEquals(1800f, state.rules.waveSpacing, 0.001f, "inter-wave countdown overridden to 30s (engine ticks: 30 * 60)");
+        assertEquals(18000f, state.rules.initialWaveSpacing, 0.001f, "5 min initial break configured (300s in ticks)");
+        assertEquals(18000f, state.wavetime, 0.001f, "the break before wave 1 is the initial countdown (ticks)");
         assertEquals(0, state.rules.winWave, "the mod owns victory — vanilla winWave stays off");
         assertTrue(state.rules.waves && state.rules.waveTimer && state.rules.waitEnemies);
         assertFalse(state.rules.spawns.isEmpty(), "wave 1 spawn groups must be installed");
@@ -299,10 +299,10 @@ class ServerMindTheIndustryControllerTest extends HeadlessMindTheIndustryTest{
         session.start(42);
         session.openBossWindow();
 
-        float cap = session.config.bossWindowTimeout;
+        float cap = session.config.ticks(session.config.bossWindowTimeout); //ticks
         assertTrue(session.isBossWindowOpen());
-        assertFalse(session.tick(cap - 1f), "still time left before the cap");
-        assertTrue(session.tick(2f), "duration cap reached → the window must close");
+        assertFalse(session.tick(cap - 60f), "still time left before the cap");
+        assertTrue(session.tick(120f), "duration cap reached → the window must close");
 
         session.stop();
     }

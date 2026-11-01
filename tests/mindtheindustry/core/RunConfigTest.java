@@ -20,6 +20,15 @@ class RunConfigTest extends HeadlessMindTheIndustryTest{
     }
 
     @Test
+    void durationsAreSecondsAndConvertToEngineTicks(){
+        RunConfig config = new RunConfig();
+        //engine time is in ticks (60/s): vanilla waveSpacing default = 2 * Time.toMinutes = 7200 ticks = 120s
+        assertEquals(1800f, config.ticks(config.runWaveSpacing), 0.001f, "30s = 1800 ticks");
+        assertEquals(18000f, config.ticks(config.initialWaveSpacing), 0.001f, "300s = 18000 ticks");
+        assertEquals(60f, RunConfig.TICKS_PER_SECOND, 0.001f);
+    }
+
+    @Test
     void bossWaveIsTheLastWaveOfEachChapter(){
         RunConfig config = new RunConfig();
         for(int w = 1; w <= 30; w++){

@@ -26,10 +26,10 @@ public class BossWindow{
     /** Pending trade (mutual confirmation). */
     public TradeRequest pendingTrade = null;
 
-    /** Remaining time before the duration cap closes the window (seconds). */
+    /** Remaining time before the duration cap closes the window (engine ticks, 60/s). */
     public float timeLeft;
 
     public BossWindow(RunConfig config){
-        this.timeLeft = config.bossWindowTimeout;
+        this.timeLeft = config.ticks(config.bossWindowTimeout);
     }
 }
