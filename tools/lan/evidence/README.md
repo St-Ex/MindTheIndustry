@@ -33,3 +33,15 @@ p1 (host) in-game on mindtheindustry-run; mod server controller active.
 ![p2-ingame-mti-run](p2-ingame-mti-run.png)
 
 p2 (joined client) in-game on the same map after receiving world data.
+
+## players-2 — 2026-11-02T20:52Z
+
+![players-2](players-2.png)
+
+player list on p1 (host) after p2 joined 127.0.0.1: shows 2 players
+
+## players-2-client — 2026-11-02T20:52Z
+
+![players-2-client](players-2-client.png)
+
+player list on p2 (joined client): 2 players

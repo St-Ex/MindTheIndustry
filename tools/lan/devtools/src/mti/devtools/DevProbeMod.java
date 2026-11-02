@@ -105,6 +105,10 @@ public class DevProbeMod extends Mod{
                         .append("\",\"wx\":").append(hit.localToStageCoordinates(new Vec2(0, 0)).x)
                         .append(",\"w\":").append(hit.getWidth()).append('}');
                     out.writeString(h.append('}').toString());
+                }else if(cmd.equals("players")){
+                    // open/close the in-game player list (same as the HUD players button)
+                    Vars.ui.listfrag.toggle();
+                    writeScene(null, -1);
                 }else if(cmd.equals("state")){
                     out.writeString("{\"sector\":\"" + esc(String.valueOf(Vars.state.rules.sector)) + "\"}");
                 }else if(cmd.equals("presets")){
