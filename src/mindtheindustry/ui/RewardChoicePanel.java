@@ -11,6 +11,7 @@ import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindtheindustry.client.*;
+import mindtheindustry.net.*;
 import mindtheindustry.net.MindTheIndustryPackets.*;
 import mindtheindustry.rewards.*;
 import mindtheindustry.rewards.rewards.*;
@@ -119,7 +120,7 @@ public class RewardChoicePanel extends Table{
 
     /** Sends the vote to the server and hides the box locally (server confirms). */
     private void vote(int index){
-        net.send(new RewardVotePacket(index), true);
+        MindTheIndustryPackets.sendIntent(player, new RewardVotePacket(index));
         ClientRewardState.instance.clear();
         visible = false;
     }

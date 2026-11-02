@@ -29,8 +29,11 @@ public class ClientRewardState{
     /** Whether a boss window (ceasefire) is currently open server-side. */
     public boolean bossWindowOpen = false;
 
-    /** Remaining boss window time in seconds (duration cap). */
+    /** Remaining boss window time in engine ticks (duration cap). */
     public float windowTimeLeft = 0f;
+
+    /** The local player's already-taken rewards (tradeable during a boss window). */
+    public final Seq<Reward> takenRewards = new Seq<>();
 
     /** Sets the choices for a wave (empty list clears/hides the box). */
     public void set(int wave, Seq<Reward> newChoices, boolean relic){
@@ -52,8 +55,22 @@ public class ClientRewardState{
 
     /** Sets the boss window state. */
     public void setBossWindow(boolean open, float timeLeft){
+        setBossWindow(open, timeLeft, new Seq<>());
+    }
+
+    /** Sets the boss window state + the local player's taken rewards (for the trade UI). */
+    public void setBossWindow(boolean open, float timeLeft, Seq<Reward> taken){
         this.bossWindowOpen = open;
         this.windowTimeLeft = timeLeft;
+        this.takenRewards.clear();
+        if(taken != null){
+            for(Reward r : taken){
+                this.takenRewards.add(r);
+            }
+        }
+        if(!open){
+            this.takenRewards.clear();
+        }
     }
 
     /** Hides the box and drops the choices. */

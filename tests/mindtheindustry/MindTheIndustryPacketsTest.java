@@ -89,12 +89,17 @@ class MindTheIndustryPacketsTest extends HeadlessMindTheIndustryTest{
 
     @Test
     void bossWindowPacketRoundTrip(){
-        BossWindowPacket open = roundTrip(new BossWindowPacket(true, 287.5f), new BossWindowPacket());
+        BossWindowPacket open = roundTrip(new BossWindowPacket(true, 287.5f, Seq.with(
+            new ResourceReward(Seq.with("copper"), Seq.with(400), Rarity.EPIC, "n", "d")
+        )), new BossWindowPacket());
         assertTrue(open.open);
         assertEquals(287.5f, open.timeLeft, 0.001f);
+        assertEquals(1, open.taken.size, "taken rewards (tradeable) ride along");
+        assertEquals("resource:copper:400", open.taken.first().id);
 
-        BossWindowPacket closed = roundTrip(new BossWindowPacket(false, 0f), new BossWindowPacket());
+        BossWindowPacket closed = roundTrip(new BossWindowPacket(false, 0f, new Seq<>()), new BossWindowPacket());
         assertFalse(closed.open);
+        assertTrue(closed.taken.isEmpty());
     }
 
     @Test

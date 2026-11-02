@@ -21,7 +21,8 @@ class BundleTest extends HeadlessMindTheIndustryTest{
         "mti.run.started",
         "mti.choice.title", "mti.choice.relic.title", "mti.choice.take.none", "mti.choice.converted",
         "mti.bosswindow.open", "mti.bosswindow.closed", "mti.bosswindow.cap",
-        "mti.trade.offered", "mti.trade.incoming", "mti.trade.rejected", "mti.trade.done", "mti.trade.none",
+        "mti.bosswindow.title", "mti.bosswindow.ready", "mti.bosswindow.time",
+        "mti.trade.title", "mti.trade.offered", "mti.trade.incoming", "mti.trade.rejected", "mti.trade.done", "mti.trade.none", "mti.trade.accept",
         "mti.switch.denied"
     };
 

@@ -67,6 +67,7 @@ public class MindTheIndustryMod extends Mod{
             MetaProgression.load();
             ClientRewardState.instance.clear();
             ui.hudGroup.addChild(RewardChoicePanel.createContainer());
+            ui.hudGroup.addChild(BossWindowPanel.createContainer());
 
             // Victory screen flavor (corporate satire): GG title + subtitle from
             // the mod bundle — never hardcoded. Only on MindTheIndustry runs.

@@ -6,6 +6,7 @@ import mindustry.gen.*;
 import mindustry.net.*;
 import mindtheindustry.*;
 import mindtheindustry.client.*;
+import mindtheindustry.core.*;
 import mindtheindustry.rewards.*;
 
 import static mindustry.Vars.*;
@@ -38,6 +39,34 @@ public class MindTheIndustryPackets{
         Net.registerPacket(TradeOfferPacket::new);
         Net.registerPacket(TradeConfirmPacket::new);
         Net.registerPacket(SwitchPacket::new);
+    }
+
+    /**
+     * Sends a C→S intent from the HUD. Over the network when connected; in solo
+     * (net inactive, net.send does not loop back) the intent is delivered
+     * directly to the integrated server controller in the same JVM.
+     */
+    public static void sendIntent(Player player, Packet packet){
+        if(net.active()){
+            net.send(packet, true);
+            return;
+        }
+        ServerMindTheIndustryController c = MindTheIndustryMod.serverController;
+        if(c == null || player == null) return;
+        if(packet instanceof RewardVotePacket p){
+            c.handleRewardVote(player, p.index, player);
+        }else if(packet instanceof ReadyPacket p){
+            c.handleReady(player);
+        }else if(packet instanceof TradeConfirmPacket p){
+            c.confirmTrade(player);
+        }else if(packet instanceof TradeOfferPacket p){
+            Player target = Groups.player.find(pl -> pl.name != null && pl.name.equalsIgnoreCase(p.targetName));
+            if(target != null) c.offerTrade(player, target, p.rewardId);
+        }else if(packet instanceof SwitchPacket p){
+            Player target = p.targetName.equalsIgnoreCase("none") ? null
+                : Groups.player.find(pl -> pl.name != null && pl.name.equalsIgnoreCase(p.targetName));
+            c.setActivePlayer(p.entityId, p.isBuilding, target, player);
+        }
     }
 
     /** S→C: sends a player their proposals for the current wave (wave choice or boss-window relic choice). */
@@ -109,33 +138,44 @@ public class MindTheIndustryPackets{
         }
     }
 
-    /** S→C: boss window opened ({@link #open}) or closed, with the remaining time in seconds. */
+    /** S→C: boss window opened ({@link #open}) or closed, with the remaining time (ticks) and the player's taken rewards (tradeable). */
     public static class BossWindowPacket extends Packet{
         public boolean open;
         public float timeLeft;
+        public Seq<Reward> taken = new Seq<>();
 
         public BossWindowPacket(){}
 
-        public BossWindowPacket(boolean open, float timeLeft){
+        public BossWindowPacket(boolean open, float timeLeft, Seq<Reward> taken){
             this.open = open;
             this.timeLeft = timeLeft;
+            this.taken = taken;
         }
 
         @Override
         public void write(Writes write){
             write.bool(open);
             write.f(timeLeft);
+            write.i(taken.size);
+            for(Reward r : taken){
+                r.write(write);
+            }
         }
 
         @Override
         public void read(Reads read){
             open = read.bool();
             timeLeft = read.f();
+            int n = read.i();
+            taken = new Seq<>(n);
+            for(int i = 0; i < n; i++){
+                taken.add(Reward.read(read));
+            }
         }
 
         @Override
         public void handleClient(){
-            ClientRewardState.instance.setBossWindow(open, timeLeft);
+            ClientRewardState.instance.setBossWindow(open, timeLeft, taken);
         }
     }
 

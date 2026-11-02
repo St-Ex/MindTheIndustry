@@ -267,13 +267,14 @@ public class ServerMindTheIndustryController{
         }
     }
 
-    /** Sends the boss window state to every client. */
+    /** Sends the boss window state to every client (each gets their own tradeable taken rewards). */
     private void sendBossWindow(boolean open, float timeLeft){
         for(Player p : Groups.player){
+            Seq<Reward> taken = session.getTakenRewards(p);
             if(p.con != null){
-                p.con.send(new MindTheIndustryPackets.BossWindowPacket(open, timeLeft), true);
+                p.con.send(new MindTheIndustryPackets.BossWindowPacket(open, timeLeft, taken), true);
             }else if(!net.client()){
-                ClientRewardState.instance.setBossWindow(open, timeLeft);
+                ClientRewardState.instance.setBossWindow(open, timeLeft, taken);
             }
         }
     }
