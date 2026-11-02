@@ -10,7 +10,7 @@ Mindustry mod (Java 17): a cooperative roguelike mode. Game mechanics are descri
 
 - Java 17, managed by [mise](https://mise.jdx.dev) (`mise.toml`).
 - All commands go through mise: `mise <task>` (tasks defined in `mise.toml`) or `mise exec --`.
-- Never launch the game, a server or a long-running watcher from an agent.
+- Never launch the game, a server or a long-running watcher from an agent — **sole exception**: the sanctioned LAN UI-validation stack in `tools/lan/` (`mise lan:up` / `lan:shot` / `lan:ascii` / `lan:click` / `lan:type` / `lan:down`, see `tools/lan/README.md`), which boots two local non-Steam instances to validate the `ui/` layer and two-client networking. Always tear it down with `mise lan:down`; never leave instances running. Game mechanics are still validated exclusively by headless tests.
 
 ## Commands
 

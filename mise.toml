@@ -4,3 +4,67 @@ java = "17"
 [tasks.build]
 description = "Build the mod (build/libs/mindtheindustryDesktop.jar)"
 run = "./gradlew jar"
+
+# LAN UI-validation stack (tools/lan/README.md). Sanctioned exception to the
+# "never launch the game" rule: UI + two-client networking checks only,
+# always torn down with lan:down. Game mechanics stay on headless tests.
+[tasks."lan:up"]
+description = "Boot two local game instances (p1+p2) side by side for LAN/UI validation"
+run = "sh tools/lan/up.sh"
+
+[tasks."lan:down"]
+description = "Stop the two LAN instances"
+run = "sh tools/lan/down.sh"
+
+[tasks."lan:status"]
+description = "Show LAN stack state (processes, windows, log tails)"
+run = "sh tools/lan/status.sh"
+
+[tasks."lan:count"]
+description = "Print the number of live agent-launched game instances (cap 2)"
+run = "sh tools/lan/count.sh"
+
+[tasks."lan:shot"]
+description = "Screenshot an instance window (or root) into tools/lan/shots/"
+usage = "arg <target>\narg <name>"
+run = 'sh tools/lan/shot.sh "$usage_target" "$usage_name"'
+
+[tasks."lan:ascii"]
+description = "Render a screenshot from tools/lan/shots/ as an ASCII grid"
+usage = "arg <name>"
+run = 'sh tools/lan/ascii.sh "$usage_name"'
+
+[tasks."lan:click"]
+description = "Left click in an instance window at window-relative coords"
+usage = "arg <target>\narg <x>\narg <y>"
+run = 'env -u LD_LIBRARY_PATH python3 tools/lan/input.py tools/lan "$usage_target" click "$usage_x" "$usage_y"'
+
+[tasks."lan:rclick"]
+description = "Right click in an instance window at window-relative coords"
+usage = "arg <target>\narg <x>\narg <y>"
+run = 'env -u LD_LIBRARY_PATH python3 tools/lan/input.py tools/lan "$usage_target" rclick "$usage_x" "$usage_y"'
+
+[tasks."lan:key"]
+description = "Press a key in an instance window (Return, Escape, Tab, ...)"
+usage = "arg <target>\narg <keysym>"
+run = 'env -u LD_LIBRARY_PATH python3 tools/lan/input.py tools/lan "$usage_target" key "$usage_keysym"'
+
+[tasks."lan:type"]
+description = "Type ASCII text into an instance window"
+usage = "arg <target>\narg <text>"
+run = 'env -u LD_LIBRARY_PATH python3 tools/lan/input.py tools/lan "$usage_target" type "$usage_text"'
+
+[tasks."lan:proof"]
+description = "Capture a screenshot into committed PR evidence (tools/lan/evidence/<name>.png + README entry)"
+usage = "arg <target>\narg <name>\narg <note...>"
+run = 'sh tools/lan/proof.sh "$usage_target" "$usage_name" "$usage_note"'
+
+[tasks."lan:probe"]
+description = "Send a devtools probe command to an instance (dump | tapc x y | play/host/join | ... — full list in tools/lan/README.md)"
+usage = "arg <target>\narg <command...>"
+run = 'sh tools/lan/probe.sh "$usage_target" "$usage_command"'
+
+[tasks."lan:scene"]
+description = "Print an instance's last scene-graph dump (run/<p>/mti-scene.json)"
+usage = "arg <target>\narg <jq_filter?>"
+run = 'sh tools/lan/scene.sh "$usage_target" "${usage_jq_filter:-}"'

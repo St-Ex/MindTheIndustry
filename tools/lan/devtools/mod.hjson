@@ -1,0 +1,6 @@
+name: "mti-devtools"
+displayName: "MTI LAN DevTools"
+description: "Dev-only probe for the LAN UI-validation stack (tools/lan). Watches <data>/mti-probe and writes <data>/mti-scene.json. Never shipped in the mod jar."
+main: "mti.devtools.DevProbeMod"
+minGameVersion: 160
+version: "1.0"
