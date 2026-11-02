@@ -1,18 +1,20 @@
 # LAN test evidence
 
 Screenshots captured with `mise lan:proof <p1|p2|root> <name> <note>` while the
-LAN stack was up, committed here so PRs/features can embed them. In PR bodies
-use the absolute raw URL (GitHub resolves *relative* links in a PR body against
-the base branch, so they break until merged), e.g.:
+LAN stack was up, committed here so PRs/features can embed them. PNGs here are
+tracked via **Git LFS** (`.gitattributes`: `tools/lan/evidence/*.png filter=lfs
+...`), so install git-lfs (`git lfs install`) before pulling.
+
+In PR bodies embed them with the absolute `blob/...?raw=true` URL (printed by
+`lan:proof`) — relative links resolve against the base branch (broken until
+merged) and `raw.githubusercontent.com` serves only the LFS pointer:
 
 ```md
-![proof](https://raw.githubusercontent.com/St-Ex/MindTheIndustry/lan-validation-stack/tools/lan/evidence/lan-two-clients.png)
+![proof](https://github.com/St-Ex/MindTheIndustry/blob/lan-validation-stack/tools/lan/evidence/lan-two-clients.png?raw=true)
 ```
 
-`lan:proof` prints this line ready to paste. Runtime shots stay gitignored in
-`tools/lan/shots/`; only curated proof shots land here. PNGs here are tracked
-via **Git LFS** (`.gitattributes`: `tools/lan/evidence/*.png filter=lfs ...`),
-so install git-lfs (`git lfs install`) before cloning/pulling this branch.
+Runtime shots stay gitignored in `tools/lan/shots/`; only curated proof shots
+land here.
 
 ## lan-two-clients — 2026-11-02 (validated run)
 

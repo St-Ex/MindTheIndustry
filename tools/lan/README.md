@@ -105,13 +105,14 @@ llvmpipe, so sleep a few seconds). Commands (`mise lan:probe <p1|p2> <cmd>`):
 `mise lan:proof <target> <name> <note>` captures a real PNG into the
 **committed** `tools/lan/evidence/` directory (with a markdown entry in its
 README) and prints a ready-to-paste embed line, so a PR body shows actual
-proof. In PR bodies use the **absolute raw URL** form — GitHub resolves
-relative links in a PR body against the *base* branch, where the evidence
-doesn't exist yet (broken images); absolute links work from the head branch
-immediately, and the relative form starts working once merged:
+proof. In PR bodies use the **absolute `blob/...?raw=true` URL** form (printed
+by `lan:proof`): relative links in a PR body resolve against the *base* branch
+(broken until merged), `raw.githubusercontent.com` serves only the LFS pointer
+for LFS files, and `github.com/<repo>/blob/<branch>/<path>?raw=true` resolves
+the real LFS content immediately:
 
 ```md
-![two clients in one LAN game](https://raw.githubusercontent.com/St-Ex/MindTheIndustry/lan-validation-stack/tools/lan/evidence/lan-two-clients.png)
+![two clients in one LAN game](https://github.com/St-Ex/MindTheIndustry/blob/lan-validation-stack/tools/lan/evidence/lan-two-clients.png?raw=true)
 ```
 
 Runtime screenshots stay gitignored in `tools/lan/shots/`; only curated
