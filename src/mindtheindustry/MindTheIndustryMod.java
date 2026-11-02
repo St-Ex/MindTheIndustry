@@ -39,6 +39,20 @@ public class MindTheIndustryMod extends Mod{
     public MindTheIndustryMod(){
         Log.info("[MindTheIndustry] Mod loaded.");
 
+        //log the build (git SHA) — the same SHA is baked into mod.hjson's version
+        //at build time, so it shows on the mod card in the loaded-mods dialog
+        try(var in = MindTheIndustryMod.class.getResourceAsStream("/mti-build.properties")){
+            if(in != null){
+                java.util.Properties props = new java.util.Properties();
+                props.load(in);
+                Log.info("[MindTheIndustry] Build: " + props.getProperty("gitBranch", "?") + " " + props.getProperty("gitSha", "unknown"));
+            }else{
+                Log.info("[MindTheIndustry] Build info missing (running from IDE?)");
+            }
+        }catch(Exception e){
+            Log.warn("[MindTheIndustry] Could not read build info", e);
+        }
+
         // Register network packets (reward choices S→C, votes C→S)
         MindTheIndustryPackets.register();
         Log.info("[MindTheIndustry] Packets registered.");

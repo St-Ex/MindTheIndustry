@@ -1,3 +1,6 @@
+import java.time.Instant
+import java.util.Properties
+
 plugins{
     java
 }
@@ -73,6 +76,58 @@ tasks.test{
     useJUnitPlatform()
 }
 
+// Build info (git SHA/branch/dirty) embedded in the jar as mti-build.properties,
+// so the loaded build can be verified on the mod card (meta.version) in-game.
+val buildInfoDir = layout.buildDirectory.dir("buildInfo")
+val generateBuildInfo = tasks.register("generateBuildInfo"){
+    outputs.dir(buildInfoDir)
+    doLast{
+        fun git(vararg args: String): String = try{
+            val p = ProcessBuilder(listOf("git", *args)).directory(projectDir).redirectErrorStream(true).start()
+            val out = p.inputStream.readBytes().toString(Charsets.UTF_8)
+            p.waitFor()
+            out.trim()
+        }catch(e: Exception){
+            ""
+        }
+        val sha = git("rev-parse", "--short", "HEAD").ifEmpty{ "unknown" }
+        val branch = git("rev-parse", "--abbrev-ref", "HEAD").ifEmpty{ "unknown" }
+        val dirty = if(git("status", "--porcelain").isNotEmpty()) "-dirty" else ""
+        val f = buildInfoDir.get().file("mti-build.properties").asFile
+        f.parentFile.mkdirs()
+        f.writeText("gitSha=$sha$dirty\ngitBranch=$branch\nbuildTime=${Instant.now()}\n")
+        println("[buildInfo] gitSha=$sha$dirty branch=$branch")
+    }
+}
+sourceSets{
+    main{
+        resources.srcDir(buildInfoDir)
+    }
+}
+tasks.named("processResources"){ dependsOn(generateBuildInfo) }
+tasks.named("processTestResources"){ dependsOn(generateBuildInfo) }
+
+// mod.hjson with the build SHA baked into the version, so the mod card in the
+// loaded-mods dialog shows exactly which build is loaded (e.g. 0.1.0 [reward-pacing-and-boss-window bd3cecb])
+val generateModHjson = tasks.register("generateModHjson"){
+    dependsOn(generateBuildInfo)
+    val out = layout.buildDirectory.file("modHjson/mod.hjson")
+    outputs.file(out)
+    doLast{
+        val props = Properties()
+        props.load(buildInfoDir.get().file("mti-build.properties").asFile.inputStream())
+        val sha = props.getProperty("gitSha", "unknown")
+        val branch = props.getProperty("gitBranch", "?")
+        val original = File(projectDir, "mod.hjson").readText()
+        val patched = Regex("(?m)^version:.*$").replace(original, "version: \"0.1.0 [$branch $sha]\"")
+        val f = out.get().asFile
+        f.parentFile.mkdirs()
+        f.writeText(patched)
+        println("[modHjson] version = 0.1.0 [$branch $sha]")
+    }
+}
+tasks.named("processTestResources"){ dependsOn(generateModHjson) }
+
 // Build + copy the mod into the local Mindustry mods folder (native Linux data
 // dir), so a restart picks it up. The mod stays enabled once toggled in the
 // in-game Mods menu — no manual re-import needed, same file name each time.
@@ -89,6 +144,7 @@ tasks.register<Copy>("deployMod"){
 }
 
 tasks.jar{
+    dependsOn(generateModHjson)
     archiveFileName.set("${projectName}Desktop.jar")
 
     from(configurations.runtimeClasspath.map{ files ->
@@ -96,10 +152,12 @@ tasks.jar{
     })
 
     from(projectDir){
-        include("mod.hjson")
         include("icon.png")
         include("bundles/**")
     }
+
+    //generated mod.hjson (build SHA in the version), not the static one
+    from(layout.buildDirectory.file("modHjson/mod.hjson"))
 
     from("assets/"){
         include("**")
