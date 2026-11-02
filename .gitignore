@@ -155,3 +155,9 @@ gradle-app.setting
 .DS_Store
 Thumbs.db
 android/libs/
+
+## LAN validation stack runtime state
+/tools/lan/run/
+/tools/lan/shots/
+/tools/lan/.cache/
+/tools/lan/HANDOFF.md
