@@ -20,13 +20,12 @@ import java.util.Map;
  * Not part of the shipped mod; installed by lan:up into the LAN run dirs only.
  *
  * Protocol (file-based IPC inside the instance's MINDUSTRY_DATA_DIR):
- *   write a command to <data>/mti-probe:
- *     "dump"              -> walk the scene graph, write <data>/mti-scene.json
- *     "highlight <text>"  -> blink matched visible elements red/white, and
- *                            write their bounds to mti-scene.json
- *     "clear"             -> remove highlight actions, write mti-scene.json
- *   The probe file is cleared after each command. The watcher polls every 300ms,
- *   so: mise lan:probe p1 dump && sleep 1 && mise lan:scene p1
+ *   write a command to <data>/mti-probe, the probe answers in
+ *   <data>/mti-scene.json. The full command list (dump, highlight, clear,
+ *   tap/tapc, key, hit, play, host, join, setname, killenemies, countenemies,
+ *   cmd, state, presets, root) is documented in tools/lan/README.md.
+ *   The probe file is cleared after each command; the watcher polls every
+ *   250ms, so: mise lan:probe p1 dump && sleep 1 && mise lan:scene p1
  *
  * Coordinates: "x,y,w,h" are stage coords (y-up, origin bottom-left);
  * "wx,wy" are window-relative y-down coords matching tools/lan/input.py.

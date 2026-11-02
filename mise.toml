@@ -60,7 +60,7 @@ usage = "arg <target>\narg <name>\narg <note...>"
 run = 'sh tools/lan/proof.sh "$usage_target" "$usage_name" "$usage_note"'
 
 [tasks."lan:probe"]
-description = "Send a devtools probe command to an instance (dump | highlight <text> | clear)"
+description = "Send a devtools probe command to an instance (dump | tapc x y | play/host/join | ... — full list in tools/lan/README.md)"
 usage = "arg <target>\narg <command...>"
 run = 'sh tools/lan/probe.sh "$usage_target" "$usage_command"'
 

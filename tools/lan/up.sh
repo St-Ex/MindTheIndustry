@@ -85,15 +85,11 @@ if ! DISPLAY="$LAN_DISPLAY" xdpyinfo >/dev/null 2>&1; then
 fi
 
 live="$(live_game_count)"
-if [ "$live" -ge "$MAX_LIVE_GAMES" ]; then
-    echo "cap reached: $live/$MAX_LIVE_GAMES live game instances already running;" >&2
-    echo "refusing to start more. Ask the user to approve going above $MAX_LIVE_GAMES." >&2
-    exit 1
-fi
 
 DEVJAR="$(devtools_jar)"
 echo "devtools jar: $DEVJAR"
 
+planned=0
 for p in p1 p2; do
     d="$RUN_DIR/$p"
     mkdir -p "$d/mods"
@@ -103,6 +99,14 @@ for p in p1 p2; do
         echo "$p already running (pid $(cat "$RUN_DIR/$p.pid"))"
         continue
     fi
+    # enforce the cap per instance started, not just once up front — otherwise
+    # one already-live instance + two new ones would overshoot the cap
+    if [ "$((live + planned))" -ge "$MAX_LIVE_GAMES" ]; then
+        echo "cap reached: $live/$MAX_LIVE_GAMES live game instances already running;" >&2
+        echo "refusing to start more. Ask the user to approve going above $MAX_LIVE_GAMES." >&2
+        exit 1
+    fi
+    planned=$((planned + 1))
     # Sanitize the env for the game process: agent shells often export an
     # LD_LIBRARY_PATH (editor/runtime libs) whose libstdc++ breaks libGL —
     # the game then dies with "Couldn't find matching GLX visual" even though

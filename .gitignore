@@ -162,3 +162,6 @@ android/libs/
 /tools/lan/.cache/
 /tools/lan/devtools/.cache/
 /tools/lan/HANDOFF.md
+
+# python bytecode from local script checks
+__pycache__/
