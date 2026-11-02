@@ -1,10 +1,16 @@
 # LAN test evidence
 
 Screenshots captured with `mise lan:proof <p1|p2|root> <name> <note>` while the
-LAN stack was up, committed here so PRs/features can embed them — relative
-links like `![proof](tools/lan/evidence/lan-two-clients.png)` render in PR
-bodies when the file exists in the PR head branch. Runtime shots stay
-gitignored in `tools/lan/shots/`; only curated proof shots land here.
+LAN stack was up, committed here so PRs/features can embed them. In PR bodies
+use the absolute raw URL (GitHub resolves *relative* links in a PR body against
+the base branch, so they break until merged), e.g.:
+
+```md
+![proof](https://raw.githubusercontent.com/St-Ex/MindTheIndustry/lan-validation-stack/tools/lan/evidence/lan-two-clients.png)
+```
+
+`lan:proof` prints this line ready to paste. Runtime shots stay gitignored in
+`tools/lan/shots/`; only curated proof shots land here.
 
 ## lan-two-clients — 2026-11-02 (validated run)
 

@@ -104,14 +104,17 @@ llvmpipe, so sleep a few seconds). Commands (`mise lan:probe <p1|p2> <cmd>`):
 
 `mise lan:proof <target> <name> <note>` captures a real PNG into the
 **committed** `tools/lan/evidence/` directory (with a markdown entry in its
-README), so a PR body can embed it and reviewers see actual proof:
+README) and prints a ready-to-paste embed line, so a PR body shows actual
+proof. In PR bodies use the **absolute raw URL** form — GitHub resolves
+relative links in a PR body against the *base* branch, where the evidence
+doesn't exist yet (broken images); absolute links work from the head branch
+immediately, and the relative form starts working once merged:
 
 ```md
-![two clients in one LAN game](tools/lan/evidence/lan-two-clients.png)
+![two clients in one LAN game](https://raw.githubusercontent.com/St-Ex/MindTheIndustry/lan-validation-stack/tools/lan/evidence/lan-two-clients.png)
 ```
 
-Relative links like that render in PR bodies when the file is in the PR's head
-branch. Runtime screenshots stay gitignored in `tools/lan/shots/`; only curated
+Runtime screenshots stay gitignored in `tools/lan/shots/`; only curated
 proof shots go into `evidence/`. Combine with `lan:probe <p> "highlight <text>"`
 to make the element under test blink in the proof shot.
 
