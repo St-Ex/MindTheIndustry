@@ -115,7 +115,8 @@ immediately, and the relative form starts working once merged:
 ```
 
 Runtime screenshots stay gitignored in `tools/lan/shots/`; only curated
-proof shots go into `evidence/`. Combine with `lan:probe <p> "highlight <text>"`
+proof shots go into `evidence/` — tracked via **Git LFS** (see `.gitattributes`;
+run `git lfs install` once per machine). Combine with `lan:probe <p> "highlight <text>"`
 to make the element under test blink in the proof shot.
 
 ## Gotchas (verified the hard way)

@@ -10,7 +10,9 @@ the base branch, so they break until merged), e.g.:
 ```
 
 `lan:proof` prints this line ready to paste. Runtime shots stay gitignored in
-`tools/lan/shots/`; only curated proof shots land here.
+`tools/lan/shots/`; only curated proof shots land here. PNGs here are tracked
+via **Git LFS** (`.gitattributes`: `tools/lan/evidence/*.png filter=lfs ...`),
+so install git-lfs (`git lfs install`) before cloning/pulling this branch.
 
 ## lan-two-clients — 2026-11-02 (validated run)
 
