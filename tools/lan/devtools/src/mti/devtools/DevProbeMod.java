@@ -119,6 +119,42 @@ public class DevProbeMod extends Mod{
                          .append("\",\"sector\":").append(sp.sector == null ? -1 : sp.sector.id).append('}');
                     }
                     out.writeString(p.append("]}").toString());
+                }else if(cmd.equals("killenemies")){
+                    // kill all wave-team enemies; the mod's server tick then sees
+                    // wave complete and runs its normal onWaveComplete flow
+                    int[] n = {0};
+                    int[] cores = {0};
+                    mindustry.gen.Groups.unit.each(u -> {
+                        if(u.team == Vars.state.rules.waveTeam){ u.kill(); n[0]++; }
+                    });
+                    mindustry.gen.Groups.build.each(b -> {
+                        if(b.team == Vars.state.rules.waveTeam){
+                            cores[0]++;
+                            if(b instanceof mindustry.world.blocks.storage.CoreBlock.CoreBuild) b.kill();
+                        }
+                    });
+                    out.writeString("{\"killed\":" + n[0] + ",\"waveCores\":" + cores[0] +
+                        ",\"waveTeam\":\"" + esc(String.valueOf(Vars.state.rules.waveTeam)) + "\"}");
+                }else if(cmd.equals("countenemies")){
+                    int[] n = {0};
+                    int[] cores = {0};
+                    mindustry.gen.Groups.unit.each(u -> { if(u.team == Vars.state.rules.waveTeam && u.isValid()) n[0]++; });
+                    mindustry.gen.Groups.build.each(b -> {
+                        if(b.team == Vars.state.rules.waveTeam && b instanceof mindustry.world.blocks.storage.CoreBlock.CoreBuild) cores[0]++;
+                    });
+                    out.writeString("{\"enemies\":" + n[0] + ",\"waveCores\":" + cores[0] +
+                        ",\"wave\":" + Vars.state.wave + "}");
+                }else if(cmd.startsWith("cmd ")){
+                    // run a server command as the host player (e.g. "/mindtheindustry skip");
+                    // the output goes to chat (visible in dump/screenshots)
+                    String text = cmd.substring(4);
+                    try{
+                        arc.util.CommandHandler.CommandResponse resp =
+                            Vars.netServer.clientCommands.handleMessage(text, Vars.player);
+                        out.writeString("{\"cmd\":\"" + esc(text) + "\",\"type\":\"" + esc(String.valueOf(resp.type)) + "\"}");
+                    }catch(Throwable t){
+                        out.writeString("{\"error\":\"" + esc(String.valueOf(t)) + "\"}");
+                    }
                 }else if(cmd.startsWith("setname ")){
                     String n = cmd.substring(8).trim();
                     Core.settings.put("name", n);
