@@ -160,4 +160,5 @@ android/libs/
 /tools/lan/run/
 /tools/lan/shots/
 /tools/lan/.cache/
+/tools/lan/devtools/.cache/
 /tools/lan/HANDOFF.md
