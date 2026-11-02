@@ -54,6 +54,11 @@ description = "Type ASCII text into an instance window"
 usage = "arg <target>\narg <text>"
 run = 'env -u LD_LIBRARY_PATH python3 tools/lan/input.py tools/lan "$usage_target" type "$usage_text"'
 
+[tasks."lan:proof"]
+description = "Capture a screenshot into committed PR evidence (tools/lan/evidence/<name>.png + README entry)"
+usage = "arg <target>\narg <name>\narg <note...>"
+run = 'sh tools/lan/proof.sh "$usage_target" "$usage_name" "$usage_note"'
+
 [tasks."lan:probe"]
 description = "Send a devtools probe command to an instance (dump | highlight <text> | clear)"
 usage = "arg <target>\narg <command...>"

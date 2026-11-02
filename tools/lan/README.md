@@ -24,6 +24,7 @@ layer and real two-client networking. See AGENTS.md.
 | `mise lan:type <p1\|p2> <text>` | type ASCII text |
 | `mise lan:probe <p1\|p2> <cmd>` | devtools probe command (dump / tapc x y / play <p> / host / join <ip> / ...) — see below |
 | `mise lan:scene <p1\|p2> [jq]` | print the instance's last scene dump (`run/<p>/mti-scene.json`) |
+| `mise lan:proof <p1\|p2\|root> <name> [note]` | capture a screenshot into **committed** PR evidence `tools/lan/evidence/<name>.png` (+ README entry) |
 | `mise lan:down` | stop both instances (logs/shots kept in `tools/lan/run|shots`) |
 
 ## How it works
@@ -98,6 +99,21 @@ llvmpipe, so sleep a few seconds). Commands (`mise lan:probe <p1|p2> <cmd>`):
 | `state` / `presets` / `root` | debug: current sector / sector presets / scene root children |
 
 `mise lan:scene <p1|p2> [jq-filter]` pretty-prints the last dump (jq).
+
+## Proof screenshots for PRs
+
+`mise lan:proof <target> <name> <note>` captures a real PNG into the
+**committed** `tools/lan/evidence/` directory (with a markdown entry in its
+README), so a PR body can embed it and reviewers see actual proof:
+
+```md
+![two clients in one LAN game](tools/lan/evidence/lan-two-clients.png)
+```
+
+Relative links like that render in PR bodies when the file is in the PR's head
+branch. Runtime screenshots stay gitignored in `tools/lan/shots/`; only curated
+proof shots go into `evidence/`. Combine with `lan:probe <p> "highlight <text>"`
+to make the element under test blink in the proof shot.
 
 ## Gotchas (verified the hard way)
 
