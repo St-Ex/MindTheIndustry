@@ -80,8 +80,10 @@ public class MindTheIndustryMod extends Mod{
         Events.on(ClientLoadEvent.class, e -> {
             MetaProgression.load();
             ClientRewardState.instance.clear();
-            ui.hudGroup.addChild(RewardChoicePanel.createContainer());
-            ui.hudGroup.addChild(BossWindowPanel.createContainer());
+            // idempotent: ClientLoadEvent can fire again after a world load —
+            // never stack duplicate HUD containers
+            addHudContainer("mti-choice-container", RewardChoicePanel.createContainer());
+            addHudContainer("mti-bosswindow-container", BossWindowPanel.createContainer());
 
             // Victory screen flavor (corporate satire): GG title + subtitle from
             // the mod bundle — never hardcoded. Only on MindTheIndustry runs.
@@ -133,6 +135,14 @@ public class MindTheIndustryMod extends Mod{
         Events.on(ServerLoadEvent.class, e -> {
             Log.info("[MindTheIndustry] In-game command: /mindtheindustry [start|stop|skip|status|vote|active]");
         });
+    }
+
+    /** Adds a HUD container once per hudGroup, named so refires can detect it. */
+    private static void addHudContainer(String name, arc.scene.ui.layout.Table container){
+        container.name = name;
+        if(ui.hudGroup.find(name) == null){
+            ui.hudGroup.addChild(container);
+        }
     }
 
     @Override
