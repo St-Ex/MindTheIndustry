@@ -145,20 +145,47 @@ val generateModHjson = tasks.register("generateModHjson"){
 }
 tasks.named("processTestResources"){ dependsOn(generateModHjson) }
 
-// Build + copy the mod into the local Mindustry mods folder (native Linux data
-// dir), so a restart picks it up. Deployed as a fixed-name .jar: the engine
-// scans .jar and .zip identically, and a .jar name never collides with the
-// in-game "Import mod" flow, which copies imports as .zip (re-importing the
-// same mod then creates a duplicate entry instead of overwriting).
-// The mod stays enabled once toggled in the in-game Mods menu — no manual
-// re-import needed, same file name each time.
-// Proton/Windows builds read mods from
-// steamapps/compatdata/1127400/pfx/drive_c/users/steamuser/AppData/Roaming/Mindustry/mods instead.
+// Default mods dir for deployMod.
+// The Steam build of Mindustry runs with its data dir at the RELATIVE "saves"
+// folder (DesktopLauncher: Version.isSteam → new Fi("saves")), and Steam
+// launches with CWD = install dir — so the Steam game reads mods from
+// <steam root>/steamapps/common/Mindustry/saves/mods, NOT ~/.local/share/Mindustry/mods
+// (that's the non-Steam/itch build's data dir). Auto-detect the Steam install;
+// fall back to the non-Steam location; -PmindustryModsDir=... always wins
+// (e.g. a Proton prefix's compatdata/1127400/pfx/drive_c/users/steamuser/AppData/Roaming/Mindustry/mods).
+fun detectSteamModsDir(): String?{
+    val home = System.getProperty("user.home")
+    val roots = mutableListOf(
+        "$home/.steam/steam", "$home/.steam/debian-installation", "$home/.steam/root",
+        "$home/.local/share/Steam", "$home/.var/app/com.valve.Steam/.local/share/Steam"
+    )
+    for(root in roots.toList()){
+        val vdf = File(root, "steamapps/libraryfolders.vdf")
+        if(vdf.isFile){
+            vdf.readLines().forEach{ line ->
+                Regex("\"path\"\\s+\"([^\"]+)\"").find(line)?.let{ roots.add(it.groupValues[1]) }
+            }
+        }
+    }
+    for(root in roots.distinct()){
+        val install = File(root, "steamapps/common/Mindustry")
+        if(install.isDirectory) return File(install, "saves/mods").absolutePath
+    }
+    return null
+}
+
+// Build + copy the mod into the local game's mods folder, so a restart picks
+// it up. Deployed as a fixed-name .jar: the engine scans .jar and .zip
+// identically, and a .jar name never collides with the in-game "Import mod"
+// flow, which copies imports as .zip (re-importing the same mod then creates
+// a duplicate entry instead of overwriting). The mod stays enabled once
+// toggled in the in-game Mods menu — no manual re-import needed, same file
+// name each time.
 tasks.register<Copy>("deployMod"){
     dependsOn(tasks.jar)
     from(layout.buildDirectory.file("libs/${projectName}Desktop.jar"))
-    // default: native Linux Mindustry mods folder; override with -PmindustryModsDir=... (e.g. the Proton prefix)
     val modsDir = project.findProperty("mindustryModsDir")?.toString()
+        ?: detectSteamModsDir()
         ?: "${System.getProperty("user.home")}/.local/share/Mindustry/mods"
     into(modsDir)
     rename{ "mindtheindustry.jar" }
@@ -166,6 +193,7 @@ tasks.register<Copy>("deployMod"){
     // name make the load order-dependent ("already imported" for the loser)
     doLast{
         File(modsDir, "mindtheindustry.zip").delete()
+        println("[deployMod] installed mindtheindustry.jar into $modsDir")
     }
 }
 
