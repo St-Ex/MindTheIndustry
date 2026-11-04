@@ -146,8 +146,12 @@ val generateModHjson = tasks.register("generateModHjson"){
 tasks.named("processTestResources"){ dependsOn(generateModHjson) }
 
 // Build + copy the mod into the local Mindustry mods folder (native Linux data
-// dir), so a restart picks it up. The mod stays enabled once toggled in the
-// in-game Mods menu — no manual re-import needed, same file name each time.
+// dir), so a restart picks it up. Deployed as a fixed-name .jar: the engine
+// scans .jar and .zip identically, and a .jar name never collides with the
+// in-game "Import mod" flow, which copies imports as .zip (re-importing the
+// same mod then creates a duplicate entry instead of overwriting).
+// The mod stays enabled once toggled in the in-game Mods menu — no manual
+// re-import needed, same file name each time.
 // Proton/Windows builds read mods from
 // steamapps/compatdata/1127400/pfx/drive_c/users/steamuser/AppData/Roaming/Mindustry/mods instead.
 tasks.register<Copy>("deployMod"){
@@ -157,7 +161,12 @@ tasks.register<Copy>("deployMod"){
     val modsDir = project.findProperty("mindustryModsDir")?.toString()
         ?: "${System.getProperty("user.home")}/.local/share/Mindustry/mods"
     into(modsDir)
-    rename{ "mindtheindustry.zip" }
+    rename{ "mindtheindustry.jar" }
+    // remove a legacy .zip deployment: two files with the same internal mod
+    // name make the load order-dependent ("already imported" for the loser)
+    doLast{
+        File(modsDir, "mindtheindustry.zip").delete()
+    }
 }
 
 tasks.jar{
