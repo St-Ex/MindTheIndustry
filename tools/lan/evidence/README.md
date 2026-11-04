@@ -45,3 +45,27 @@ player list on p1 (host) after p2 joined 127.0.0.1: shows 2 players
 ![players-2-client](players-2-client.png)
 
 player list on p2 (joined client): 2 players
+
+## mti-mod-card-version — 2026-11-03T21:15Z
+
+![mti-mod-card-version](mti-mod-card-version.png)
+
+Mod card in the in-game Mods dialog: MindTheIndustry v0.1.0 [reward-pacing-and-boss-window 2fa7d86] — the git SHA baked into the build, matching PR head 2fa7d86
+
+## mti-choice-box — 2026-11-03T21:16Z
+
+![mti-choice-box](mti-choice-box.png)
+
+In-game HUD after a wave ends: the choice box (top-center) offers the 3 proposals + take-none; the world keeps simulating (non-blocking)
+
+## mti-two-clients — 2026-11-03T21:40Z
+
+![mti-two-clients](mti-two-clients.png)
+
+Two local instances on the private Xvfb: p1 (left, host :6567) in the MTI run, p2 (right) joined via 127.0.0.1 — '\''Bob has connected'\'' on the host, world data received on p2
+
+## mti-p2-joined-run — 2026-11-03T21:40Z
+
+![mti-p2-joined-run](mti-p2-joined-run.png)
+
+p2 (Bob) joined p1'\''s hosted MTI run via 127.0.0.1: received world data, MTI map detected, run rules applied client-side
