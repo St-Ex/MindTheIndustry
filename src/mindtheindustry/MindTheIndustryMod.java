@@ -121,6 +121,12 @@ public class MindTheIndustryMod extends Mod{
 
         // Auto-start the run when a MindTheIndustry map is played (solo + multi)
         Events.on(PlayEvent.class, e -> {
+            // safety net: make sure the HUD panels exist in the in-game hudGroup
+            // (ClientLoadEvent normally did this; re-adding is a no-op by name)
+            if(!headless){
+                addHudContainer("mti-choice-container", RewardChoicePanel.createContainer());
+                addHudContainer("mti-bosswindow-container", BossWindowPanel.createContainer());
+            }
             if(serverController == null){
                 serverController = new ServerMindTheIndustryController();
                 serverSession = serverController.session;

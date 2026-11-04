@@ -76,7 +76,7 @@ public class BossWindowPanel extends Table{
     public void act(float delta){
         super.act(delta);
         ClientRewardState st = ClientRewardState.instance;
-        visible = st.bossWindowOpen && state.isGame() && (net.client() || net.server() || !net.active());
+        visible = st.bossWindowOpen && state.isGame();
         if(!visible) return;
 
         title.setText(Core.bundle.get("mti.bosswindow.title"));

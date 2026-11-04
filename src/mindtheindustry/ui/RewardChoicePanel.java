@@ -59,9 +59,9 @@ public class RewardChoicePanel extends Table{
     public void act(float delta){
         super.act(delta);
         ClientRewardState st = ClientRewardState.instance;
-        // show while playing with the mod loaded: multiplayer (client or server)
-        // OR solo (net inactive → neither net.client() nor net.server() is true)
-        visible = st.visible && state.isGame() && (net.client() || net.server() || !net.active());
+        // show whenever a choice is open and we are in-game — solo, host and
+        // client alike (the net flags are irrelevant to the HUD box)
+        visible = st.visible && state.isGame();
         if(visible && builtWave != st.wave){
             builtWave = st.wave;
             rebuild(st);
