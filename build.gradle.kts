@@ -1,4 +1,6 @@
 import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.Properties
 
 plugins{
@@ -112,8 +114,9 @@ sourceSets{
 tasks.named("processResources"){ dependsOn(generateBuildInfo) }
 tasks.named("processTestResources"){ dependsOn(generateBuildInfo) }
 
-// mod.hjson with the build SHA baked into the version, so the mod card in the
-// loaded-mods dialog shows exactly which build is loaded (e.g. 0.1.0 [reward-pacing-and-boss-window bd3cecb])
+// mod.hjson with the build identity (branch + SHA + build time) baked into the
+// version, so the mod card in the loaded-mods dialog shows exactly which build
+// is loaded (e.g. 0.1.0 [reward-pacing-and-boss-window bd3cecb 2026-11-04T08:48Z])
 val generateModHjson = tasks.register("generateModHjson"){
     dependsOn(generateBuildInfo)
     val out = layout.buildDirectory.file("modHjson/mod.hjson")
@@ -126,12 +129,18 @@ val generateModHjson = tasks.register("generateModHjson"){
         props.load(buildInfoDir.get().file("mti-build.properties").asFile.inputStream())
         val sha = props.getProperty("gitSha", "unknown")
         val branch = props.getProperty("gitBranch", "?")
+        // compact UTC stamp for the mod card (full ISO time stays in mti-build.properties)
+        val stamp = try{
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'")
+                .withZone(ZoneOffset.UTC)
+                .format(Instant.parse(props.getProperty("buildTime", "")))
+        }catch(e: Exception){ "?" }
         val original = File(projectDir, "mod.hjson").readText()
-        val patched = Regex("(?m)^version:.*$").replace(original, "version: \"0.1.0 [$branch $sha]\"")
+        val patched = Regex("(?m)^version:.*$").replace(original, "version: \"0.1.0 [$branch $sha $stamp]\"")
         val f = out.get().asFile
         f.parentFile.mkdirs()
         f.writeText(patched)
-        println("[modHjson] version = 0.1.0 [$branch $sha]")
+        println("[modHjson] version = 0.1.0 [$branch $sha $stamp]")
     }
 }
 tasks.named("processTestResources"){ dependsOn(generateModHjson) }

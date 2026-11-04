@@ -23,6 +23,8 @@ class BuildInfoTest extends HeadlessMindTheIndustryTest{
         String sha = props.getProperty("gitSha", "");
         assertFalse(sha.isBlank(), "gitSha must be set");
         assertTrue(props.getProperty("gitBranch", "").length() > 0, "gitBranch must be set");
+        //build time must be a parseable instant (baked into the mod card version too)
+        java.time.Instant.parse(props.getProperty("buildTime", ""));
 
         //the embedded SHA must be the current HEAD (with -dirty when the tree is dirty)
         String head = git("rev-parse", "--short", "HEAD").trim();
@@ -31,9 +33,9 @@ class BuildInfoTest extends HeadlessMindTheIndustryTest{
     }
 
     @Test
-    void packagedModHjsonCarriesTheBuildSha() throws Exception{
+    void packagedModHjsonCarriesTheBuildIdentity() throws Exception{
         //the jar packages the GENERATED mod.hjson (build/modHjson/mod.hjson) whose
-        //version line carries branch + SHA → shown on the mod card in-game
+        //version line carries branch + SHA + build-time stamp → shown on the mod card in-game
         File f = new File("build/modHjson/mod.hjson");
         assertTrue(f.exists(), "generateModHjson must have produced build/modHjson/mod.hjson");
         String text = new String(java.nio.file.Files.readAllBytes(f.toPath()));
@@ -41,6 +43,18 @@ class BuildInfoTest extends HeadlessMindTheIndustryTest{
         String dirty = git("status", "--porcelain").isEmpty() ? "" : "-dirty";
         assertTrue(text.contains("version: \"0.1.0 [") && text.contains(head + dirty),
             "mod.hjson version must embed the current build SHA " + head + dirty + ":\n" + text);
+
+        //the build-time stamp in the version must match mti-build.properties
+        Properties props = new Properties();
+        try(InputStream in = BuildInfoTest.class.getResourceAsStream("/mti-build.properties")){
+            assertNotNull(in);
+            props.load(in);
+        }
+        String stamp = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'")
+            .withZone(java.time.ZoneOffset.UTC)
+            .format(java.time.Instant.parse(props.getProperty("buildTime")));
+        assertTrue(text.contains(stamp),
+            "mod.hjson version must embed the build-time stamp " + stamp + ":\n" + text);
     }
 
     private static String git(String... args) throws Exception{
