@@ -174,27 +174,41 @@ fun detectSteamModsDir(): String?{
     return null
 }
 
-// Build + copy the mod into the local game's mods folder, so a restart picks
-// it up. Deployed as a fixed-name .jar: the engine scans .jar and .zip
-// identically, and a .jar name never collides with the in-game "Import mod"
-// flow, which copies imports as .zip (re-importing the same mod then creates
-// a duplicate entry instead of overwriting). The mod stays enabled once
-// toggled in the in-game Mods menu — no manual re-import needed, same file
-// name each time.
+// Build + copy the mod into a game mods folder as a fixed-name .jar, so a
+// restart picks it up. The engine scans .jar and .zip identically, and a .jar
+// name never collides with the in-game "Import mod" flow, which copies imports
+// as .zip (re-importing the same mod then creates a duplicate entry instead of
+// overwriting). The mod stays enabled once toggled in the Mods menu — no manual
+// re-import needed, same file name each time.
+fun copyModInto(task: Task, modsDir: String){
+    task.dependsOn(tasks.jar)
+    (task as Copy).from(layout.buildDirectory.file("libs/${projectName}Desktop.jar"))
+    (task as Copy).into(modsDir)
+    (task as Copy).rename{ "mindtheindustry.jar" }
+    // remove a legacy .zip deployment: two files with the same internal mod
+    // name make the load order-dependent ("already imported" for the loser)
+    task.doLast{
+        File(modsDir, "mindtheindustry.zip").delete()
+        println("[${task.name}] installed mindtheindustry.jar into $modsDir")
+    }
+}
+
+// mise steam-deploy / mise deploy: build + install into the Steam game's mods
+// folder (auto-detected; -PmindustryModsDir=... wins, e.g. a Proton prefix)
+tasks.register<Copy>("deploySteamMod"){
+    val modsDir = project.findProperty("mindustryModsDir")?.toString()
+        ?: detectSteamModsDir()
+        ?: throw GradleException("no Steam Mindustry install detected (looked in standard Steam roots + libraryfolders.vdf); pass -PmindustryModsDir=... explicitly")
+    copyModInto(this, modsDir)
+}
+
+// build + install into whichever local game reads it: Steam mods dir if a
+// Steam install exists, else the non-Steam (~/.local/share) data dir
 tasks.register<Copy>("deployMod"){
-    dependsOn(tasks.jar)
-    from(layout.buildDirectory.file("libs/${projectName}Desktop.jar"))
     val modsDir = project.findProperty("mindustryModsDir")?.toString()
         ?: detectSteamModsDir()
         ?: "${System.getProperty("user.home")}/.local/share/Mindustry/mods"
-    into(modsDir)
-    rename{ "mindtheindustry.jar" }
-    // remove a legacy .zip deployment: two files with the same internal mod
-    // name make the load order-dependent ("already imported" for the loser)
-    doLast{
-        File(modsDir, "mindtheindustry.zip").delete()
-        println("[deployMod] installed mindtheindustry.jar into $modsDir")
-    }
+    copyModInto(this, modsDir)
 }
 
 tasks.jar{

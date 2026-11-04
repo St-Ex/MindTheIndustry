@@ -5,6 +5,10 @@ java = "17"
 description = "Build the mod (build/libs/mindtheindustryDesktop.jar)"
 run = "./gradlew jar"
 
+[tasks."steam-deploy"]
+description = "Build the mod and install it into the Steam game's mods folder (<steam>/steamapps/common/Mindustry/saves/mods) so a restart picks it up"
+run = "./gradlew deploySteamMod"
+
 # LAN UI-validation stack (tools/lan/README.md). Sanctioned exception to the
 # "never launch the game" rule: UI + two-client networking checks only,
 # always torn down with lan:down. Game mechanics stay on headless tests.
