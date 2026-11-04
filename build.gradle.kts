@@ -79,24 +79,29 @@ tasks.test{
 // Build info (git SHA/branch/dirty) embedded in the jar as mti-build.properties,
 // so the loaded build can be verified on the mod card (meta.version) in-game.
 val buildInfoDir = layout.buildDirectory.dir("buildInfo")
+// Compute the git identity at configuration time so it can be declared as a
+// task input: without this, Gradle keeps generateBuildInfo UP-TO-DATE across
+// commits and the jar keeps a stale SHA baked in.
+fun gitInfo(vararg args: String): String = try{
+    val p = ProcessBuilder(listOf("git", *args)).directory(projectDir).redirectErrorStream(true).start()
+    val out = p.inputStream.readBytes().toString(Charsets.UTF_8)
+    p.waitFor()
+    out.trim()
+}catch(e: Exception){
+    ""
+}
+val buildSha = gitInfo("rev-parse", "--short", "HEAD").ifEmpty{ "unknown" }
+val buildBranch = gitInfo("rev-parse", "--abbrev-ref", "HEAD").ifEmpty{ "unknown" }
+val buildDirty = if(gitInfo("status", "--porcelain").isNotEmpty()) "-dirty" else ""
 val generateBuildInfo = tasks.register("generateBuildInfo"){
+    inputs.property("gitSha", "$buildSha$buildDirty")
+    inputs.property("gitBranch", buildBranch)
     outputs.dir(buildInfoDir)
     doLast{
-        fun git(vararg args: String): String = try{
-            val p = ProcessBuilder(listOf("git", *args)).directory(projectDir).redirectErrorStream(true).start()
-            val out = p.inputStream.readBytes().toString(Charsets.UTF_8)
-            p.waitFor()
-            out.trim()
-        }catch(e: Exception){
-            ""
-        }
-        val sha = git("rev-parse", "--short", "HEAD").ifEmpty{ "unknown" }
-        val branch = git("rev-parse", "--abbrev-ref", "HEAD").ifEmpty{ "unknown" }
-        val dirty = if(git("status", "--porcelain").isNotEmpty()) "-dirty" else ""
         val f = buildInfoDir.get().file("mti-build.properties").asFile
         f.parentFile.mkdirs()
-        f.writeText("gitSha=$sha$dirty\ngitBranch=$branch\nbuildTime=${Instant.now()}\n")
-        println("[buildInfo] gitSha=$sha$dirty branch=$branch")
+        f.writeText("gitSha=$buildSha$buildDirty\ngitBranch=$buildBranch\nbuildTime=${Instant.now()}\n")
+        println("[buildInfo] gitSha=$buildSha$buildDirty branch=$buildBranch")
     }
 }
 sourceSets{
@@ -112,6 +117,9 @@ tasks.named("processTestResources"){ dependsOn(generateBuildInfo) }
 val generateModHjson = tasks.register("generateModHjson"){
     dependsOn(generateBuildInfo)
     val out = layout.buildDirectory.file("modHjson/mod.hjson")
+    // re-bake whenever the build info changes (new commit), not just on clean
+    inputs.file(buildInfoDir.get().file("mti-build.properties"))
+    inputs.property("gitSha", "$buildSha$buildDirty")
     outputs.file(out)
     doLast{
         val props = Properties()
