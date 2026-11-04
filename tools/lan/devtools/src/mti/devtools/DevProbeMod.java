@@ -232,6 +232,63 @@ public class DevProbeMod extends Mod{
                     Core.scene.keyDown(k);
                     Core.scene.keyUp(k);
                     writeScene(null, -1);
+                }else if(cmd.equals("mtistate")){
+                    // debug: net flags + the shipped mod's ClientRewardState (via its classloader)
+                    StringBuilder sb = new StringBuilder("{");
+                    sb.append("\"netClient\":").append(Vars.net.client());
+                    sb.append(",\"netServer\":").append(Vars.net.server());
+                    sb.append(",\"netActive\":").append(Vars.net.active());
+                    sb.append(",\"isGame\":").append(Vars.state.isGame());
+                    sb.append(",\"paused\":").append(Vars.state.isPaused());
+                    sb.append(",\"playerNull\":").append(Vars.player == null);
+                    if(Vars.player != null){
+                        sb.append(",\"conNull\":").append(Vars.player.con == null);
+                        sb.append(",\"playerDead\":").append(Vars.player.dead());
+                        sb.append(",\"isLocal\":").append(Vars.player.isLocal());
+                    }
+                    sb.append(",\"players\":").append(mindustry.gen.Groups.player.size());
+                    try{
+                        for(var m : Vars.mods.list()){
+                            if(m.loader == null) continue;
+                            try{
+                                Class<?> c = Class.forName("mindtheindustry.client.ClientRewardState", false, m.loader);
+                                Object inst = c.getField("instance").get(null);
+                                sb.append(",\"mtiVisible\":").append(c.getField("visible").getBoolean(inst));
+                                sb.append(",\"mtiWave\":").append(c.getField("wave").getInt(inst));
+                                sb.append(",\"mtiChoices\":").append(((arc.struct.Seq<?>)c.getField("choices").get(inst)).size);
+                                sb.append(",\"mtiBossWindow\":").append(c.getField("bossWindowOpen").getBoolean(inst));
+                                break;
+                            }catch(ClassNotFoundException ignored){}
+                        }
+                    }catch(Throwable t){
+                        sb.append(",\"mtiError\":\"").append(esc(String.valueOf(t))).append("\"");
+                    }
+                    // locate the shipped mod's HUD panels in the scene and report their visibility chain
+                    int[] found = {0};
+                    arc.func.Cons<Element> panelCheck = e -> {
+                        String cn = e.getClass().getName();
+                        if(cn.endsWith("RewardChoicePanel") || cn.endsWith("BossWindowPanel")){
+                            found[0]++;
+                            StringBuilder chain = new StringBuilder();
+                            Element cur = e;
+                            while(cur != null){
+                                chain.append(cur.getClass().getSimpleName()).append(cur.visible ? "+" : "-").append('>');
+                                cur = cur.parent;
+                            }
+                            sb.append(",\"panel").append(found[0]).append("\":\"").append(esc(chain.toString())).append("\"");
+                            sb.append(",\"panel").append(found[0]).append("Visible\":").append(e.visible);
+                            sb.append(",\"panel").append(found[0]).append("WH\":").append((int)e.getWidth()).append('x').append((int)e.getHeight());
+                            if(found[0] == 1 && cn.endsWith("RewardChoicePanel")){
+                                boolean before = e.visible;
+                                try{ e.act(1f); }catch(Throwable t){ sb.append(",\"actError\":\"").append(esc(String.valueOf(t))).append("\""); }
+                                sb.append(",\"actManualBefore\":").append(before);
+                                sb.append(",\"actManualAfter\":").append(e.visible);
+                            }
+                        }
+                    };
+                    walk(Core.scene.root, 0, panelCheck::get);
+                    sb.append("}");
+                    out.writeString(sb.toString());
                 }else{
                     writeScene(null, -1);
                 }
