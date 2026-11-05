@@ -34,6 +34,7 @@ public class RewardChoicePanel extends Table{
     private final Table buttons = new Table();
 
     private int builtWave = -1;
+    private boolean actLogged = false;
 
     public RewardChoicePanel(){
         background(Styles.black6);
@@ -62,6 +63,11 @@ public class RewardChoicePanel extends Table{
         // show whenever a choice is open and we are in-game — solo, host and
         // client alike (the net flags are irrelevant to the HUD box)
         visible = st.visible && state.isGame();
+        // one-time diagnostic: is this panel's act() running at all, and what does the guard say?
+        if(!actLogged){
+            actLogged = true;
+            arc.util.Log.info("[MindTheIndustry] choice panel acting: st.visible=" + st.visible + " isGame=" + state.isGame() + " parentVisible=" + (parent == null ? "?" : parent.visible));
+        }
         if(visible && builtWave != st.wave){
             builtWave = st.wave;
             rebuild(st);
