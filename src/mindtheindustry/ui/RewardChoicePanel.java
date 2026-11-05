@@ -35,6 +35,7 @@ public class RewardChoicePanel extends Table{
 
     private int builtWave = -1;
     private boolean actLogged = false;
+    private boolean wasVisible = false;
 
     public RewardChoicePanel(){
         background(Styles.black6);
@@ -66,8 +67,12 @@ public class RewardChoicePanel extends Table{
         // one-time diagnostic: is this panel's act() running at all, and what does the guard say?
         if(!actLogged){
             actLogged = true;
-            arc.util.Log.info("[MindTheIndustry] choice panel acting: st.visible=" + st.visible + " isGame=" + state.isGame() + " parentVisible=" + (parent == null ? "?" : parent.visible));
+            arc.util.Log.info("[MindTheIndustry] choice panel acting: st.visible=" + st.visible + " isGame=" + state.isGame() + " parentVisible=" + (parent == null ? "?" : parent.visible) + " instance=" + System.identityHashCode(st) + " cl=" + st.getClass().getClassLoader());
         }
+        if(visible && !wasVisible){
+            arc.util.Log.info("[MindTheIndustry] choice panel BECAME VISIBLE wave=" + st.wave + " instance=" + System.identityHashCode(st));
+        }
+        wasVisible = visible;
         if(visible && builtWave != st.wave){
             builtWave = st.wave;
             rebuild(st);

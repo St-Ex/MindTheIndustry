@@ -46,6 +46,8 @@ public class ClientRewardState{
             }
         }
         this.visible = !this.choices.isEmpty();
+        //diagnostic: prove the panel reads the same instance (identity hash)
+        arc.util.Log.info("[MindTheIndustry] ClientRewardState.set wave=" + wave + " visible=" + visible + " choices=" + choices.size + " instance=" + System.identityHashCode(this) + " cl=" + getClass().getClassLoader());
     }
 
     /** Sets the choices for a wave (standard wave choice). */
