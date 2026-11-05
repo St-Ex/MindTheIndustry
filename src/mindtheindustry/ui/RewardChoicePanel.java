@@ -74,6 +74,9 @@ public class RewardChoicePanel extends Table{
             : Core.bundle.format("mti.choice.title", st.wave));
         tip.setText("");
         buttons.clearChildren();
+        // diagnostic marker: if this line is missing from last_log.txt after a
+        // wave ends in solo, the client never built the choice box
+        arc.util.Log.info("[MindTheIndustry] choice HUD shown (wave " + st.wave + ", " + st.choices.size + " proposals)");
 
         // explicit "take none" decision (converts to the fallback grant)
         TextButton none = new TextButton(Core.bundle.get("mti.choice.take.none"));
