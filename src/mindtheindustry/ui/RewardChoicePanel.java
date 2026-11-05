@@ -62,7 +62,11 @@ public class RewardChoicePanel extends Table{
 
     /** Drives every panel from the game update loop (fires whenever the world simulates). */
     public static void tickAll(){
-        for(RewardChoicePanel p : instances) p.tick();
+        for(RewardChoicePanel p : instances){
+            p.tick();
+            // keep the container on top of gameplay-added HUD elements (z-order = child order)
+            if(p.parent != null) p.parent.toFront();
+        }
     }
 
     @Override
