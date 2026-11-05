@@ -34,13 +34,16 @@ public class RewardChoicePanel extends Table{
     private final Table buttons = new Table();
 
     private int builtWave = -1;
-    private boolean actLogged = false;
     private boolean wasVisible = false;
+
+    /** All live panels, driven from Trigger.update (robust even if scene act() dispatch is unreliable). */
+    private static final arc.struct.Seq<RewardChoicePanel> instances = new arc.struct.Seq<>();
 
     public RewardChoicePanel(){
         background(Styles.black6);
         margin(6f);
         touchable = Touchable.childrenOnly;
+        instances.add(this);
 
         add(title).padBottom(4f).row();
         add(buttons).row();
@@ -57,20 +60,24 @@ public class RewardChoicePanel extends Table{
         return container;
     }
 
+    /** Drives every panel from the game update loop (fires whenever the world simulates). */
+    public static void tickAll(){
+        for(RewardChoicePanel p : instances) p.tick();
+    }
+
     @Override
     public void act(float delta){
         super.act(delta);
+        tick();
+    }
+
+    private void tick(){
         ClientRewardState st = ClientRewardState.instance;
         // show whenever a choice is open and we are in-game — solo, host and
         // client alike (the net flags are irrelevant to the HUD box)
         visible = st.visible && state.isGame();
-        // one-time diagnostic: is this panel's act() running at all, and what does the guard say?
-        if(!actLogged){
-            actLogged = true;
-            arc.util.Log.info("[MindTheIndustry] choice panel acting: st.visible=" + st.visible + " isGame=" + state.isGame() + " parentVisible=" + (parent == null ? "?" : parent.visible) + " instance=" + System.identityHashCode(st) + " cl=" + st.getClass().getClassLoader());
-        }
         if(visible && !wasVisible){
-            arc.util.Log.info("[MindTheIndustry] choice panel BECAME VISIBLE wave=" + st.wave + " instance=" + System.identityHashCode(st));
+            arc.util.Log.info("[MindTheIndustry] choice panel VISIBLE wave=" + st.wave + " choices=" + st.choices.size);
         }
         wasVisible = visible;
         if(visible && builtWave != st.wave){

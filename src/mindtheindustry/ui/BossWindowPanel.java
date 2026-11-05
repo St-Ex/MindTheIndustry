@@ -32,10 +32,14 @@ public class BossWindowPanel extends Table{
     private final Table tradeButtons = new Table();
     private boolean built = false;
 
+    /** All live panels, driven from Trigger.update (robust even if scene act() dispatch is unreliable). */
+    private static final arc.struct.Seq<BossWindowPanel> instances = new arc.struct.Seq<>();
+
     public BossWindowPanel(){
         background(Styles.black6);
         margin(6f);
         touchable = Touchable.childrenOnly;
+        instances.add(this);
 
         add(title).padBottom(2f).row();
         add(time).padBottom(4f).row();
@@ -72,9 +76,18 @@ public class BossWindowPanel extends Table{
         return container;
     }
 
+    /** Drives every panel from the game update loop (fires whenever the world simulates). */
+    public static void tickAll(){
+        for(BossWindowPanel p : instances) p.tick();
+    }
+
     @Override
     public void act(float delta){
         super.act(delta);
+        tick();
+    }
+
+    private void tick(){
         ClientRewardState st = ClientRewardState.instance;
         visible = st.bossWindowOpen && state.isGame();
         if(!visible) return;

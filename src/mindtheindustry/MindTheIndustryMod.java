@@ -75,6 +75,16 @@ public class MindTheIndustryMod extends Mod{
             }
         });
 
+        // Drive the HUD panels from the game update loop (Trigger.update fires
+        // whenever the world simulates) — more reliable than relying on scene
+        // act() dispatch, which proved flaky on some clients
+        Events.run(Trigger.update, () -> {
+            if(!headless){
+                RewardChoicePanel.tickAll();
+                BossWindowPanel.tickAll();
+            }
+        });
+
         // Client-side meta-progression (unlocked commanders are stored locally)
         // + the HUD reward choice box
         Events.on(ClientLoadEvent.class, e -> {
