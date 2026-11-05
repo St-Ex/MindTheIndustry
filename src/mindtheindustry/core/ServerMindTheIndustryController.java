@@ -253,10 +253,15 @@ public class ServerMindTheIndustryController{
     /** Sends a player their choices for the HUD box. In solo/host-local (no connection) the local state is set directly. */
     private void sendChoices(Player player, Seq<Reward> choices, boolean relic){
         if(player.con != null){
+            //diagnostic: packet branch (multiplayer, or solo with a loopback con)
+            Log.info("[MindTheIndustry] sendChoices -> packet branch (con != null), wave " + session.wave + ", " + choices.size + " choices");
             player.con.send(new MindTheIndustryPackets.RewardChoicesPacket(session.wave, choices, relic), true);
         }else if(!net.client()){
             //solo or headless: no connection, deliver to the local client state
+            Log.info("[MindTheIndustry] sendChoices -> local branch (solo), wave " + session.wave + ", " + choices.size + " choices");
             ClientRewardState.instance.set(session.wave, choices, relic);
+        }else{
+            Log.info("[MindTheIndustry] sendChoices -> DROPPED (con == null but net.client()), wave " + session.wave);
         }
     }
 
