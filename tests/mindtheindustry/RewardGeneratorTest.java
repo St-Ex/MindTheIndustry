@@ -16,6 +16,7 @@ class RewardGeneratorTest extends HeadlessMindTheIndustryTest{
 
     private MindTheIndustrySession newSession(long seed){
         state.rules = new Rules();
+        resetUnlockFlags();
         MindTheIndustrySession session = new MindTheIndustrySession();
         session.start(seed);
         return session;
@@ -172,11 +173,14 @@ class RewardGeneratorTest extends HeadlessMindTheIndustryTest{
         MindTheIndustrySession session = newSession(11);
         RewardGenerator gen = new RewardGenerator(session.rand);
 
-        // basic plans are unlocked at run start → must never be offered as a reward
+        // floor plans are unlocked at run start → must never be offered as a reward
         ObjectSet<String> starters = ObjectSet.with(
-            "unit:dagger", "unit:mace", "unit:nova", "unit:flare", "unit:horizon", "unit:crawler",
-            "unit:risso", "unit:minke", "unit:alpha", "unit:beta", "unit:gamma", "unit:stell",
-            "unit:locus", "unit:elude", "block:duo", "block:conveyor", "block:drill", "block:core-shard");
+            "unit:dagger", "unit:mace", "unit:nova", "unit:flare",
+            "block:core-shard", "block:container", "block:vault",
+            "block:conveyor", "block:junction", "block:router", "block:titanium-conveyor",
+            "block:mechanical-drill", "block:pneumatic-drill",
+            "block:power-node", "block:combustion-generator", "block:solar-panel",
+            "block:copper-wall", "block:copper-wall-large", "block:duo", "block:scatter", "block:hail", "block:mender");
 
         for(int i = 0; i < 200; i++){
             for(Reward r : gen.generateChoices(session, null, 1)){
@@ -243,5 +247,38 @@ class RewardGeneratorTest extends HeadlessMindTheIndustryTest{
         RewardGenerator gen = new RewardGenerator(session.rand);
         Seq<Reward> choices = gen.generateChoices(session, null, 500);
         assertEquals(3, choices.size);
+    }
+
+    @Test
+    void relicChoicesAreAlwaysRareOrEpic(){
+        MindTheIndustrySession session = newSession(7);
+        RewardGenerator gen = new RewardGenerator(session.rand);
+
+        int seen = 0;
+        for(int i = 0; i < 100; i++){
+            Seq<Reward> relics = gen.generateRelicChoices(session, null, 10);
+            assertEquals(3, relics.size);
+            for(Reward r : relics){
+                seen++;
+                assertTrue(r.rarity == Rarity.RARE || r.rarity == Rarity.EPIC,
+                    "relic pool must be rare/boosted only, got " + r.rarity);
+            }
+        }
+        assertEquals(300, seen);
+    }
+
+    @Test
+    void relicChoicesAreDeterministicPerSeed(){
+        MindTheIndustrySession s1 = newSession(555);
+        MindTheIndustrySession s2 = newSession(555);
+        RewardGenerator g1 = new RewardGenerator(s1.rand);
+        RewardGenerator g2 = new RewardGenerator(s2.rand);
+
+        Seq<Reward> r1 = g1.generateRelicChoices(s1, null, 10);
+        Seq<Reward> r2 = g2.generateRelicChoices(s2, null, 10);
+        for(int i = 0; i < 3; i++){
+            assertEquals(r1.get(i).id, r2.get(i).id);
+            assertEquals(r1.get(i).rarity, r2.get(i).rarity);
+        }
     }
 }

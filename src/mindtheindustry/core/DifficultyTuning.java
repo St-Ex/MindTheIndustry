@@ -16,11 +16,10 @@ public class DifficultyTuning{
     /** Difficulty cap (Waves.generate saturates above 1). */
     public static float maxDifficulty = 1f;
 
-    /** A boss wave happens every this many waves. */
-    public static int bossInterval = 20;
-    /** First boss wave. */
-    public static int bossWaveStart = 20;
-    /** Boss units, cycled by boss tier ((wave - bossWaveStart) / bossInterval). Serpulo-flavored. */
+    /**
+     * Boss units, cycled by boss tier (tier = chapter index, see
+     * {@link RunConfig#isBossWave(int)}). Serpulo-flavored.
+     */
     public static UnitType[] bossUnits = {UnitTypes.reign, UnitTypes.toxopid, UnitTypes.eclipse};
     /** Max bosses spawned on a boss wave. */
     public static int bossMax = 4;

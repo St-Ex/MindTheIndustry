@@ -25,16 +25,33 @@ import static org.junit.jupiter.api.Assertions.*;
 class PlanetPlayEventTest extends mindtheindustry.HeadlessMindTheIndustryTest{
 
     private static boolean modRegistered;
+    private static MindTheIndustryMod mod;
 
     @BeforeAll
     static void registerMod(){
         if(modRegistered) return;
         modRegistered = true;
         //register the mod's event handlers + content, like the game does at startup
-        MindTheIndustryMod mod = new MindTheIndustryMod();
+        mod = new MindTheIndustryMod();
         mod.loadContent();
         //ContentLoader normally calls init() on all content after loadContent
         MindTheIndustryPlanet.instance.init();
+    }
+
+    @Test
+    void mindtheindustryCommandRegisteredOnBothServerAndClientHandlers(){
+        //v160: dedicated ServerControl calls registerServerCommands (console),
+        //NetServer.init calls registerClientCommands (in-game chat in solo/host)
+        arc.util.CommandHandler serverHandler = new arc.util.CommandHandler("/");
+        arc.util.CommandHandler chatHandler = new arc.util.CommandHandler("/");
+        mod.registerServerCommands(serverHandler);
+        mod.registerClientCommands(chatHandler);
+
+        boolean onServer = false, onChat = false;
+        for(arc.util.CommandHandler.Command c : serverHandler.getCommandList()) if(c.text.equals("mindtheindustry")) onServer = true;
+        for(arc.util.CommandHandler.Command c : chatHandler.getCommandList()) if(c.text.equals("mindtheindustry")) onChat = true;
+        assertTrue(onServer, "/mindtheindustry must be registered for the dedicated-server console");
+        assertTrue(onChat, "/mindtheindustry must be registered for in-game chat (solo/hosted)");
     }
 
     @Test
@@ -74,8 +91,8 @@ class PlanetPlayEventTest extends mindtheindustry.HeadlessMindTheIndustryTest{
         assertTrue(duo.environmentBuildable(), "environmentBuildable() gates the menu on the current planet");
         assertTrue(duo.placeablePlayer && duo.supportsEnv(state.rules.env), "placeable + env must pass");
 
-        Block duct = content.block("duct");
-        assertTrue(duct.unlockedNowHost() && duct.environmentBuildable(), "category starter must pass the build menu gate: duct");
+        Block drill = content.block("mechanical-drill");
+        assertTrue(drill.unlockedNowHost() && drill.environmentBuildable(), "floor block must pass the build menu gate: mechanical-drill");
 
         Block battery = content.block("battery");
         assertFalse(battery.unlockedNowHost(), "batteries must stay locked: battery");
@@ -94,5 +111,36 @@ class PlanetPlayEventTest extends mindtheindustry.HeadlessMindTheIndustryTest{
         state.rules = new Rules(); //sector == null → not an MTI map
         Events.fire(new WorldLoadEvent());
         assertTrue(meltdown.unlocked(), "campaign unlocks must be restored when leaving MTI");
+    }
+
+    /** A SaveSlot instance without running the Saves constructor (headless has no Core.assets). */
+    private static Saves.SaveSlot fakeSaveSlot() throws Exception{
+        java.lang.reflect.Field f = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+        f.setAccessible(true);
+        sun.misc.Unsafe unsafe = (sun.misc.Unsafe)f.get(null);
+        return (Saves.SaveSlot)unsafe.allocateInstance(Saves.SaveSlot.class);
+    }
+
+    @Test
+    void mtiSectorSaveIsDroppedInMenuSoEveryRunIsFresh() throws Exception{
+        //a previous run leaves a sector save slot assigned (buildings = "ruins",
+        //and the saved wavetime) — the mod must drop it while in the menu so
+        //Control.playSector always takes the fresh-map path (playNewSector)
+        Sector sector = MindTheIndustryPlanet.instance.sectors.first();
+        sector.save = fakeSaveSlot();
+        state.set(mindustry.core.GameState.State.menu);
+
+        //the mod's Trigger.update hook runs on the headless loop — give it a moment
+        long deadline = System.currentTimeMillis() + 5000;
+        while(sector.save != null && System.currentTimeMillis() < deadline){
+            try{
+                Thread.sleep(50);
+            }catch(InterruptedException e){
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+
+        assertNull(sector.save, "MTI sector save slot must be dropped in the menu → next launch regenerates a fresh map (no ruins, fresh wavetime)");
     }
 }

@@ -17,8 +17,8 @@ public class GlobalModifierRegistry{
         register("build_speed", "Build speed", 0.15f);
         register("turret_damage", "Turret damage", 0.10f);
         register("turret_reload", "Turret fire rate", 0.10f);
-        register("unit_damage", "Unit damage (all players)", 0.10f);
-        register("unit_health", "Unit health (all players)", 0.15f);
+        register("unit_damage", "Unit damage", 0.10f);
+        register("unit_health", "Unit health", 0.15f);
         register("core_health", "Core health", 0.20f);
         register("resource_yield", "Drill yield", 0.15f);
     }

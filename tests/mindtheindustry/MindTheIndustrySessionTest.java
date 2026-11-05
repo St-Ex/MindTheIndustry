@@ -15,9 +15,10 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Tests for the server session (state of the rogue-like run). */
 class MindTheIndustrySessionTest extends HeadlessMindTheIndustryTest{
 
-    /** New session with fresh game rules (global state shared between tests). */
+    /** New session with fresh game rules and pristine unlock flags (global state shared between tests). */
     private MindTheIndustrySession newSession(long seed){
         state.rules = new Rules();
+        resetUnlockFlags();
         MindTheIndustrySession session = new MindTheIndustrySession();
         session.start(seed);
         return session;
@@ -36,26 +37,45 @@ class MindTheIndustrySessionTest extends HeadlessMindTheIndustryTest{
         assertTrue(session.isUnlockedForGroup(duo));
         assertTrue(duo.unlocked(), "host-side flag must be set for the build menu");
         assertTrue(state.rules.researched.contains(duo), "starter blocks must be propagated to the game rules");
-        assertTrue(session.getGroupUnlocks().size > 50, "many base blocks must be unlocked");
+        assertTrue(session.getGroupUnlocks().size >= 20, "the playable-start floor must be unlocked (blocks + units)");
     }
 
     @Test
     void startUnlocksBasicCategoryBlocks(){
         MindTheIndustrySession session = newSession(42);
 
-        // distribution / liquid / power (basic) / effect / logic categories
+        // the playable-start floor: core/storage, transport, extraction, power, basic defense (Serpulo)
         for(String name : new String[]{
-            "duct", "duct-router", "underflow-gate", "bridge-conveyor",
-            "pulse-conduit", "bridge-conduit", "liquid-router", "liquid-tank", "rotary-pump", "impulse-pump",
-            "power-node", "power-node-large", "combustion-generator", "solar-panel",
-            "vault", "launch-pad", "command-center",
-            "switch", "message", "micro-processor", "memory-cell"
+            "core-shard", "container", "vault",
+            "conveyor", "junction", "router", "titanium-conveyor",
+            "mechanical-drill", "pneumatic-drill",
+            "power-node", "combustion-generator", "solar-panel",
+            "copper-wall", "copper-wall-large", "duo", "scatter", "hail", "mender"
         }){
             Block block = content.block(name);
             assertNotNull(block, "unknown block: " + name);
-            assertTrue(session.isUnlockedForGroup(block), "basic category block must be unlocked at start: " + name);
-            assertTrue(state.rules.researched.contains(block), "starter block must be in game rules: " + name);
+            assertTrue(session.isUnlockedForGroup(block), "floor block must be unlocked at start: " + name);
+            assertTrue(state.rules.researched.contains(block), "floor block must be in game rules: " + name);
             assertTrue(block.unlocked(), "host-side flag must be set, the build menu reads it in campaign: " + name);
+        }
+    }
+
+    @Test
+    void floorIsSerpuloOnlyAndStaysSmall(){
+        MindTheIndustrySession session = newSession(42);
+
+        // Erekir content (beryllium ducts etc.) must NOT be in the floor —
+        // the run map is Serpulo-based; Erekir comes via PLAN rewards
+        for(String name : new String[]{"duct", "beryllium-wall", "pulse-conduit", "phase-conveyor", "thruster"}){
+            Block block = content.block(name);
+            assertNotNull(block, "unknown block: " + name);
+            assertFalse(session.isUnlockedForGroup(block), "Erekir/advanced block must NOT be in the floor: " + name);
+        }
+        // advanced serpulo content stays locked too
+        for(String name : new String[]{"lancer", "parallax", "meltdown", "mass-driver", "naval-factory", "logic-processor"}){
+            Block block = content.block(name);
+            assertNotNull(block, "unknown block: " + name);
+            assertFalse(session.isUnlockedForGroup(block), "advanced block must NOT be in the floor: " + name);
         }
     }
 
@@ -76,7 +96,7 @@ class MindTheIndustrySessionTest extends HeadlessMindTheIndustryTest{
     void startUnlocksBasicUnitPlans(){
         MindTheIndustrySession session = newSession(42);
 
-        for(String name : new String[]{"dagger", "nova", "flare", "crawler", "risso", "alpha"}){
+        for(String name : new String[]{"dagger", "mace", "nova", "flare"}){
             UnitType unit = content.unit(name);
             assertNotNull(unit, "unknown starter unit: " + name);
             assertTrue(session.isUnlockedForGroup(unit), "basic unit must be unlocked at start: " + name);

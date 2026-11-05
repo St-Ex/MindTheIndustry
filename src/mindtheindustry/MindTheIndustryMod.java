@@ -1,6 +1,7 @@
 package mindtheindustry;
 
 import arc.*;
+import arc.scene.ui.*;
 import arc.util.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -38,6 +39,20 @@ public class MindTheIndustryMod extends Mod{
     public MindTheIndustryMod(){
         Log.info("[MindTheIndustry] Mod loaded.");
 
+        //log the build (git SHA) — the same SHA is baked into mod.hjson's version
+        //at build time, so it shows on the mod card in the loaded-mods dialog
+        try(var in = MindTheIndustryMod.class.getResourceAsStream("/mti-build.properties")){
+            if(in != null){
+                java.util.Properties props = new java.util.Properties();
+                props.load(in);
+                Log.info("[MindTheIndustry] Build: " + props.getProperty("gitBranch", "?") + " " + props.getProperty("gitSha", "unknown"));
+            }else{
+                Log.info("[MindTheIndustry] Build info missing (running from IDE?)");
+            }
+        }catch(Exception e){
+            Log.warn("[MindTheIndustry] Could not read build info", e);
+        }
+
         // Register network packets (reward choices S→C, votes C→S)
         MindTheIndustryPackets.register();
         Log.info("[MindTheIndustry] Packets registered.");
@@ -50,12 +65,46 @@ public class MindTheIndustryMod extends Mod{
             Log.info("[MindTheIndustry] Server controller initialized (ServerLoadEvent).");
         });
 
+        // MTI runs are always fresh: never reuse a previous run's sector save
+        // (a reused save would carry the old buildings = "ruins" and the old
+        // wavetime). While in the menu, drop the MTI sectors' save slots so
+        // Control.playSector always takes the playNewSector (fresh map) path.
+        Events.run(Trigger.update, () -> {
+            if(state.isMenu() && MindTheIndustryPlanet.instance != null){
+                MindTheIndustryPlanet.instance.sectors.each(s -> s.save = null);
+            }
+        });
+
+        // Drive the HUD panels from the game update loop (Trigger.update fires
+        // whenever the world simulates) — more reliable than relying on scene
+        // act() dispatch, which proved flaky on some clients
+        Events.run(Trigger.update, () -> {
+            if(!headless){
+                RewardChoicePanel.tickAll();
+                BossWindowPanel.tickAll();
+            }
+        });
+
         // Client-side meta-progression (unlocked commanders are stored locally)
         // + the HUD reward choice box
         Events.on(ClientLoadEvent.class, e -> {
             MetaProgression.load();
             ClientRewardState.instance.clear();
-            ui.hudGroup.addChild(RewardChoicePanel.createContainer());
+            // idempotent: ClientLoadEvent can fire again after a world load —
+            // never stack duplicate HUD containers
+            addHudContainer("mti-choice-container", RewardChoicePanel.createContainer());
+            addHudContainer("mti-bosswindow-container", BossWindowPanel.createContainer());
+
+            // Victory screen flavor (corporate satire): GG title + subtitle from
+            // the mod bundle — never hardcoded. Only on MindTheIndustry runs.
+            Events.on(GameOverEvent.class, gameOver -> {
+                if(!MindTheIndustryPlanet.isMindTheIndustryMap()) return;
+                if(gameOver.winner != state.rules.defaultTeam) return;
+                Dialog dialog = new Dialog(Core.bundle.get("mti.victory.title"));
+                dialog.cont.add(Core.bundle.get("mti.victory.flavor")).wrap().width(520f).pad(10f);
+                dialog.addCloseButton();
+                dialog.show();
+            });
         });
 
         // When a MindTheIndustry map loads, force run-friendly rules
@@ -68,10 +117,8 @@ public class MindTheIndustryMod extends Mod{
                 Log.info("[MindTheIndustry] Server controller initialized (WorldLoadEvent fallback).");
             }
             if(MindTheIndustryPlanet.isMindTheIndustryMap()){
-                state.rules.waves = true;
-                state.rules.waveTimer = true;
                 state.rules.waitEnemies = true; //wave timer pauses while enemies remain, so waves don't stack mid-fight
-                state.rules.winWave = 0; //endless: the run ends when players stop
+                state.rules.winWave = 0; //the mod owns victory (final boss death) — vanilla must not sectorCapture
                 //hide everything not unlocked for the run group (in-memory only, so
                 //campaign-unlocked content does not leak into the MTI build menu)
                 serverController.session.isolateUnlocks();
@@ -84,6 +131,12 @@ public class MindTheIndustryMod extends Mod{
 
         // Auto-start the run when a MindTheIndustry map is played (solo + multi)
         Events.on(PlayEvent.class, e -> {
+            // safety net: make sure the HUD panels exist in the in-game hudGroup
+            // (ClientLoadEvent normally did this; re-adding is a no-op by name)
+            if(!headless){
+                addHudContainer("mti-choice-container", RewardChoicePanel.createContainer());
+                addHudContainer("mti-bosswindow-container", BossWindowPanel.createContainer());
+            }
             if(serverController == null){
                 serverController = new ServerMindTheIndustryController();
                 serverSession = serverController.session;
@@ -100,6 +153,14 @@ public class MindTheIndustryMod extends Mod{
         });
     }
 
+    /** Adds a HUD container once per hudGroup, named so refires can detect it. */
+    private static void addHudContainer(String name, arc.scene.ui.layout.Table container){
+        container.name = name;
+        if(ui.hudGroup.find(name) == null){
+            ui.hudGroup.addChild(container);
+        }
+    }
+
     @Override
     public void loadContent(){
         // Registers the MindTheIndustry planet in the New Game menu
@@ -108,12 +169,24 @@ public class MindTheIndustryMod extends Mod{
     }
 
     /**
-     * Server-side commands. Registered on the server so they work identically
-     * in solo (integrated server) and in multiplayer (host/dedicated server).
+     * Dedicated-server console commands (ServerControl calls this). In solo /
+     * hosted games the same commands must go through {@link #registerClientCommands}
+     * because in-game chat commands are handled by netServer.clientCommands.
      */
     @Override
     public void registerServerCommands(CommandHandler handler){
-        handler.<Player>register("mindtheindustry", "[start|stop|skip|status|commanders|unlock-all|active]", "MindTheIndustry run control.", (args, player) -> {
+        registerMtiCommands(handler);
+    }
+
+    /** In-game chat commands for solo/hosted games (NetServer.init calls this). */
+    @Override
+    public void registerClientCommands(CommandHandler handler){
+        registerMtiCommands(handler);
+    }
+
+    /** Registers /mindtheindustry on the given handler (server console or in-game chat). */
+    private void registerMtiCommands(CommandHandler handler){
+        handler.<Player>register("mindtheindustry", "[start|stop|skip|status|ready|trade|confirm|commanders|unlock-all|active]", "MindTheIndustry run control.", (args, player) -> {
             if(serverController == null){
                 player.sendMessage("[scarlet]Server controller is not initialized.");
                 return;
@@ -123,7 +196,11 @@ public class MindTheIndustryMod extends Mod{
                 player.sendMessage("[accent]MindTheIndustry: " +
                     (serverController.session.active ? "[green]ACTIVE" : "[red]INACTIVE") +
                     "[] | Wave: [yellow]" + serverController.session.wave +
-                    "[] | Seed: [gray]" + serverController.session.seed);
+                    "[] | Chapter: [yellow]" + serverController.session.config.currentChapter(Math.max(1, serverController.session.wave)) +
+                    "[] | Seed: [gray]" + serverController.session.seed +
+                    "[] | waveSpacing: [gray]" + state.rules.waveSpacing + " ticks (" + (state.rules.waveSpacing / 60f) + "s)" +
+                    " | wavetime: [gray]" + state.wavetime + " ticks (" + (state.wavetime / 60f) + "s)" +
+                    " | waveTimer: [gray]" + state.rules.waveTimer);
                 return;
             }
 
@@ -151,6 +228,21 @@ public class MindTheIndustryMod extends Mod{
                     serverController.skipToNextWave();
                     player.sendMessage("[accent]Next wave forced.");
                 }
+                case "ready" -> serverController.handleReady(player);
+                case "trade" -> {
+                    // /mindtheindustry trade <playerName> <rewardId> — one trade per boss window
+                    if(args.length < 3){
+                        player.sendMessage("[scarlet]Usage: /mindtheindustry trade <playerName> <rewardId>");
+                        return;
+                    }
+                    Player target = Groups.player.find(p -> p.name != null && p.name.toLowerCase().contains(args[1].toLowerCase()));
+                    if(target == null){
+                        player.sendMessage("[scarlet]Player not found: " + args[1]);
+                        return;
+                    }
+                    serverController.offerTrade(player, target, args[2]);
+                }
+                case "confirm" -> serverController.confirmTrade(player);
                 case "commanders" -> {
                     player.sendMessage("[accent]=== Unlocked commanders ===");
                     player.sendMessage("[gray]" + MetaProgression.unlockedCount() + "/" + MetaProgression.totalCount() + " unlocked");
@@ -166,7 +258,7 @@ public class MindTheIndustryMod extends Mod{
                     player.sendMessage("[green]All commanders unlocked!");
                 }
                 case "active" -> {
-                    // /mindtheindustry active <entityId> <isBuilding> <playerName|none>
+                    // /mindtheindustry active <entityId> <isBuilding> <playerName|none> — boss window only
                     if(args.length < 4){
                         player.sendMessage("[scarlet]Usage: /mindtheindustry active <entityId> <isBuilding> <playerName|none>");
                         return;
@@ -183,12 +275,12 @@ public class MindTheIndustryMod extends Mod{
                                 return;
                             }
                         }
-                        serverController.setActivePlayer(entityId, isBuilding, target);
+                        serverController.setActivePlayer(entityId, isBuilding, target, player);
                     }catch(NumberFormatException e){
                         player.sendMessage("[scarlet]Invalid ID.");
                     }
                 }
-                default -> player.sendMessage("[scarlet]Usage: /mindtheindustry [start|stop|skip|status|commanders|unlock-all|active]");
+                default -> player.sendMessage("[scarlet]Usage: /mindtheindustry [start|stop|skip|status|ready|trade|confirm|commanders|unlock-all|active]");
             }
         });
     }

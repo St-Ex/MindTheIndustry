@@ -1,3 +1,8 @@
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.Properties
+
 plugins{
     java
 }
@@ -73,7 +78,141 @@ tasks.test{
     useJUnitPlatform()
 }
 
+// Build info (git SHA/branch/dirty) embedded in the jar as mti-build.properties,
+// so the loaded build can be verified on the mod card (meta.version) in-game.
+val buildInfoDir = layout.buildDirectory.dir("buildInfo")
+// Compute the git identity at configuration time so it can be declared as a
+// task input: without this, Gradle keeps generateBuildInfo UP-TO-DATE across
+// commits and the jar keeps a stale SHA baked in.
+fun gitInfo(vararg args: String): String = try{
+    val p = ProcessBuilder(listOf("git", *args)).directory(projectDir).redirectErrorStream(true).start()
+    val out = p.inputStream.readBytes().toString(Charsets.UTF_8)
+    p.waitFor()
+    out.trim()
+}catch(e: Exception){
+    ""
+}
+val buildSha = gitInfo("rev-parse", "--short", "HEAD").ifEmpty{ "unknown" }
+val buildBranch = gitInfo("rev-parse", "--abbrev-ref", "HEAD").ifEmpty{ "unknown" }
+val buildDirty = if(gitInfo("status", "--porcelain").isNotEmpty()) "-dirty" else ""
+val generateBuildInfo = tasks.register("generateBuildInfo"){
+    inputs.property("gitSha", "$buildSha$buildDirty")
+    inputs.property("gitBranch", buildBranch)
+    outputs.dir(buildInfoDir)
+    doLast{
+        val f = buildInfoDir.get().file("mti-build.properties").asFile
+        f.parentFile.mkdirs()
+        f.writeText("gitSha=$buildSha$buildDirty\ngitBranch=$buildBranch\nbuildTime=${Instant.now()}\n")
+        println("[buildInfo] gitSha=$buildSha$buildDirty branch=$buildBranch")
+    }
+}
+sourceSets{
+    main{
+        resources.srcDir(buildInfoDir)
+    }
+}
+tasks.named("processResources"){ dependsOn(generateBuildInfo) }
+tasks.named("processTestResources"){ dependsOn(generateBuildInfo) }
+
+// mod.hjson with the build identity (branch + SHA + build time) baked into the
+// version, so the mod card in the loaded-mods dialog shows exactly which build
+// is loaded (e.g. 0.1.0 [reward-pacing-and-boss-window bd3cecb 2026-11-04T08:48Z])
+val generateModHjson = tasks.register("generateModHjson"){
+    dependsOn(generateBuildInfo)
+    val out = layout.buildDirectory.file("modHjson/mod.hjson")
+    // re-bake whenever the build info changes (new commit), not just on clean
+    inputs.file(buildInfoDir.get().file("mti-build.properties"))
+    inputs.property("gitSha", "$buildSha$buildDirty")
+    outputs.file(out)
+    doLast{
+        val props = Properties()
+        props.load(buildInfoDir.get().file("mti-build.properties").asFile.inputStream())
+        val sha = props.getProperty("gitSha", "unknown")
+        val branch = props.getProperty("gitBranch", "?")
+        // compact UTC stamp for the mod card (full ISO time stays in mti-build.properties)
+        val stamp = try{
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'")
+                .withZone(ZoneOffset.UTC)
+                .format(Instant.parse(props.getProperty("buildTime", "")))
+        }catch(e: Exception){ "?" }
+        val original = File(projectDir, "mod.hjson").readText()
+        val patched = Regex("(?m)^version:.*$").replace(original, "version: \"0.1.0 [$branch $sha $stamp]\"")
+        val f = out.get().asFile
+        f.parentFile.mkdirs()
+        f.writeText(patched)
+        println("[modHjson] version = 0.1.0 [$branch $sha $stamp]")
+    }
+}
+tasks.named("processTestResources"){ dependsOn(generateModHjson) }
+
+// Default mods dir for deployMod.
+// The Steam build of Mindustry runs with its data dir at the RELATIVE "saves"
+// folder (DesktopLauncher: Version.isSteam → new Fi("saves")), and Steam
+// launches with CWD = install dir — so the Steam game reads mods from
+// <steam root>/steamapps/common/Mindustry/saves/mods, NOT ~/.local/share/Mindustry/mods
+// (that's the non-Steam/itch build's data dir). Auto-detect the Steam install;
+// fall back to the non-Steam location; -PmindustryModsDir=... always wins
+// (e.g. a Proton prefix's compatdata/1127400/pfx/drive_c/users/steamuser/AppData/Roaming/Mindustry/mods).
+fun detectSteamModsDir(): String?{
+    val home = System.getProperty("user.home")
+    val roots = mutableListOf(
+        "$home/.steam/steam", "$home/.steam/debian-installation", "$home/.steam/root",
+        "$home/.local/share/Steam", "$home/.var/app/com.valve.Steam/.local/share/Steam"
+    )
+    for(root in roots.toList()){
+        val vdf = File(root, "steamapps/libraryfolders.vdf")
+        if(vdf.isFile){
+            vdf.readLines().forEach{ line ->
+                Regex("\"path\"\\s+\"([^\"]+)\"").find(line)?.let{ roots.add(it.groupValues[1]) }
+            }
+        }
+    }
+    for(root in roots.distinct()){
+        val install = File(root, "steamapps/common/Mindustry")
+        if(install.isDirectory) return File(install, "saves/mods").absolutePath
+    }
+    return null
+}
+
+// Build + copy the mod into a game mods folder as a fixed-name .jar, so a
+// restart picks it up. The engine scans .jar and .zip identically, and a .jar
+// name never collides with the in-game "Import mod" flow, which copies imports
+// as .zip (re-importing the same mod then creates a duplicate entry instead of
+// overwriting). The mod stays enabled once toggled in the Mods menu — no manual
+// re-import needed, same file name each time.
+fun copyModInto(task: Task, modsDir: String){
+    task.dependsOn(tasks.jar)
+    (task as Copy).from(layout.buildDirectory.file("libs/${projectName}Desktop.jar"))
+    (task as Copy).into(modsDir)
+    (task as Copy).rename{ "mindtheindustry.jar" }
+    // remove a legacy .zip deployment: two files with the same internal mod
+    // name make the load order-dependent ("already imported" for the loser)
+    task.doLast{
+        File(modsDir, "mindtheindustry.zip").delete()
+        println("[${task.name}] installed mindtheindustry.jar into $modsDir")
+    }
+}
+
+// mise steam-deploy / mise deploy: build + install into the Steam game's mods
+// folder (auto-detected; -PmindustryModsDir=... wins, e.g. a Proton prefix)
+tasks.register<Copy>("deploySteamMod"){
+    val modsDir = project.findProperty("mindustryModsDir")?.toString()
+        ?: detectSteamModsDir()
+        ?: throw GradleException("no Steam Mindustry install detected (looked in standard Steam roots + libraryfolders.vdf); pass -PmindustryModsDir=... explicitly")
+    copyModInto(this, modsDir)
+}
+
+// build + install into whichever local game reads it: Steam mods dir if a
+// Steam install exists, else the non-Steam (~/.local/share) data dir
+tasks.register<Copy>("deployMod"){
+    val modsDir = project.findProperty("mindustryModsDir")?.toString()
+        ?: detectSteamModsDir()
+        ?: "${System.getProperty("user.home")}/.local/share/Mindustry/mods"
+    copyModInto(this, modsDir)
+}
+
 tasks.jar{
+    dependsOn(generateModHjson)
     archiveFileName.set("${projectName}Desktop.jar")
 
     from(configurations.runtimeClasspath.map{ files ->
@@ -81,9 +220,12 @@ tasks.jar{
     })
 
     from(projectDir){
-        include("mod.hjson")
         include("icon.png")
+        include("bundles/**")
     }
+
+    //generated mod.hjson (build SHA in the version), not the static one
+    from(layout.buildDirectory.file("modHjson/mod.hjson"))
 
     from("assets/"){
         include("**")

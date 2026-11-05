@@ -47,4 +47,12 @@ public enum Rarity{
         if(roll < rareWeight) return RARE;
         return EPIC;
     }
+
+    /**
+     * Rolls a relic rarity (boss-window pool): only RARE/EPIC, weighted
+     * (target ~70/30, weights in {@code RunConfig}). Deterministic per Rand.
+     */
+    public static Rarity rollRelic(Rand rand, float rareWeight, float epicWeight){
+        return rand.random(rareWeight + epicWeight) < rareWeight ? RARE : EPIC;
+    }
 }
