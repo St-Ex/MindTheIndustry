@@ -25,6 +25,8 @@ mise build
 mise exec -- ./gradlew test
 ```
 
+**Session location.** At session start, verify the session runs in a dedicated worktree: `pwd` under `~/.vibe/worktrees/<bucket>/` and `git branch --show-current` matching the worktree slug. If so, run repo commands bare — no `cd`, no absolute paths. If not (main/dev checkout, or a different change's task), propose `vibe --worktree <slug>` and continue there; never work directly on `main`.
+
 ## Test harness (mandatory)
 
 - Tests live in `tests/` (Gradle `test` sourceSet), JUnit 5.
